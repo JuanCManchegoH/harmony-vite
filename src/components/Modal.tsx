@@ -162,7 +162,10 @@ export default function Modal({
 														type="submit"
 														color="sky"
 														disabled={!enabled}
-														onClick={() => action()}
+														onClick={() => {
+															action();
+															setEnabled(false);
+														}}
 														className="ml-4"
 													>
 														{btnText || "Guardar"}

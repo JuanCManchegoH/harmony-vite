@@ -1,9 +1,10 @@
 import {
 	Badge,
 	Button,
-	ListItem,
 	MultiSelect,
 	MultiSelectItem,
+	TableCell,
+	TableRow,
 	TextInput,
 } from "@tremor/react";
 import { useState } from "react";
@@ -56,8 +57,8 @@ export default function User({ user }: { user: UsersWithId }) {
 		getRolName(user.roles) === "SuperAdmin" ? ["SuperAdmin"] : [];
 
 	return (
-		<ListItem key={user.id}>
-			<span>
+		<TableRow key={user.id} className="border-b">
+			<TableCell className="pl-0 py-2">
 				<div
 					className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-500"
 					title={user.userName}
@@ -67,15 +68,15 @@ export default function User({ user }: { user: UsersWithId }) {
 					</span>
 				</div>
 				<span className="ml-2">{user.userName}</span>
-			</span>
-			<span>{user.email}</span>
-			<span>
+			</TableCell>
+			<TableCell className="py-2">{user.email}</TableCell>
+			<TableCell className="py-2">
 				<Badge size="sm" color="sky">
 					{getRolName(user.roles)}
 				</Badge>
-			</span>
-			<span>
-				{validateRoles(profile.roles, superAdmin, ["admin"]) && (
+			</TableCell>
+			{validateRoles(profile.roles, superAdmin, ["admin"]) && (
+				<TableCell className="flex justify-end pr-0 py-2">
 					<Button
 						variant="secondary"
 						color="sky"
@@ -83,14 +84,15 @@ export default function User({ user }: { user: UsersWithId }) {
 					>
 						Editar
 					</Button>
-				)}
-				{superAdmin.length > 0 &&
-					getRolName(profile.roles) !== "SuperAdmin" && (
-						<Button variant="secondary" color="gray" disabled>
-							Editar
-						</Button>
-					)}
-			</span>
+				</TableCell>
+			)}
+			{superAdmin.length > 0 && getRolName(profile.roles) !== "SuperAdmin" && (
+				<TableCell className="flex justify-end pr-0 py-2">
+					<Button variant="secondary" color="gray" disabled>
+						Editar
+					</Button>
+				</TableCell>
+			)}
 			<Modal
 				open={opneUpdate}
 				setOpen={setOpenUpdate}
@@ -142,6 +144,6 @@ export default function User({ user }: { user: UsersWithId }) {
 					</MultiSelect>
 				</form>
 			</Modal>
-		</ListItem>
+		</TableRow>
 	);
 }

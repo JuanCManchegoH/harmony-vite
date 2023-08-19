@@ -9,6 +9,7 @@ import {
 	Select,
 	SelectItem,
 	TabPanel,
+	Table,
 	TextInput,
 } from "@tremor/react";
 import { useState } from "react";
@@ -82,7 +83,7 @@ export default function FieldsSection({
 
 	return (
 		<TabPanel>
-			<List className="border-t">
+			<List className="border-y">
 				{validateRoles(profile.roles, ["admin"], []) && (
 					<ListItem>
 						<span> Agregar un nuevo campo</span>
@@ -91,10 +92,12 @@ export default function FieldsSection({
 						</Button>
 					</ListItem>
 				)}
+			</List>
+			<Table>
 				{selectedItems.map((field, i) => (
 					<FieldItem key={`${field.name}-${i}`} field={field} type={type} />
 				))}
-			</List>
+			</Table>
 			<Modal
 				open={openCreate}
 				setOpen={setOpenCreate}

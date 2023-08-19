@@ -6,7 +6,7 @@ import Login from "./pages/Login";
 function App() {
 	return (
 		<>
-			<Toaster richColors position="bottom-center" />
+			<Toaster richColors closeButton position="bottom-center" />
 			<div className="h-full">
 				<Route path="/login" component={Login} />
 				<Route path="/harmony" component={Harmony} />

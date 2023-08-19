@@ -1,10 +1,10 @@
 import {
 	Button,
 	Card,
-	List,
 	NumberInput,
 	Select,
 	SelectItem,
+	Table,
 	Text,
 	TextInput,
 	Title,
@@ -26,14 +26,14 @@ export default function Positions() {
 	const [data, setData] = useState({
 		name: "",
 		value: 0,
-		year: years[1],
+		year: years[2],
 	});
 
 	const resetForm = () => {
 		setData({
 			name: "",
 			value: 0,
-			year: years[1],
+			year: years[2],
 		});
 	};
 
@@ -55,8 +55,8 @@ export default function Positions() {
 	};
 
 	return (
-		<Card className="p-4 overflow-auto">
-			<div className="flex space-x-2 items-center justify-between border-b pb-2">
+		<Card className="px-4 py-0 overflow-auto">
+			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
 				<Title>Cargos</Title>
 				{validateRoles(profile.roles, ["admin"], []) && (
 					<Button
@@ -68,11 +68,11 @@ export default function Positions() {
 					</Button>
 				)}
 			</div>
-			<List>
+			<Table>
 				{profile.company.positions.map((position) => (
 					<PositionItem key={position.id} position={position} />
 				))}
-			</List>
+			</Table>
 			<Modal
 				open={openCreate}
 				setOpen={setOpenCreate}
@@ -83,7 +83,6 @@ export default function Positions() {
 				<form className="grid grid-cols-2 gap-2">
 					<TextInput
 						className="col-span-2"
-						type="text"
 						placeholder="Nombre del cargo*"
 						value={data.name}
 						onChange={(e) => setData({ ...data, name: e.target.value })}

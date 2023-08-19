@@ -1,9 +1,9 @@
 import {
 	Button,
 	Card,
-	List,
 	MultiSelect,
 	MultiSelectItem,
+	Table,
 	TextInput,
 	Title,
 } from "@tremor/react";
@@ -68,8 +68,8 @@ export default function Users() {
 	};
 
 	return (
-		<Card className="row-span-2 col-span-2 p-4 overflow-auto">
-			<div className="flex space-x-2 items-center justify-between border-b pb-2">
+		<Card className="row-span-2 col-span-2 px-4 py-0 overflow-auto">
+			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
 				<Title>Usuarios</Title>
 				{validateRoles(profile.roles, ["admin"], []) && (
 					<Button
@@ -81,11 +81,11 @@ export default function Users() {
 					</Button>
 				)}
 			</div>
-			<List>
+			<Table>
 				{users.map((user) => (
 					<User key={user.id} user={user} />
 				))}
-			</List>
+			</Table>
 			<Modal
 				open={openCreate}
 				setOpen={setOpenCreate}

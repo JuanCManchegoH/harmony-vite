@@ -4,8 +4,8 @@ import FieldsSection from "./FieldsSection";
 
 export default function Fields() {
 	return (
-		<Card className="p-4 select-none overflow-auto">
-			<TabGroup className="flex flex-col items-center">
+		<Card className="px-4 py-0 overflow-auto">
+			<TabGroup className="flex flex-col items-center sticky top-0 bg-white pt-4">
 				<TabList color="rose" variant="solid">
 					<Tab
 						className="text-base font-bold hover:text-gray-800 dark:hover:text-gray-800 text-gray-700 dark:text-gray-700 items-center"

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAppSelector } from "../../hooks/store";
 import { useUsers } from "../../hooks/useUsers";
 import { validateRoles } from "../../utils/roles";
+import Conventions from "./Conventions";
 import Fields from "./Fields";
 import Positions from "./Positions";
 import Users from "./Users";
@@ -26,16 +27,7 @@ export default function Dashboard() {
 			<Users />
 			<Fields />
 			<Positions />
-			<Card className="p-4 overflow-auto">
-				<div className="flex space-x-2 items-center justify-between border-b pb-2">
-					<Title>Convenciones</Title>
-					{validateRoles(profile.roles, ["admin"], []) && (
-						<Button variant="primary" color="sky">
-							Crear Convención
-						</Button>
-					)}
-				</div>
-			</Card>
+			<Conventions />
 			<Card className="p-4 overflow-auto">
 				<div className="flex space-x-2 items-center justify-between border-b pb-2">
 					<Title>Secuencias</Title>

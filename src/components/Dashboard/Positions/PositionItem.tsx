@@ -1,10 +1,11 @@
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import {
 	Button,
-	ListItem,
 	NumberInput,
 	Select,
 	SelectItem,
+	TableCell,
+	TableRow,
 	TextInput,
 } from "@tremor/react";
 import { useState } from "react";
@@ -46,9 +47,9 @@ export default function PositionItem({ position }: { position: Position }) {
 	};
 
 	return (
-		<ListItem>
+		<TableRow className="uppercase border-b">
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<div className="flex space-x-2">
+				<TableCell className="pl-0 py-2">
 					<XMarkIcon
 						className="w-5 h-5 cursor-pointer hover:text-red-500"
 						onClick={() =>
@@ -60,20 +61,22 @@ export default function PositionItem({ position }: { position: Position }) {
 							})
 						}
 					/>
-				</div>
+				</TableCell>
 			)}
-			<span>{position.name}</span>
-			<span>{formatCurrency(position.value)}</span>
-			<span>{position.year}</span>
+			<TableCell className="py-2">{position.name}</TableCell>
+			<TableCell className="py-2">{formatCurrency(position.value)}</TableCell>
+			<TableCell className="py-2">{position.year}</TableCell>
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<Button
-					variant="secondary"
-					onClick={() => setUpdate(true)}
-					color="sky"
-					size="xs"
-				>
-					Editar
-				</Button>
+				<TableCell className="flex justify-end pr-0 py-2">
+					<Button
+						variant="secondary"
+						onClick={() => setUpdate(true)}
+						color="sky"
+						size="xs"
+					>
+						Editar
+					</Button>
+				</TableCell>
 			)}
 			<Modal
 				open={update}
@@ -109,6 +112,6 @@ export default function PositionItem({ position }: { position: Position }) {
 					</Select>
 				</form>
 			</Modal>
-		</ListItem>
+		</TableRow>
 	);
 }

@@ -3,10 +3,11 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import {
 	Badge,
 	Button,
-	ListItem,
 	NumberInput,
 	Select,
 	SelectItem,
+	TableCell,
+	TableRow,
 	TextInput,
 } from "@tremor/react";
 import { useState } from "react";
@@ -66,9 +67,9 @@ export default function FieldItem({
 	};
 
 	return (
-		<ListItem>
+		<TableRow className="uppercase border-b">
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<span>
+				<TableCell className="pl-0 py-2">
 					<XMarkIcon
 						className="w-4 h-4 cursor-pointer hover:text-red-500"
 						onClick={() =>
@@ -80,20 +81,26 @@ export default function FieldItem({
 							})
 						}
 					/>
-				</span>
+				</TableCell>
 			)}
-			<span>{field.name}</span>
-			<span>{types[field.type as keyof typeof types]}</span>
-			<span>{field.required ? "Requerido" : "Opcional"}</span>
+			<TableCell className="py-2">{field.name}</TableCell>
+			<TableCell className="py-2">
+				{types[field.type as keyof typeof types]}
+			</TableCell>
+			<TableCell className="py-2">
+				{field.required ? "Requerido" : "Opcional"}
+			</TableCell>
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<Button
-					color="sky"
-					size="xs"
-					variant="secondary"
-					onClick={() => setOpenUpdate(true)}
-				>
-					Editar
-				</Button>
+				<TableCell className="flex justify-end pr-0 py-2">
+					<Button
+						color="sky"
+						size="xs"
+						variant="secondary"
+						onClick={() => setOpenUpdate(true)}
+					>
+						Editar
+					</Button>
+				</TableCell>
 			)}
 			<Modal
 				open={openUpdate}
@@ -249,6 +256,6 @@ export default function FieldItem({
 					</Switch.Group>
 				</form>
 			</Modal>
-		</ListItem>
+		</TableRow>
 	);
 }
