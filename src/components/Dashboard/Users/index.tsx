@@ -22,8 +22,8 @@ interface CreateUserData {
 }
 
 export default function Users() {
-	const { users } = useAppSelector((state) => state.users);
 	const profile = useAppSelector((state) => state.auth.profile);
+	const { users } = useAppSelector((state) => state.users);
 	const { getNewUserRoles, createUser } = useUsers(profile, users);
 	const [openCreate, setOpenCreate] = useState(false);
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);

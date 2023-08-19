@@ -1,8 +1,10 @@
-import { Card, Grid, Metric, Text } from "@tremor/react";
+import { Button, Card, Grid, Title } from "@tremor/react";
 import { useEffect } from "react";
 import { useAppSelector } from "../../hooks/store";
 import { useUsers } from "../../hooks/useUsers";
+import { validateRoles } from "../../utils/roles";
 import Fields from "./Fields";
+import Positions from "./Positions";
 import Users from "./Users";
 
 export default function Dashboard() {
@@ -19,25 +21,40 @@ export default function Dashboard() {
 			numItems={1}
 			numItemsSm={2}
 			numItemsLg={3}
-			className="gap-2 h-full p-2"
+			className="gap-2 h-full p-2 grid-rows-3"
 		>
 			<Users />
 			<Fields />
-			<Card>
-				<Text>Cargos</Text>
-				<Metric>KPI 3</Metric>
+			<Positions />
+			<Card className="p-4 overflow-auto">
+				<div className="flex space-x-2 items-center justify-between border-b pb-2">
+					<Title>Convenciones</Title>
+					{validateRoles(profile.roles, ["admin"], []) && (
+						<Button variant="primary" color="sky">
+							Crear Convención
+						</Button>
+					)}
+				</div>
 			</Card>
-			<Card>
-				<Text>Convenciones</Text>
-				<Metric>KPI 4</Metric>
+			<Card className="p-4 overflow-auto">
+				<div className="flex space-x-2 items-center justify-between border-b pb-2">
+					<Title>Secuencias</Title>
+					{validateRoles(profile.roles, ["admin"], []) && (
+						<Button variant="primary" color="sky">
+							Crear Secuencia
+						</Button>
+					)}
+				</div>
 			</Card>
-			<Card>
-				<Text>Secuencias</Text>
-				<Metric>KPI 5</Metric>
-			</Card>
-			<Card>
-				<Text>Etiquetas</Text>
-				<Metric>KPI 5</Metric>
+			<Card className="p-4 overflow-auto">
+				<div className="flex space-x-2 items-center justify-between border-b pb-2">
+					<Title>Etiquetas</Title>
+					{validateRoles(profile.roles, ["admin"], []) && (
+						<Button variant="primary" color="sky">
+							Crear Etiqueta
+						</Button>
+					)}
+				</div>
 			</Card>
 		</Grid>
 	);
