@@ -6,6 +6,7 @@ import { validateRoles } from "../../utils/roles";
 import Conventions from "./Conventions";
 import Fields from "./Fields";
 import Positions from "./Positions";
+import Sequences from "./Sequences";
 import Users from "./Users";
 
 export default function Dashboard() {
@@ -28,16 +29,7 @@ export default function Dashboard() {
 			<Fields />
 			<Positions />
 			<Conventions />
-			<Card className="p-4 overflow-auto">
-				<div className="flex space-x-2 items-center justify-between border-b pb-2">
-					<Title>Secuencias</Title>
-					{validateRoles(profile.roles, ["admin"], []) && (
-						<Button variant="primary" color="sky">
-							Crear Secuencia
-						</Button>
-					)}
-				</div>
-			</Card>
+			<Sequences />
 			<Card className="p-4 overflow-auto">
 				<div className="flex space-x-2 items-center justify-between border-b pb-2">
 					<Title>Etiquetas</Title>

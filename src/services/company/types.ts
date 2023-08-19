@@ -25,7 +25,7 @@ export interface Convention {
 export interface Step {
 	startTime: string;
 	endTime: string;
-	color: string;
+	color: "green" | "gray";
 }
 
 export interface Sequence {

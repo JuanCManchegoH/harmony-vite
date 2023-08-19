@@ -4,6 +4,7 @@ import {
 	HomeIcon,
 	PresentationChartBarIcon,
 } from "@heroicons/react/24/solid";
+import { Player } from "@lottiefiles/react-lottie-player";
 import { Tab, TabList, Title } from "@tremor/react";
 import { Fragment } from "react";
 import { useAppSelector } from "../hooks/store";
@@ -21,7 +22,7 @@ export default function Navbar() {
 
 	return (
 		<header className="fixed bg-white inset-x-0 px-2 top-0 z-10 flex justify-end items-center h-12 border-b border-gray-900/10 font-rhd">
-			<div className="bg-rose-500 absolute left-2 top-1 h-fit py-1 px-2 rounded-md">
+			<div className="bg-rose-500 absolute left-2 top-1 h-fit py-1 px-2 rounded-md shadow-xl">
 				<Title
 					className="grid place-content-center text-2xl text-gray-50 font-pacifico"
 					color="gray"
@@ -29,6 +30,19 @@ export default function Navbar() {
 					Harmony
 				</Title>
 			</div>
+			<Player
+				src="https://lottie.host/b83ec7da-2180-410c-abfd-da574078a863/1KdE2tEL0F.json"
+				className="player"
+				autoplay
+				loop
+				style={{
+					height: "70px",
+					width: "70px",
+					position: "absolute",
+					left: "77px",
+					top: "-12px",
+				}}
+			/>
 			<div className="grid place-content-center mr-4">
 				<TabList
 					className="flex-1 flex items-center justify-end space-x-4 border-transparent dark:border-transparent"
