@@ -11,40 +11,41 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAppSelector } from "../../../hooks/store";
-import { useConventions } from "../../../hooks/useConventions";
-import { conventionsColors } from "../../../utils/colors";
+import { useTags } from "../../../hooks/useTags";
 import { validateRoles } from "../../../utils/roles";
 import Modal from "../../Modal";
-import ConventionItem from "./ConventionItem";
+import TagItem from "./TagItem";
 
-export default function Conventions() {
+const scopes = [
+	{ name: "stalls", value: "Puestos" },
+	{ name: "customers", value: "Clientes" },
+	{ name: "workers", value: "Personal" },
+];
+
+export default function Tags() {
 	const profile = useAppSelector((state) => state.auth.profile);
-	const { createConvention } = useConventions();
+	const { createTag } = useTags();
 	const [openCreate, setOpenCreate] = useState(false);
 	const [data, setData] = useState({
 		name: "",
-		abbreviation: "",
-		color: "",
+		color: "gray",
+		scope: scopes[0].name,
 	});
 
 	const resetForm = () => {
 		setData({
 			name: "",
-			abbreviation: "",
-			color: "",
+			color: "gray",
+			scope: scopes[0].name,
 		});
 	};
 
 	const handleCreate = async () => {
-		if (!data.name || !data.abbreviation || !data.color) {
+		if (!data.name) {
 			toast.error("Todos los campos son obligatorios");
 			return;
 		}
-		if (data.abbreviation.length > 2) {
-			toast.error("La abreviatura debe tener máximo 2 caracteres");
-			return;
-		}
-		await createConvention(data).then((res) => {
+		await createTag(data).then((res) => {
 			if (res) {
 				resetForm();
 			}
@@ -54,62 +55,55 @@ export default function Conventions() {
 	return (
 		<Card className="px-4 py-0 overflow-auto">
 			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
-				<Title>Convenciones</Title>
+				<Title>Etiquetas</Title>
 				{validateRoles(profile.roles, ["admin"], []) && (
 					<Button
 						variant="primary"
 						color="sky"
 						onClick={() => setOpenCreate(true)}
 					>
-						Crear Convención
+						Crear Etiqueta
 					</Button>
 				)}
 			</div>
-			<Table>
-				{/* sort by color */}
-				{profile.company.conventions
+			<Table className="w-full">
+				{profile.company.tags
 					.slice()
-					.sort((a, b) => a.color.localeCompare(b.color))
-					.map((convention) => (
-						<ConventionItem key={convention.id} convention={convention} />
+					.sort((a, b) => a.scope.localeCompare(b.scope))
+					.map((tag) => (
+						<TagItem key={tag.id} tag={tag} />
 					))}
 			</Table>
 			<Modal
 				open={openCreate}
 				setOpen={setOpenCreate}
-				title="Crear Convención"
-				btnText="Crear"
+				title="Crear Etiqueta"
 				action={handleCreate}
 			>
-				<form className="grid grid-cols-2 gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					<TextInput
-						className="col-span-2"
 						placeholder="Nombre"
-						maxLength={15}
+						maxLength={7}
 						value={data.name}
 						onChange={(e) => setData({ ...data, name: e.target.value })}
 					/>
-					<TextInput
-						placeholder="Abreviatura"
-						maxLength={2}
-						value={data.abbreviation}
-						onChange={(e) => setData({ ...data, abbreviation: e.target.value })}
-					/>
 					<Select
 						placeholder="Grupo"
-						value={data.color}
-						onValueChange={(value) => setData({ ...data, color: value })}
+						value={data.scope}
+						onValueChange={(value) => setData({ ...data, scope: value })}
 					>
-						{conventionsColors.map((color) => (
-							<SelectItem key={color.name} value={color.value}>
-								{color.name}
+						{scopes.map((scope) => (
+							<SelectItem key={scope.name} value={scope.name}>
+								{scope.value}
 							</SelectItem>
 						))}
 					</Select>
 					<Text className="col-span-2 text-justify">
-						Las abreviaturas deben tener máximo 2 caracteres.
+						Estas etiquetas, en el caso de los clientes y personal, ayuda a
+						gestionar los permisos de acceso. En caso de los puestos permite
+						agregar información adicional.
 					</Text>
-				</form>
+				</div>
 			</Modal>
 		</Card>
 	);

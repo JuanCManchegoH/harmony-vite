@@ -71,7 +71,7 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 			toast.success("Usuario creado correctamente");
 			return data;
 		} catch (error) {
-			return toast.error("Error al crear el usuario");
+			toast.error("Error al crear el usuario");
 		} finally {
 			dispatch(setLoading(false));
 		}
@@ -88,7 +88,23 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 			toast.success("Usuario actualizado correctamente");
 			return data;
 		} catch (error) {
-			return toast.error("Error al actualizar el usuario");
+			toast.error("Error al actualizar el usuario");
+		} finally {
+			dispatch(setLoading(false));
+		}
+	}
+
+	async function deleteUser(id: string) {
+		try {
+			dispatch(setLoading(true));
+			const access_token = Cookie.get("access_token");
+			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+			await axios.delete(api.users.delete(id));
+			const newUsers = users.filter((u) => u.id !== id);
+			dispatch(setUsers(newUsers));
+			return toast.success("Usuario eliminado correctamente");
+		} catch (error) {
+			toast.error("Error al eliminar el usuario");
 		} finally {
 			dispatch(setLoading(false));
 		}
@@ -99,5 +115,6 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 		getNewUserRoles,
 		createUser,
 		updateUser,
+		deleteUser,
 	};
 };

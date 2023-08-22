@@ -84,10 +84,10 @@ export default function FieldItem({
 				</TableCell>
 			)}
 			<TableCell className="py-2">{field.name}</TableCell>
-			<TableCell className="py-2">
+			<TableCell className="hidden py-2 2xl:table-cell">
 				{types[field.type as keyof typeof types]}
 			</TableCell>
-			<TableCell className="py-2">
+			<TableCell className="hidden py-2 xl:table-cell">
 				{field.required ? "Requerido" : "Opcional"}
 			</TableCell>
 			{validateRoles(profile.roles, ["admin"], []) && (

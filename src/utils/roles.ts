@@ -1,5 +1,11 @@
 export const roles = [
 	{
+		name: "Solo lectura",
+		level: 0,
+		roles: ["read_workers", "read_customers", "read_plans", "read_events"],
+		dependencies: [],
+	},
+	{
 		name: "Personal",
 		level: 1,
 		roles: ["read_workers", "handle_workers"],

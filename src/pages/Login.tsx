@@ -1,6 +1,8 @@
-import { KeyIcon, UserCircleIcon } from "@heroicons/react/24/outline";
-import { Button, Subtitle, TextInput, Title } from "@tremor/react";
+import { KeyIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { Player } from "@lottiefiles/react-lottie-player";
+import { Button, Subtitle, TextInput } from "@tremor/react";
 import { useEffect, useState } from "react";
+import Background from "../common/Background";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
@@ -18,14 +20,32 @@ export default function Login() {
 
 	return (
 		<>
-			<section className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-				<div className="sm:mx-auto sm:w-full sm:max-w-sm">
-					<Title
-						className="grid place-content-center text-5xl font-black mx-auto h-10 w-auto text-red-500 font-rhd"
-						color="yellow"
-					>
-						Harmony
-					</Title>
+			<Player
+				src="https://lottie.host/b83ec7da-2180-410c-abfd-da574078a863/1KdE2tEL0F.json"
+				className="player"
+				autoplay
+				loop
+				style={{
+					height: "120px",
+					width: "120px",
+					position: "absolute",
+					right: "0",
+					bottom: "0",
+					zIndex: 10,
+				}}
+			/>
+			<section className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 z-10">
+				<div className="sm:mx-auto sm:w-full sm:max-w-sm z-10">
+					<div className="flex flex-col items-center justify-center">
+						<div className="bg-rose-500 h-fit py-2 px-2 rounded-md shadow-xl">
+							<h1
+								className="grid place-content-center text-5xl text-gray-50 font-pacifico"
+								color="gray"
+							>
+								Harmony
+							</h1>
+						</div>
+					</div>
 					<Subtitle
 						className="mt-5 text-center text-lg font-bold leading-9 tracking-tight text-gray-900"
 						color="gray"
@@ -34,7 +54,7 @@ export default function Login() {
 					</Subtitle>
 				</div>
 
-				<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+				<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm z-10">
 					<form className="space-y-6" onSubmit={handleSubmit}>
 						<TextInput
 							icon={UserCircleIcon}
@@ -64,6 +84,7 @@ export default function Login() {
 					</form>
 				</div>
 			</section>
+			<Background />
 		</>
 	);
 }

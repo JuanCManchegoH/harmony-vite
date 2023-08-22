@@ -40,6 +40,20 @@ const api = {
 		updateRoles: (userId: string) => `${API}/users/roles/${userId}`,
 		updateCustomers: (userId: string) => `${API}/users/customers/${userId}`,
 		updateWorkers: (userId: string) => `${API}/users/workers/${userId}`,
+		delete: (userId: string) => `${API}/users/${userId}`,
+	},
+	customers: {
+		create: `${API}/customers`,
+		getByCompany: `${API}/customers/`,
+		update: (customerId: string) => `${API}/customers/${customerId}`,
+		delete: (customerId: string) => `${API}/customers/${customerId}`,
+	},
+	workers: {
+		create: `${API}/workers`,
+		search: (search: string, limit: number, offset: number) =>
+			`${API}/workers/${search}/${limit}/${offset}`,
+		update: (workerId: string) => `${API}/workers/${workerId}`,
+		delete: (workerId: string) => `${API}/workers/${workerId}`,
 	},
 };
 

@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { useAppSelector } from "../../../hooks/store";
 import { useUsers } from "../../../hooks/useUsers";
-import { roles, validateRoles } from "../../../utils/roles";
+import { getRolName, roles, validateRoles } from "../../../utils/roles";
 import Modal from "../../Modal";
 import User from "./User";
 
@@ -67,8 +67,19 @@ export default function Users() {
 		});
 	};
 
+	const customerTags = profile.company.tags.filter(
+		(tag) => tag.scope === "customers",
+	);
+	const workerTags = profile.company.tags.filter(
+		(tag) => tag.scope === "workers",
+	);
+	const showRoles =
+		getRolName(profile.roles) === "SuperAdmin"
+			? roles
+			: roles.filter((role) => role.name !== "SuperAdmin");
+
 	return (
-		<Card className="row-span-2 col-span-2 px-4 py-0 overflow-auto">
+		<Card className="px-4 py-0 overflow-auto lg:col-span-2 lg:row-span-2 ">
 			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
 				<Title>Usuarios</Title>
 				{validateRoles(profile.roles, ["admin"], []) && (
@@ -82,9 +93,18 @@ export default function Users() {
 				)}
 			</div>
 			<Table>
-				{users.map((user) => (
-					<User key={user.id} user={user} />
-				))}
+				{users.map((user) => {
+					const superAdmin =
+						getRolName(user.roles) === "SuperAdmin" ? true : false;
+					return (
+						<>
+							{superAdmin && getRolName(profile.roles) === "SuperAdmin" && (
+								<User key={user.id} user={user} />
+							)}
+							{!superAdmin && <User key={user.id} user={user} />}
+						</>
+					);
+				})}
 			</Table>
 			<Modal
 				open={openCreate}
@@ -131,27 +151,39 @@ export default function Users() {
 						value={selectedRoles}
 						onValueChange={(v) => setSelectedRoles(v)}
 					>
-						{roles
-							.filter((role) => role.name !== "SuperAdmin")
-							.map((role) => (
-								<MultiSelectItem key={role.name} value={role.name}>
-									{role.name}
-								</MultiSelectItem>
-							))}
+						{showRoles.map((role) => (
+							<MultiSelectItem key={role.name} value={role.name}>
+								{role.name}
+							</MultiSelectItem>
+						))}
 					</MultiSelect>
 					<MultiSelect
 						placeholder="Clientes"
 						value={selectedCustomers}
-						onValueChange={(v) => setSelectedCustomers(v)}
+						onValueChange={(value) => setSelectedCustomers(value)}
 					>
-						<MultiSelectItem value="all">Todos</MultiSelectItem>
+						<>
+							<MultiSelectItem value="all">TODOS</MultiSelectItem>
+							{customerTags.map((tag) => (
+								<MultiSelectItem key={tag.id} value={tag.name}>
+									{tag.name}
+								</MultiSelectItem>
+							))}
+						</>
 					</MultiSelect>
 					<MultiSelect
 						placeholder="Personal"
 						value={selectedWorkers}
-						onValueChange={(v) => setSelectedWorkers(v)}
+						onValueChange={(value) => setSelectedWorkers(value)}
 					>
-						<MultiSelectItem value="all">Todos</MultiSelectItem>
+						<>
+							<MultiSelectItem value="all">TODOS</MultiSelectItem>
+							{workerTags.map((tag) => (
+								<MultiSelectItem key={tag.id} value={tag.name}>
+									{tag.name}
+								</MultiSelectItem>
+							))}
+						</>
 					</MultiSelect>
 				</form>
 			</Modal>

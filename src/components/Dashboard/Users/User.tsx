@@ -1,3 +1,4 @@
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import {
 	Badge,
 	Button,
@@ -8,6 +9,7 @@ import {
 	TextInput,
 } from "@tremor/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useAppSelector } from "../../../hooks/store";
 import { useUsers } from "../../../hooks/useUsers";
 import { UsersWithId } from "../../../services/users/types";
@@ -23,7 +25,7 @@ export default function User({ user }: { user: UsersWithId }) {
 	const [opneUpdate, setOpenUpdate] = useState(false);
 	const { users } = useAppSelector((state) => state.users);
 	const { profile } = useAppSelector((state) => state.auth);
-	const { getNewUserRoles, updateUser } = useUsers(profile, users);
+	const { getNewUserRoles, updateUser, deleteUser } = useUsers(profile, users);
 	const [selectedRoles, setSelectedRoles] = useState<string[]>(
 		roles
 			.filter((role) => role.roles.every((r) => user.roles.includes(r)))
@@ -45,20 +47,43 @@ export default function User({ user }: { user: UsersWithId }) {
 			{
 				...data,
 				roles: newUserRoles,
-				customers: selectedCustomers,
-				workers: selectedWorkers,
+				customers: selectedCustomers.length === 0 ? ["all"] : selectedCustomers,
+				workers: selectedWorkers.length === 0 ? ["all"] : selectedWorkers,
 				active: true,
 			},
 			user.id,
 		);
 	};
 
-	const superAdmin =
-		getRolName(user.roles) === "SuperAdmin" ? ["SuperAdmin"] : [];
+	const customerTags = profile.company.tags.filter(
+		(tag) => tag.scope === "customers",
+	);
+	const workerTags = profile.company.tags.filter(
+		(tag) => tag.scope === "workers",
+	);
+	const showRoles =
+		getRolName(profile.roles) === "SuperAdmin"
+			? roles
+			: roles.filter((role) => role.name !== "SuperAdmin");
 
 	return (
 		<TableRow key={user.id} className="border-b">
-			<TableCell className="pl-0 py-2">
+			{validateRoles(profile.roles, ["admin"], []) && (
+				<TableCell className="pl-0 py-2">
+					<XMarkIcon
+						className="w-5 h-5 cursor-pointer hover:text-red-500"
+						onClick={() =>
+							toast("Confirmar acción", {
+								action: {
+									label: "Eliminar",
+									onClick: () => deleteUser(user.id),
+								},
+							})
+						}
+					/>
+				</TableCell>
+			)}
+			<TableCell className="py-2">
 				<div
 					className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-500"
 					title={user.userName}
@@ -69,26 +94,19 @@ export default function User({ user }: { user: UsersWithId }) {
 				</div>
 				<span className="ml-2">{user.userName}</span>
 			</TableCell>
-			<TableCell className="py-2">{user.email}</TableCell>
-			<TableCell className="py-2">
+			<TableCell className="hidden py-2 lg:table-cell">{user.email}</TableCell>
+			<TableCell className="hidden py-2 lg:table-cell">
 				<Badge size="sm" color="sky">
 					{getRolName(user.roles)}
 				</Badge>
 			</TableCell>
-			{validateRoles(profile.roles, superAdmin, ["admin"]) && (
+			{validateRoles(profile.roles, ["admin"], []) && (
 				<TableCell className="flex justify-end pr-0 py-2">
 					<Button
 						variant="secondary"
 						color="sky"
 						onClick={() => setOpenUpdate(true)}
 					>
-						Editar
-					</Button>
-				</TableCell>
-			)}
-			{superAdmin.length > 0 && getRolName(profile.roles) !== "SuperAdmin" && (
-				<TableCell className="flex justify-end pr-0 py-2">
-					<Button variant="secondary" color="gray" disabled>
 						Editar
 					</Button>
 				</TableCell>
@@ -120,27 +138,39 @@ export default function User({ user }: { user: UsersWithId }) {
 						value={selectedRoles}
 						onValueChange={(v) => setSelectedRoles(v)}
 					>
-						{roles
-							.filter((role) => role.name !== "SuperAdmin")
-							.map((role) => (
-								<MultiSelectItem key={role.name} value={role.name}>
-									{role.name}
-								</MultiSelectItem>
-							))}
+						{showRoles.map((role) => (
+							<MultiSelectItem key={role.name} value={role.name}>
+								{role.name}
+							</MultiSelectItem>
+						))}
 					</MultiSelect>
 					<MultiSelect
 						placeholder="Clientes"
 						value={selectedCustomers}
 						onValueChange={(v) => setSelectedCustomers(v)}
 					>
-						<MultiSelectItem value="all">Todos</MultiSelectItem>
+						<>
+							<MultiSelectItem value="all">TODOS</MultiSelectItem>
+							{customerTags.map((tag) => (
+								<MultiSelectItem key={tag.id} value={tag.name}>
+									{tag.name}
+								</MultiSelectItem>
+							))}
+						</>
 					</MultiSelect>
 					<MultiSelect
 						placeholder="Personal"
 						value={selectedWorkers}
 						onValueChange={(v) => setSelectedWorkers(v)}
 					>
-						<MultiSelectItem value="all">Todos</MultiSelectItem>
+						<>
+							<MultiSelectItem value="all">TODOS</MultiSelectItem>
+							{workerTags.map((tag) => (
+								<MultiSelectItem key={tag.id} value={tag.name}>
+									{tag.name}
+								</MultiSelectItem>
+							))}
+						</>
 					</MultiSelect>
 				</form>
 			</Modal>

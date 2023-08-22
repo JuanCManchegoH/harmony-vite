@@ -42,7 +42,7 @@ export default function Modal({
 								<Dialog.Panel className="pointer-events-auto w-screen max-w-lg">
 									<div className="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl">
 										<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-											<div className="px-4 border-b py-4 bg-gray-900">
+											<div className="px-4 border-b py-4 bg-gray-700">
 												<div className="flex items-start justify-between">
 													<Dialog.Title className="text-base font-semibold leading-6 text-gray-50">
 														{title}
@@ -50,7 +50,7 @@ export default function Modal({
 													<div className="ml-3 flex h-7 items-center">
 														<button
 															type="button"
-															className="relative rounded-md bg-gray-800 text-gray-400 hover:text-gray-300"
+															className="relative rounded-md bg-gray-600 text-gray-400 hover:text-gray-300"
 															onClick={() => setOpen(false)}
 														>
 															<span className="absolute -inset-2.5" />

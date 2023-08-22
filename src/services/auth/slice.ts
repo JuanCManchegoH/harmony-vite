@@ -10,6 +10,7 @@ export const DEFAULT_PROFILE: Profile = {
 	email: "",
 	company: DEFAULT_COMPANY,
 	customers: [],
+	workers: [],
 	roles: [],
 	active: false,
 };

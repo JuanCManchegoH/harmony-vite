@@ -2,6 +2,7 @@ import { TabGroup, TabPanel, TabPanels } from "@tremor/react";
 import { useEffect } from "react";
 import Dashboard from "../components/Dashboard";
 import Navbar from "../components/Navbar";
+import Plans from "../components/Plans";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Harmony() {
@@ -18,6 +19,9 @@ export default function Harmony() {
 				<TabPanels className="h-full pt-12">
 					<TabPanel className="h-full mt-0">
 						<Dashboard />
+					</TabPanel>
+					<TabPanel className="h-full mt-0">
+						<Plans />
 					</TabPanel>
 				</TabPanels>
 			</TabGroup>

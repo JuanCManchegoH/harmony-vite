@@ -64,7 +64,9 @@ export default function PositionItem({ position }: { position: Position }) {
 				</TableCell>
 			)}
 			<TableCell className="py-2">{position.name}</TableCell>
-			<TableCell className="py-2">{formatCurrency(position.value)}</TableCell>
+			<TableCell className="hidden py-2 xl:table-cell">
+				{formatCurrency(position.value)}
+			</TableCell>
 			<TableCell className="py-2">{position.year}</TableCell>
 			{validateRoles(profile.roles, ["admin"], []) && (
 				<TableCell className="flex justify-end pr-0 py-2">

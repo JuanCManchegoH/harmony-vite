@@ -65,7 +65,10 @@ export default function ConventionItem({
 			)}
 			<TableCell className="py-2">{convention.name}</TableCell>
 			<TableCell
-				className={classNames(`text-${convention.color}-400`, "font-bold py-2")}
+				className={classNames(
+					`text-${convention.color}-400`,
+					"font-semibold hidden py-2 lg:table-cell",
+				)}
 			>
 				{
 					conventionsColors.find((c) => c.value === convention.color)
