@@ -1,5 +1,6 @@
 import { TabGroup, TabPanel, TabPanels } from "@tremor/react";
 import { useEffect } from "react";
+import Background from "../common/Background";
 import Dashboard from "../components/Dashboard";
 import Navbar from "../components/Navbar";
 import Plans from "../components/Plans";
@@ -24,6 +25,7 @@ export default function Harmony() {
 						<Plans />
 					</TabPanel>
 				</TabPanels>
+				<Background />
 			</TabGroup>
 		</>
 	);

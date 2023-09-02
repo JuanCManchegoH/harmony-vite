@@ -1,3 +1,30 @@
+import { format, getDaysInMonth } from "date-fns";
+import { holidays } from "./holidays";
+export interface MonthDay {
+	day: string;
+	date: Date;
+	isHoliday: boolean;
+}
+
+export type weekDay =
+	| "sunday"
+	| "monday"
+	| "tuesday"
+	| "wednesday"
+	| "thursday"
+	| "friday"
+	| "saturday";
+
+export const weekDays = {
+	sunday: "Domingo",
+	monday: "Lunes",
+	tuesday: "Martes",
+	wednesday: "Miércoles",
+	thursday: "Jueves",
+	friday: "Viernes",
+	saturday: "Sábado",
+};
+
 const months = [
 	{ name: "Enero", value: "0" },
 	{ name: "Febrero", value: "1" },
@@ -22,4 +49,35 @@ const years = [
 	{ name: "2027", value: "2027" },
 ];
 
-export { months, years };
+const getDays = (month: string, year: string) => {
+	const days: MonthDay[] = [];
+	const daysInMonth = getDaysInMonth(
+		new Date(Number(year), parseInt(month), 1),
+	);
+	for (let i = 1; i <= daysInMonth; i++) {
+		const date = new Date(Number(year), parseInt(month), i);
+		const day = format(date, "EEEE").toLowerCase();
+		const isHoliday = holidays.includes(format(date, "dd/MM/yyyy"));
+		days.push({
+			day: weekDays[day as weekDay],
+			isHoliday,
+			date,
+		});
+	}
+	return days;
+};
+
+const getDay = (date: Date) => {
+	return format(date, "dd");
+};
+
+const DateToSring = (date: Date) => {
+	return format(date, "dd/MM/yyyy");
+};
+
+const StringToDate = (date: string) => {
+	const [day, month, year] = date.split("/");
+	return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
+export { DateToSring, StringToDate, getDay, getDays, months, years };

@@ -7,12 +7,12 @@ import {
 import { Button, Card, Text, TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
+import Modal from "../../../common/RightModal";
 import { useAppSelector } from "../../../hooks/store";
 import { useCustomers } from "../../../hooks/useCustomers";
 import { CustomerWithId, Field } from "../../../services/customers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 import Customer from "./Customer";
 import List from "./List";
 
@@ -167,6 +167,7 @@ export default function Customers({
 		<Modal
 			open={open}
 			setOpen={setOpen}
+			icon={UserGroupIcon}
 			title="Clientes"
 			btnText={selectedCustomer ? "Actualizar" : "Crear"}
 			action={selectedCustomer || openCustomer ? action : undefined}

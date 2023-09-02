@@ -1,9 +1,10 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { setCompany } from "../services/auth/slice";
-import { Company } from "../services/company/types";
+import { Company, Tag } from "../services/company/types";
 import { useAppDispatch } from "./store";
 
 interface TagDto {
@@ -60,4 +61,51 @@ export const useTags = () => {
 	}
 
 	return { createTag, updateTag, deleteTag };
+};
+
+export const useHandleTags = (tag?: Tag) => {
+	const scopes = [
+		{ name: "stalls", value: "Puestos" },
+		{ name: "customers", value: "Clientes" },
+		{ name: "workers", value: "Personal" },
+	];
+	const [data, setData] = useState({
+		name: tag?.name || "",
+		color: tag?.color || "gray",
+		scope: tag?.scope || scopes[0].name,
+	});
+
+	const resetForm = () => {
+		setData({
+			name: "",
+			color: "gray",
+			scope: scopes[0].name,
+		});
+	};
+
+	const handleCreate = async (
+		createTag: (tag: TagDto) => Promise<Company | undefined>,
+	) => {
+		if (!data.name) {
+			toast.error("Todos los campos son obligatorios");
+			return;
+		}
+		await createTag(data).then((res) => {
+			if (res) {
+				resetForm();
+			}
+		});
+	};
+
+	const handleUpdateTag = (
+		updateTag: (tag: TagDto, tagId: string) => Promise<Company | undefined>,
+		id: string,
+	) => {
+		if (!data.name) {
+			toast.error("Todos los campos son obligatorios");
+			return;
+		}
+		updateTag(data, id);
+	};
+	return { data, setData, scopes, handleCreate, handleUpdateTag };
 };

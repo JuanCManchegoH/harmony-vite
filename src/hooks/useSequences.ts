@@ -1,9 +1,11 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useState } from "react";
 import { toast } from "sonner";
+import { Times } from "../common/SelectHours";
 import api from "../services/api";
 import { setCompany } from "../services/auth/slice";
-import { Company, Step } from "../services/company/types";
+import { Company, Sequence, Step } from "../services/company/types";
 import { useAppDispatch } from "./store";
 
 interface SequenceDto {
@@ -65,5 +67,84 @@ export const useSequences = () => {
 		createSequence,
 		updateSequence,
 		deleteSequence,
+	};
+};
+
+export const useHandleSequences = (sequence?: Sequence) => {
+	const [steps, setSteps] = useState<Step[]>(sequence?.steps || []);
+	const [isShift, setIsShift] = useState<boolean>(true);
+	const [times, setTimes] = useState<Times>({
+		name: sequence?.name || "",
+		selectedStartHour: "6",
+		selectedStartMinute: "0",
+		selectedEndHour: "18",
+		selectedEndMinute: "0",
+	});
+
+	const resetForm = () => {
+		setTimes({
+			name: "",
+			selectedStartHour: "6",
+			selectedStartMinute: "0",
+			selectedEndHour: "18",
+			selectedEndMinute: "0",
+		});
+		setSteps([]);
+		setIsShift(true);
+	};
+	const handleCreateSequence = (
+		createSequence: (sequence: SequenceDto) => Promise<Company | undefined>,
+	) => {
+		if (!times.name) {
+			toast.error("Todos los campos con * son obligatorios");
+			return;
+		}
+		if (steps.length < 2) {
+			toast.error("Debe agregar al menos dos pasos");
+			return;
+		}
+		const sequenceData = {
+			name: times.name,
+			steps,
+		};
+		createSequence(sequenceData).then((res) => {
+			if (res) {
+				resetForm();
+			}
+		});
+	};
+
+	const handleUpdateSequence = (
+		updateSequence: (
+			sequence: SequenceDto,
+			sequenceId: string,
+		) => Promise<Company | undefined>,
+		id: string,
+	) => {
+		if (!times.name) {
+			toast.error("Todos los campos con * son obligatorios");
+			return;
+		}
+		if (steps.length < 2) {
+			toast.error("Debe agregar al menos dos pasos");
+			return;
+		}
+		const sequenceData = {
+			name: times.name,
+			steps,
+		};
+
+		updateSequence(sequenceData, id);
+	};
+
+	return {
+		handleCreateSequence,
+		handleUpdateSequence,
+		steps,
+		setSteps,
+		isShift,
+		setIsShift,
+		times,
+		setTimes,
 	};
 };

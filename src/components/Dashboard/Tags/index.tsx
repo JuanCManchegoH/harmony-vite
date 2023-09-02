@@ -1,84 +1,72 @@
+import { ListBulletIcon, TagIcon } from "@heroicons/react/24/solid";
 import {
 	Button,
-	Card,
 	Select,
 	SelectItem,
 	Table,
+	TableBody,
 	Text,
 	TextInput,
 	Title,
 } from "@tremor/react";
 import { useState } from "react";
-import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
+import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
-import { useTags } from "../../../hooks/useTags";
+import { useHandleTags, useTags } from "../../../hooks/useTags";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 import TagItem from "./TagItem";
 
-const scopes = [
-	{ name: "stalls", value: "Puestos" },
-	{ name: "customers", value: "Clientes" },
-	{ name: "workers", value: "Personal" },
-];
-
 export default function Tags() {
-	const profile = useAppSelector((state) => state.auth.profile);
+	const { roles } = useAppSelector((state) => state.auth.profile);
+	const { tags } = useAppSelector((state) => state.auth.profile.company);
 	const { createTag } = useTags();
+	const { scopes, data, setData, handleCreate } = useHandleTags();
 	const [openCreate, setOpenCreate] = useState(false);
-	const [data, setData] = useState({
-		name: "",
-		color: "gray",
-		scope: scopes[0].name,
-	});
-
-	const resetForm = () => {
-		setData({
-			name: "",
-			color: "gray",
-			scope: scopes[0].name,
-		});
-	};
-
-	const handleCreate = async () => {
-		if (!data.name) {
-			toast.error("Todos los campos son obligatorios");
-			return;
-		}
-		await createTag(data).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
-	};
 
 	return (
-		<Card className="px-4 py-0 overflow-auto">
-			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
+		<>
+			<div className="flex space-x-2 items-center justify-between border-b pb-2 mb-2">
 				<Title>Etiquetas</Title>
-				{validateRoles(profile.roles, ["admin"], []) && (
+				{validateRoles(roles, ["admin"], []) && (
 					<Button
 						variant="primary"
 						color="sky"
 						onClick={() => setOpenCreate(true)}
+						size="xs"
 					>
 						Crear Etiqueta
 					</Button>
 				)}
 			</div>
+			{tags.length <= 0 && (
+				<EmptyState>
+					<ListBulletIcon className="w-8 h-8 text-sky-500" />
+					<Text className="text-gray-600">
+						Aquí aparecerán las etiquetas agregadas
+					</Text>
+					<Text className="text-gray-400">
+						Para agregar un campo, haz click en el botón "Agregar"
+					</Text>
+				</EmptyState>
+			)}
 			<Table className="w-full">
-				{profile.company.tags
-					.slice()
-					.sort((a, b) => a.scope.localeCompare(b.scope))
-					.map((tag) => (
-						<TagItem key={tag.id} tag={tag} />
-					))}
+				<TableBody>
+					{tags
+						.slice()
+						.sort((a, b) => a.scope.localeCompare(b.scope))
+						.map((tag) => (
+							<TagItem key={tag.id} tag={tag} />
+						))}
+				</TableBody>
 			</Table>
-			<Modal
+			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}
+				icon={TagIcon}
 				title="Crear Etiqueta"
-				action={handleCreate}
+				btnText="Crear"
+				action={() => handleCreate(createTag)}
 			>
 				<div className="grid grid-cols-2 gap-2">
 					<TextInput
@@ -104,7 +92,7 @@ export default function Tags() {
 						agregar información adicional.
 					</Text>
 				</div>
-			</Modal>
-		</Card>
+			</CenteredModal>
+		</>
 	);
 }

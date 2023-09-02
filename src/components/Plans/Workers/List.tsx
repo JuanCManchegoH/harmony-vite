@@ -29,6 +29,7 @@ export default function List({
 		(state) => state.auth.profile.company.workerFields,
 	);
 	const workers = useAppSelector((state) => state.workers.workers);
+
 	const { deleteWorker } = useWorkers();
 
 	const handleSelect = (customer: WorkerWithId) => {
@@ -77,7 +78,7 @@ export default function List({
 					</Text>
 				</EmptyState>
 			)}
-			<Table>
+			<Table className="overflow-visible">
 				{workers.map((worker) => (
 					<TableRow key={worker.id} className="border-b">
 						{openDelete && (

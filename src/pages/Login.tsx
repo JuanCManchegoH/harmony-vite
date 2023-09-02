@@ -37,14 +37,11 @@ export default function Login() {
 			<section className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 z-10">
 				<div className="sm:mx-auto sm:w-full sm:max-w-sm z-10">
 					<div className="flex flex-col items-center justify-center">
-						<div className="bg-rose-500 h-fit py-2 px-2 rounded-md shadow-xl">
-							<h1
-								className="grid place-content-center text-5xl text-gray-50 font-pacifico"
-								color="gray"
-							>
-								Harmony
-							</h1>
-						</div>
+						<img
+							src="harmony-logo.png"
+							alt="Harmony"
+							className=" h-20 w-auto"
+						/>
 					</div>
 					<Subtitle
 						className="mt-5 text-center text-lg font-bold leading-9 tracking-tight text-gray-900"

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Profile } from "../services/auth/types";
@@ -27,40 +28,7 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 		}
 	};
 
-	const getNewUserRoles = (selectedRoles: string[]) => {
-		const newUserRoles: string[] = [];
-		for (const role of selectedRoles) {
-			const foundRole = roles.find((r) => r.name === role);
-			if (foundRole) {
-				for (const r of foundRole.roles) {
-					if (!newUserRoles.includes(r)) newUserRoles.push(r);
-				}
-				for (const r of foundRole.dependencies) {
-					if (!newUserRoles.includes(r)) newUserRoles.push(r);
-				}
-			}
-		}
-		return newUserRoles;
-	};
-
-	const validateUserData = (user: CreateUser, repeatPassword: string) => {
-		const isEmpty = !user.userName || !user.email || !user.password;
-		if (isEmpty || user.roles.length === 0) {
-			return false;
-		}
-		if (user.password.length < 8) {
-			return false;
-		}
-		if (user.password !== repeatPassword) {
-			return false;
-		}
-		return true;
-	};
-
-	async function createUser(user: CreateUser, repeatPassword: string) {
-		if (!validateUserData(user, repeatPassword)) {
-			toast.error("Todos los campos con * son obligatorios");
-		}
+	async function createUser(user: CreateUser) {
 		try {
 			dispatch(setLoading(true));
 			user.company = companyId;
@@ -112,9 +80,140 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 
 	return {
 		getUsers,
-		getNewUserRoles,
 		createUser,
 		updateUser,
 		deleteUser,
 	};
 };
+
+export const useHandleUser = (user?: UsersWithId) => {
+	const [data, setData] = useState<CreateData>({
+		userName: user?.userName || "",
+		email: user?.email || "",
+		company: user?.company || "",
+		password: "",
+		repPassword: "",
+		selectedRoles: user
+			? roles
+					.filter((role) => role.roles.every((r) => user?.roles.includes(r)))
+					.map((role) => role.name)
+			: [],
+		selectedCustomers: user ? user.customers : [],
+		selectedWorkers: user ? user.workers : [],
+	});
+	const resetData = () => {
+		setData({
+			userName: "",
+			email: "",
+			company: "",
+			password: "",
+			repPassword: "",
+			selectedRoles: [],
+			selectedCustomers: [],
+			selectedWorkers: [],
+		});
+	};
+
+	const getNewUserRoles = (selectedRoles: string[]) => {
+		const newUserRoles: string[] = [];
+		for (const role of selectedRoles) {
+			const foundRole = roles.find((r) => r.name === role);
+			if (foundRole) {
+				for (const r of foundRole.roles) {
+					if (!newUserRoles.includes(r)) newUserRoles.push(r);
+				}
+				for (const r of foundRole.dependencies) {
+					if (!newUserRoles.includes(r)) newUserRoles.push(r);
+				}
+			}
+		}
+		return newUserRoles;
+	};
+	const handleCreateUser = (
+		createUser: (user: CreateUser) => Promise<UsersWithId | undefined>,
+	) => {
+		// Validations
+		const isEmpty = !data.userName || !data.email || !data.password;
+		if (isEmpty || data.selectedRoles.length === 0) {
+			return toast.message("Datos incompletos", {
+				description:
+					"Asegurese de llenar todos los campos y asignar al menos un rol",
+			});
+		}
+		if (data.password.length < 8) {
+			return toast.message("Contraseña muy corta", {
+				description: "La contraseña debe tener al menos 8 caracteres",
+			});
+		}
+		if (data.password !== data.repPassword) {
+			return toast.message("Las contraseñas no coinciden", {
+				description: "Asegurese de que las contraseñas coincidan",
+			});
+		}
+		//Action
+		const newUserRoles = getNewUserRoles(data.selectedRoles);
+		const { repPassword, ...user } = data;
+		createUser({
+			...user,
+			roles: newUserRoles,
+			customers:
+				data.selectedCustomers.length === 0 ? ["all"] : data.selectedCustomers,
+			workers:
+				data.selectedWorkers.length === 0 ? ["all"] : data.selectedWorkers,
+		}).then((res) => {
+			if (res) resetData();
+		});
+	};
+
+	const handleUpdateUser = (
+		updateUser: (
+			user: UpdateUser,
+			id: string,
+		) => Promise<UsersWithId | undefined>,
+		id: string,
+	) => {
+		// Validations
+		const isEmpty = !data.userName || !data.email;
+		if (isEmpty || data.selectedRoles.length === 0) {
+			return toast.message("Datos incompletos", {
+				description:
+					"Asegurese de llenar todos los campos y asignar al menos un rol",
+			});
+		}
+		// Action
+		const newUserRoles = getNewUserRoles(data.selectedRoles);
+		updateUser(
+			{
+				...data,
+				roles: newUserRoles,
+				customers:
+					data.selectedCustomers.length === 0
+						? ["all"]
+						: data.selectedCustomers,
+				workers:
+					data.selectedWorkers.length === 0 ? ["all"] : data.selectedWorkers,
+				active: true,
+			},
+			id,
+		);
+	};
+
+	return {
+		data,
+		setData,
+		resetData,
+		handleCreateUser,
+		handleUpdateUser,
+	};
+};
+
+export interface CreateData {
+	userName: string;
+	email: string;
+	company: string;
+	password: string;
+	repPassword: string;
+	selectedRoles: string[];
+	selectedCustomers: string[];
+	selectedWorkers: string[];
+}

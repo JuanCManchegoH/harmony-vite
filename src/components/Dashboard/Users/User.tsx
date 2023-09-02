@@ -1,75 +1,25 @@
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import {
-	Badge,
-	Button,
-	MultiSelect,
-	MultiSelectItem,
-	TableCell,
-	TableRow,
-	TextInput,
-} from "@tremor/react";
+import { UserCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { Badge, Button, TableCell, TableRow } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
 import { useAppSelector } from "../../../hooks/store";
-import { useUsers } from "../../../hooks/useUsers";
+import { useHandleUser, useUsers } from "../../../hooks/useUsers";
 import { UsersWithId } from "../../../services/users/types";
-import { getRolName, roles, validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
-
-interface UpdateUserData {
-	userName: string;
-	email: string;
-}
+import { getRolName, validateRoles } from "../../../utils/roles";
+import HandleUser from "./HandleUser";
 
 export default function User({ user }: { user: UsersWithId }) {
-	const [opneUpdate, setOpenUpdate] = useState(false);
+	const [openUpdate, setOpenUpdate] = useState(false);
 	const { users } = useAppSelector((state) => state.users);
 	const { profile } = useAppSelector((state) => state.auth);
-	const { getNewUserRoles, updateUser, deleteUser } = useUsers(profile, users);
-	const [selectedRoles, setSelectedRoles] = useState<string[]>(
-		roles
-			.filter((role) => role.roles.every((r) => user.roles.includes(r)))
-			.map((role) => role.name),
-	);
-	const [selectedCustomers, setSelectedCustomers] = useState<string[]>(
-		user.customers,
-	);
-	const [selectedWorkers, setSelectedWorkers] = useState<string[]>(
-		user.workers,
-	);
-	const [data, setData] = useState<UpdateUserData>({
-		userName: user.userName,
-		email: user.email,
-	});
-	const handleUpdateUser = () => {
-		const newUserRoles = getNewUserRoles(selectedRoles);
-		updateUser(
-			{
-				...data,
-				roles: newUserRoles,
-				customers: selectedCustomers.length === 0 ? ["all"] : selectedCustomers,
-				workers: selectedWorkers.length === 0 ? ["all"] : selectedWorkers,
-				active: true,
-			},
-			user.id,
-		);
-	};
-
-	const customerTags = profile.company.tags.filter(
-		(tag) => tag.scope === "customers",
-	);
-	const workerTags = profile.company.tags.filter(
-		(tag) => tag.scope === "workers",
-	);
-	const showRoles =
-		getRolName(profile.roles) === "SuperAdmin"
-			? roles
-			: roles.filter((role) => role.name !== "SuperAdmin");
+	const { updateUser, deleteUser } = useUsers(profile, users);
+	const { data, setData, handleUpdateUser } = useHandleUser(user);
 
 	return (
-		<TableRow key={user.id} className="border-b">
+		<TableRow className="border-b">
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="pl-0 py-2">
+				<TableCell className="pl-0 py-2 w-4">
 					<XMarkIcon
 						className="w-5 h-5 cursor-pointer hover:text-red-500"
 						onClick={() =>
@@ -106,74 +56,27 @@ export default function User({ user }: { user: UsersWithId }) {
 						variant="secondary"
 						color="sky"
 						onClick={() => setOpenUpdate(true)}
+						size="xs"
 					>
 						Editar
 					</Button>
 				</TableCell>
 			)}
-			<Modal
-				open={opneUpdate}
+			<CenteredModal
+				open={openUpdate}
 				setOpen={setOpenUpdate}
+				icon={UserCircleIcon}
 				title={user.userName}
-				action={() => handleUpdateUser()}
+				action={() => handleUpdateUser(updateUser, user.id)}
 				btnText="Actualizar"
 			>
-				<form className="grid grid-cols-2 gap-2">
-					<TextInput
-						className="col-span-2"
-						type="text"
-						placeholder="Nombre de usuario*"
-						value={data.userName}
-						onChange={(e) => setData({ ...data, userName: e.target.value })}
-					/>
-					<TextInput
-						className="col-span-2"
-						type="email"
-						placeholder="Correo electrónico*"
-						value={data.email}
-						onChange={(e) => setData({ ...data, email: e.target.value })}
-					/>
-					<MultiSelect
-						placeholder="Roles*"
-						value={selectedRoles}
-						onValueChange={(v) => setSelectedRoles(v)}
-					>
-						{showRoles.map((role) => (
-							<MultiSelectItem key={role.name} value={role.name}>
-								{role.name}
-							</MultiSelectItem>
-						))}
-					</MultiSelect>
-					<MultiSelect
-						placeholder="Clientes"
-						value={selectedCustomers}
-						onValueChange={(v) => setSelectedCustomers(v)}
-					>
-						<>
-							<MultiSelectItem value="all">TODOS</MultiSelectItem>
-							{customerTags.map((tag) => (
-								<MultiSelectItem key={tag.id} value={tag.name}>
-									{tag.name}
-								</MultiSelectItem>
-							))}
-						</>
-					</MultiSelect>
-					<MultiSelect
-						placeholder="Personal"
-						value={selectedWorkers}
-						onValueChange={(v) => setSelectedWorkers(v)}
-					>
-						<>
-							<MultiSelectItem value="all">TODOS</MultiSelectItem>
-							{workerTags.map((tag) => (
-								<MultiSelectItem key={tag.id} value={tag.name}>
-									{tag.name}
-								</MultiSelectItem>
-							))}
-						</>
-					</MultiSelect>
-				</form>
-			</Modal>
+				<HandleUser
+					user={user}
+					data={data}
+					setData={setData}
+					profile={profile}
+				/>
+			</CenteredModal>
 		</TableRow>
 	);
 }

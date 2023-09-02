@@ -1,84 +1,70 @@
+import { ListBulletIcon, RectangleGroupIcon } from "@heroicons/react/24/solid";
 import {
 	Button,
-	Card,
 	NumberInput,
 	Select,
 	SelectItem,
 	Table,
+	TableBody,
 	Text,
 	TextInput,
 	Title,
 } from "@tremor/react";
 import { useState } from "react";
-import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
+import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
-import { usePositions } from "../../../hooks/usePositions";
+import { useHandlePosition, usePositions } from "../../../hooks/usePositions";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 import PositionItem from "./PositionItem";
 
-const years = ["2021", "2022", "2023", "2024", "2025", "2026", "2027"];
-
 export default function Positions() {
-	const profile = useAppSelector((state) => state.auth.profile);
+	const { roles } = useAppSelector((state) => state.auth.profile);
+	const { positions } = useAppSelector((state) => state.auth.profile.company);
 	const { createPosition } = usePositions();
+	const { years, data, setData, handleCreatePosition } = useHandlePosition();
 	const [openCreate, setOpenCreate] = useState(false);
-	const [data, setData] = useState({
-		name: "",
-		value: 0,
-		year: years[2],
-	});
-
-	const resetForm = () => {
-		setData({
-			name: "",
-			value: 0,
-			year: years[2],
-		});
-	};
-
-	const handleCreatePosition = () => {
-		if (!data.name || !data.year) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
-		}
-		const positionData = {
-			...data,
-			year: parseInt(data.year),
-			value: data.value || 0,
-		};
-		createPosition(positionData).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
-	};
 
 	return (
-		<Card className="px-4 py-0 overflow-auto">
-			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
+		<>
+			<div className="flex space-x-2 items-center justify-between border-b pb-2 mb-2">
 				<Title>Cargos</Title>
-				{validateRoles(profile.roles, ["admin"], []) && (
+				{validateRoles(roles, ["admin"], []) && (
 					<Button
 						variant="primary"
 						onClick={() => setOpenCreate(true)}
 						color="sky"
+						size="xs"
 					>
 						Crear Cargo
 					</Button>
 				)}
 			</div>
+			{positions.length <= 0 && (
+				<EmptyState>
+					<ListBulletIcon className="w-8 h-8 text-sky-500" />
+					<Text className="text-gray-600">
+						Aquí aparecerán los cargos agregados
+					</Text>
+					<Text className="text-gray-400">
+						Para agregar un campo, haz click en el botón "Agregar"
+					</Text>
+				</EmptyState>
+			)}
 			<Table>
-				{profile.company.positions.map((position) => (
-					<PositionItem key={position.id} position={position} />
-				))}
+				<TableBody>
+					{positions.map((position) => (
+						<PositionItem key={position.id} position={position} />
+					))}
+				</TableBody>
 			</Table>
-			<Modal
+			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}
+				icon={RectangleGroupIcon}
 				title="Crear Cargo"
 				btnText="Crear"
-				action={handleCreatePosition}
+				action={() => handleCreatePosition(createPosition)}
 			>
 				<form className="grid grid-cols-2 gap-2">
 					<TextInput
@@ -110,7 +96,7 @@ export default function Positions() {
 						en el reporte de turnos adicionales.
 					</Text>
 				</form>
-			</Modal>
-		</Card>
+			</CenteredModal>
+		</>
 	);
 }

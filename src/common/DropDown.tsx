@@ -8,17 +8,29 @@ export interface DropDownProps {
 	children: React.ReactNode;
 	btnText: string;
 	className?: string;
+	position?: "left" | "right";
 }
 
 export interface DropDownItemProps {
 	children: React.ReactNode;
 	icon?: React.ElementType;
 	onClick: Function;
+	position?: "left" | "right";
 }
 
-const Dropdown = ({ children, btnText, className }: DropDownProps) => {
+const Dropdown = ({
+	children,
+	btnText,
+	className,
+	position,
+}: DropDownProps) => {
+	const positionClass = position
+		? position === "left"
+			? "left-0"
+			: "right-0"
+		: "";
 	return (
-		<Menu as="div" className="relative inline-block text-left">
+		<Menu as="div" className="relative inline-block text-left z-20">
 			<div>
 				<Menu.Button
 					className={classNames(
@@ -39,7 +51,12 @@ const Dropdown = ({ children, btnText, className }: DropDownProps) => {
 				leaveFrom="transform opacity-100 scale-100"
 				leaveTo="transform opacity-0 scale-95"
 			>
-				<Menu.Items className="origin-top-right absolute left-0 mt-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+				<Menu.Items
+					className={classNames(
+						position ? positionClass : "left-0",
+						"origin-top-right absolute mt-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none",
+					)}
+				>
 					<div className="flex flex-col p-1 gap-1">{children}</div>
 				</Menu.Items>
 			</Transition>

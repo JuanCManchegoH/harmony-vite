@@ -1,85 +1,77 @@
+import { ListBulletIcon, QueueListIcon } from "@heroicons/react/24/solid";
 import {
 	Button,
-	Card,
 	Select,
 	SelectItem,
 	Table,
+	TableBody,
 	Text,
 	TextInput,
 	Title,
 } from "@tremor/react";
 import { useState } from "react";
-import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
+import EmptyState from "../../../common/EmptyState";
+import Toggle from "../../../common/Toggle";
 import { useAppSelector } from "../../../hooks/store";
-import { useConventions } from "../../../hooks/useConventions";
+import {
+	useConventions,
+	useHandleConventions,
+} from "../../../hooks/useConventions";
 import { conventionsColors } from "../../../utils/colors";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 import ConventionItem from "./ConventionItem";
 
 export default function Conventions() {
-	const profile = useAppSelector((state) => state.auth.profile);
+	const { roles } = useAppSelector((state) => state.auth.profile);
+	const { conventions } = useAppSelector((state) => state.auth.profile.company);
 	const { createConvention } = useConventions();
+	const { data, setData, handleCreateConvention } = useHandleConventions();
 	const [openCreate, setOpenCreate] = useState(false);
-	const [data, setData] = useState({
-		name: "",
-		abbreviation: "",
-		color: "",
-	});
-
-	const resetForm = () => {
-		setData({
-			name: "",
-			abbreviation: "",
-			color: "",
-		});
-	};
-
-	const handleCreate = async () => {
-		if (!data.name || !data.abbreviation || !data.color) {
-			toast.error("Todos los campos son obligatorios");
-			return;
-		}
-		if (data.abbreviation.length > 2) {
-			toast.error("La abreviatura debe tener máximo 2 caracteres");
-			return;
-		}
-		await createConvention(data).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
-	};
 
 	return (
-		<Card className="px-4 py-0 overflow-auto">
-			<div className="flex space-x-2 items-center justify-between border-b pb-2 sticky top-0 bg-white pt-4">
+		<>
+			<div className="flex space-x-2 items-center justify-between border-b pb-2 mb-2">
 				<Title>Convenciones</Title>
-				{validateRoles(profile.roles, ["admin"], []) && (
+				{validateRoles(roles, ["admin"], []) && (
 					<Button
 						variant="primary"
 						color="sky"
 						onClick={() => setOpenCreate(true)}
+						size="xs"
 					>
 						Crear Convención
 					</Button>
 				)}
 			</div>
+			{conventions.length <= 0 && (
+				<EmptyState>
+					<ListBulletIcon className="w-8 h-8 text-sky-500" />
+					<Text className="text-gray-600">
+						Aquí aparecerán las convenciones agregadas
+					</Text>
+					<Text className="text-gray-400">
+						Para agregar un campo, haz click en el botón "Agregar"
+					</Text>
+				</EmptyState>
+			)}
 			<Table>
-				{/* sort by color */}
-				{profile.company.conventions
-					.slice()
-					.sort((a, b) => a.color.localeCompare(b.color))
-					.map((convention) => (
-						<ConventionItem key={convention.id} convention={convention} />
-					))}
+				<TableBody>
+					{conventions
+						.slice()
+						.sort((a, b) => a.color.localeCompare(b.color))
+						.map((convention) => (
+							<ConventionItem key={convention.id} convention={convention} />
+						))}
+				</TableBody>
 			</Table>
-			<Modal
+			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}
+				icon={QueueListIcon}
 				title="Crear Convención"
 				btnText="Crear"
-				action={handleCreate}
+				action={() => handleCreateConvention(createConvention)}
 			>
 				<form className="grid grid-cols-2 gap-2">
 					<TextInput
@@ -109,8 +101,16 @@ export default function Conventions() {
 					<Text className="col-span-2 text-justify">
 						Las abreviaturas deben tener máximo 2 caracteres.
 					</Text>
+					<div className="col-span-2 text-left">
+						<Toggle
+							enabled={data.keep}
+							setEnabled={() => setData({ ...data, keep: !data.keep })}
+							label="Avtivar Sugerencia"
+							description="Al desactivar el personal marcado con la comvencion no sera sugerido"
+						/>
+					</div>
 				</form>
-			</Modal>
-		</Card>
+			</CenteredModal>
+		</>
 	);
 }

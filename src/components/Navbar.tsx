@@ -5,7 +5,7 @@ import {
 	PresentationChartBarIcon,
 } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
-import { Tab, TabList, Title } from "@tremor/react";
+import { Tab, TabList } from "@tremor/react";
 import { Fragment } from "react";
 import { useAppSelector } from "../hooks/store";
 import { useAuth } from "../hooks/useAuth";
@@ -21,26 +21,23 @@ export default function Navbar() {
 	const { logout } = useAuth();
 
 	return (
-		<header className="fixed bg-white inset-x-0 px-2 top-0 z-10 flex justify-end items-center h-12 border-b border-gray-900/10 font-rhd">
-			<div className="bg-rose-500 absolute left-2 top-1 h-fit py-1 px-2 rounded-md shadow-xl">
-				<Title
-					className="grid place-content-center text-2xl text-gray-50 font-pacifico"
-					color="gray"
-				>
-					Harmony
-				</Title>
-			</div>
+		<header className="fixed bg-gray-50 inset-x-0 px-2 top-0 z-10 flex justify-end items-center h-12 border-b border-gray-900/10 font-rhd">
+			<img
+				src="harmony-logo.png"
+				alt="Harmony"
+				className="absolute left-2 h-9 w-auto"
+			/>
 			<Player
 				src="https://lottie.host/b83ec7da-2180-410c-abfd-da574078a863/1KdE2tEL0F.json"
 				className="player"
 				autoplay
 				loop
 				style={{
-					height: "70px",
-					width: "70px",
+					height: "77px",
+					width: "77px",
+					left: "90px",
+					top: "-14px",
 					position: "absolute",
-					left: "77px",
-					top: "-12px",
 				}}
 			/>
 			<div className="grid place-content-center mr-4">

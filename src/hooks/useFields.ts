@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { setCompany } from "../services/auth/slice";
@@ -73,3 +74,98 @@ export const useFields = () => {
 
 	return { createField, updateField, deleteField };
 };
+
+export const useHandleField = (field?: FieldDto) => {
+	const [data, setData] = useState<CreateData>({
+		name: field?.name || "",
+		size: field?.size || 1,
+		type: field?.type || "",
+		required: field?.required || false,
+		active: field?.active || true,
+		option: "",
+		options: field?.options || [],
+	});
+
+	const resetForm = () => {
+		setData({
+			name: "",
+			size: 1,
+			type: "",
+			required: false,
+			active: true,
+			option: "",
+			options: [],
+		});
+	};
+
+	const handleCreateField = (
+		createField: (
+			field: FieldDto,
+			type: string,
+		) => Promise<Company | undefined>,
+		type: string,
+	) => {
+		if (!data.name || !data.size || !data.type) {
+			return toast.message("Datos incompletos", {
+				description: "Debe completar todos los campos",
+			});
+		}
+		if (data.type === "select" && data.options.length === 0) {
+			return toast.message("Datos incompletos", {
+				description: "Debe agregar al menos una opción",
+			});
+		}
+		const { option, ...rest } = data;
+		createField(
+			{
+				...rest,
+			},
+			type,
+		).then((res) => {
+			if (res) {
+				resetForm();
+			}
+		});
+	};
+
+	const handleUpdateField = (
+		updateField: (
+			field: FieldDto,
+			id: string,
+			type: string,
+		) => Promise<Company | undefined>,
+		type: string,
+		id: string,
+	) => {
+		if (!data.name || !data.size || !data.type) {
+			return toast.message("Datos incompletos", {
+				description: "Debe completar todos los campos",
+			});
+		}
+		if (data.type === "select" && data.options.length === 0) {
+			return toast.message("Datos incompletos", {
+				description: "Debe agregar al menos una opción",
+			});
+		}
+		const { option, ...rest } = data;
+		updateField(
+			{
+				...rest,
+			},
+			id,
+			type,
+		);
+	};
+
+	return { data, setData, resetForm, handleCreateField, handleUpdateField };
+};
+
+export interface CreateData {
+	name: string;
+	size: number;
+	type: string;
+	required: boolean;
+	active: boolean;
+	option: string;
+	options: string[];
+}

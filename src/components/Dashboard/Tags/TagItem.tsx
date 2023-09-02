@@ -1,4 +1,4 @@
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import {
 	Button,
 	Select,
@@ -10,11 +10,11 @@ import {
 } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
 import { useAppSelector } from "../../../hooks/store";
-import { useTags } from "../../../hooks/useTags";
+import { useHandleTags, useTags } from "../../../hooks/useTags";
 import { Tag } from "../../../services/company/types";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 
 const scopes = [
 	{ name: "stalls", value: "Puestos" },
@@ -25,24 +25,9 @@ const scopes = [
 export default function TagItem({ tag }: { tag: Tag }) {
 	const profile = useAppSelector((state) => state.auth.profile);
 	const { deleteTag, updateTag } = useTags();
+	const { scopes, data, setData, handleUpdateTag } = useHandleTags(tag);
 	const [update, setUpdate] = useState(false);
-	const [data, setData] = useState({
-		name: tag.name,
-		color: tag.color,
-		scope: scopes.find((s) => s.name === tag.scope)?.name || scopes[0].name,
-	});
 
-	const handleUpdateTag = () => {
-		if (!data.name) {
-			toast.error("Todos los campos son obligatorios");
-			return;
-		}
-		updateTag(data, tag.id).then((res) => {
-			if (res) {
-				setUpdate(false);
-			}
-		});
-	};
 	return (
 		<TableRow className="uppercase border-b">
 			{validateRoles(profile.roles, ["admin"], []) && (
@@ -77,11 +62,13 @@ export default function TagItem({ tag }: { tag: Tag }) {
 				</TableCell>
 			)}
 
-			<Modal
+			<CenteredModal
 				open={update}
 				setOpen={setUpdate}
+				icon={TagIcon}
 				title="Editar Etiqueta"
-				action={handleUpdateTag}
+				btnText="Editar"
+				action={() => handleUpdateTag(updateTag, tag.id)}
 			>
 				<div className="grid grid-cols-2 gap-2">
 					<TextInput
@@ -107,7 +94,7 @@ export default function TagItem({ tag }: { tag: Tag }) {
 						agregar información adicional.
 					</Text>
 				</div>
-			</Modal>
+			</CenteredModal>
 		</TableRow>
 	);
 }

@@ -10,41 +10,26 @@ import {
 } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
+import Toggle from "../../../common/Toggle";
 import { useAppSelector } from "../../../hooks/store";
-import { useConventions } from "../../../hooks/useConventions";
+import {
+	useConventions,
+	useHandleConventions,
+} from "../../../hooks/useConventions";
 import { Convention } from "../../../services/company/types";
 import classNames from "../../../utils/classNames";
 import { conventionsColors } from "../../../utils/colors";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 
 export default function ConventionItem({
 	convention,
 }: { convention: Convention }) {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { deleteConvention, updateConvention } = useConventions();
+	const { data, setData, handleUpdateConvention } =
+		useHandleConventions(convention);
 	const [update, setUpdate] = useState(false);
-	const [data, setData] = useState({
-		name: convention.name,
-		abbreviation: convention.abbreviation,
-		color: convention.color,
-	});
-
-	const handleUpdateConvention = () => {
-		if (!data.name || !data.abbreviation || !data.color) {
-			toast.error("Todos los campos son obligatorios");
-			return;
-		}
-		if (data.abbreviation.length > 2) {
-			toast.error("La abreviatura debe tener máximo 2 caracteres");
-			return;
-		}
-		updateConvention(data, convention.id).then((res) => {
-			if (res) {
-				setUpdate(false);
-			}
-		});
-	};
 
 	return (
 		<TableRow className="uppercase border-b">
@@ -87,12 +72,12 @@ export default function ConventionItem({
 					</Button>
 				</TableCell>
 			)}
-			<Modal
+			<CenteredModal
 				open={update}
 				setOpen={setUpdate}
 				title="Editar Convención"
 				btnText="Editar"
-				action={handleUpdateConvention}
+				action={() => handleUpdateConvention(updateConvention, convention.id)}
 			>
 				<form className="grid grid-cols-2 gap-2">
 					<TextInput
@@ -111,7 +96,9 @@ export default function ConventionItem({
 					<Select
 						placeholder="Grupo"
 						value={data.color}
-						onValueChange={(value) => setData({ ...data, color: value })}
+						onValueChange={(value) =>
+							setData({ ...data, color: value as "sky" | "red" })
+						}
 					>
 						{conventionsColors.map((color) => (
 							<SelectItem key={color.name} value={color.value}>
@@ -122,8 +109,16 @@ export default function ConventionItem({
 					<Text className="col-span-2 text-justify">
 						Las abreviaturas deben tener máximo 2 caracteres.
 					</Text>
+					<div className="col-span-2 text-left">
+						<Toggle
+							enabled={data.keep}
+							setEnabled={() => setData({ ...data, keep: !data.keep })}
+							label="Avtivar Sugerencia"
+							description="Al desactivar el personal marcado con la comvencion no sera sugerido"
+						/>
+					</div>
 				</form>
-			</Modal>
+			</CenteredModal>
 		</TableRow>
 	);
 }

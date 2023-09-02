@@ -2,8 +2,8 @@ export default function EmptyState({
 	children,
 }: { children: React.ReactNode }) {
 	return (
-		<div className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 rounded-md text-center">
+		<span className="w-full flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 bg-gray-50 rounded-md text-center z-10">
 			{children}
-		</div>
+		</span>
 	);
 }

@@ -1,15 +1,17 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { setCompany } from "../services/auth/slice";
-import { Company } from "../services/company/types";
+import { Company, Convention } from "../services/company/types";
 import { useAppDispatch } from "./store";
 
 interface ConventionDto {
 	name: string;
 	color: string;
 	abbreviation: string;
+	keep: boolean;
 }
 
 export const useConventions = () => {
@@ -66,4 +68,66 @@ export const useConventions = () => {
 	}
 
 	return { createConvention, updateConvention, deleteConvention };
+};
+
+export const useHandleConventions = (convention?: Convention) => {
+	const [data, setData] = useState({
+		name: convention?.name || "",
+		abbreviation: convention?.abbreviation || "",
+		color: convention?.color || "",
+		keep: convention?.keep || (true as boolean),
+	});
+
+	const resetForm = () => {
+		setData({
+			name: "",
+			abbreviation: "",
+			color: "",
+			keep: true,
+		});
+	};
+
+	const handleCreateConvention = async (
+		createConvention: (
+			convention: ConventionDto,
+		) => Promise<Company | undefined>,
+	) => {
+		if (!data.name || !data.abbreviation || !data.color) {
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
+		}
+		if (data.abbreviation.length > 2) {
+			return toast.message("Datos inválidos", {
+				description: "La abreviatura debe tener máximo 2 caracteres",
+			});
+		}
+		await createConvention(data).then((res) => {
+			if (res) {
+				resetForm();
+			}
+		});
+	};
+
+	const handleUpdateConvention = (
+		updateConvention: (
+			convention: ConventionDto,
+			conventionId: string,
+		) => Promise<Company | undefined>,
+		id: string,
+	) => {
+		if (!data.name || !data.abbreviation || !data.color) {
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
+		}
+		if (data.abbreviation.length > 2) {
+			return toast.message("Datos inválidos", {
+				description: "La abreviatura debe tener máximo 2 caracteres",
+			});
+		}
+		updateConvention(data, id);
+	};
+
+	return { data, setData, handleCreateConvention, handleUpdateConvention };
 };

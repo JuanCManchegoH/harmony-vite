@@ -55,6 +55,20 @@ const api = {
 		update: (workerId: string) => `${API}/workers/${workerId}`,
 		delete: (workerId: string) => `${API}/workers/${workerId}`,
 	},
+	stalls: {
+		create: `${API}/stalls`,
+		getByCustomer: `${API}/stalls/getByCustomer`,
+		update: (stallId: string) => `${API}/stalls/${stallId}`,
+		delete: (stallId: string) => `${API}/stalls/${stallId}`,
+		// workers
+		addWorker: (stallId: string) => `${API}/stalls/addWorker/${stallId}`,
+		removeWorker: (stallId: string, workerId: string) =>
+			`${API}/stalls/removeWorker/${stallId}/${workerId}`,
+	},
+	shifts: {
+		createAndUpdate: `${API}/shifts`,
+		deleteMany: `${API}/shifts/`,
+	},
 };
 
 export default api;

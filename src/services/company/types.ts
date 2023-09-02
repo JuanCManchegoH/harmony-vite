@@ -18,8 +18,9 @@ export interface Position {
 export interface Convention {
 	id: string;
 	name: string;
-	color: string;
+	color: "sky" | "red";
 	abbreviation: string;
+	keep: boolean;
 }
 
 export interface Step {

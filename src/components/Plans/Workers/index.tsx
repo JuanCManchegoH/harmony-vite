@@ -15,12 +15,12 @@ import {
 	useState,
 } from "react";
 import { toast } from "sonner";
+import Modal from "../../../common/RightModal";
 import { useAppSelector } from "../../../hooks/store";
 import { useWorkers } from "../../../hooks/useWorkers";
 import { Field, WorkerWithId } from "../../../services/workers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
-import Modal from "../../Modal";
 import List from "./List";
 import Worker from "./Worker";
 
@@ -177,6 +177,7 @@ export default function Workers({
 		<Modal
 			open={open}
 			setOpen={setOpen}
+			icon={IdentificationIcon}
 			title="Personal"
 			btnText={selectedWorker ? "Actualizar" : "Crear"}
 			action={selectedWorker || openWorker ? action : undefined}
