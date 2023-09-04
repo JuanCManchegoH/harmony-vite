@@ -1,41 +1,63 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@tremor/react";
-import { CreateEvent } from "../../../hooks/Handlers/usePlans";
-import FirstStep from "./FirstStep";
-import SecondStep from "./SecondStep";
+import { FlagIcon } from "@heroicons/react/24/solid";
+import { Dispatch, SetStateAction } from "react";
+import { eventTypes } from "..";
+import RightModal from "../../../common/RightModal";
+import { useAppSelector } from "../../../hooks/store";
+import { ShiftWithId } from "../../../services/shifts/types";
+import Group from "./Group";
+
+export interface EventGroup extends ShiftWithId {
+	events: ShiftWithId[];
+}
 
 export default function Events({
-	createEvent,
-}: {
-	createEvent: CreateEvent;
-}) {
+	open,
+	setOpen,
+}: { open: boolean; setOpen: Dispatch<SetStateAction<boolean>> }) {
+	const { shifts } = useAppSelector((state) => state.shifts);
+	const events = shifts.filter((shift) => eventTypes.includes(shift.type));
+
+	const groupedEvents: EventGroup[] = events.reduce(
+		(acc: EventGroup[], event: ShiftWithId) => {
+			const keyProps = [
+				"worker",
+				"color",
+				"startTime",
+				"endTime",
+				"type",
+				"createdBy",
+				"createdAt",
+				"stall",
+				"sequence",
+				"position",
+				"description",
+			];
+			const existingGroup = acc.find((group) =>
+				keyProps.every(
+					(prop) =>
+						group[prop as keyof EventGroup] ===
+						event[prop as keyof typeof event],
+				),
+			);
+
+			if (existingGroup) {
+				existingGroup.events.push(event);
+			} else {
+				acc.push({ ...event, events: [event] });
+			}
+
+			return acc;
+		},
+		[],
+	);
+
 	return (
-		<TabGroup>
-			<TabList color="rose" variant="solid" className="col-span-2">
-				<Tab className="text-base font-bold hover:text-gray-800 dark:hover:text-gray-800 text-gray-700 dark:text-gray-700 items-center">
-					Paso 1
-				</Tab>
-				<Tab className="text-base font-bold hover:text-gray-800 dark:hover:text-gray-800 text-gray-700 dark:text-gray-700 items-center">
-					Paso 2
-				</Tab>
-			</TabList>
-			<TabPanels>
-				<TabPanel>
-					<FirstStep createEvent={createEvent} />
-				</TabPanel>
-				<TabPanel>
-					<SecondStep
-						selectedConvention={createEvent.selectedConvention}
-						setSelectedConvention={createEvent.setSelectedConvention}
-						monthDays={createEvent.monthDays}
-						selectedDays={createEvent.selectedDays}
-						setSelectedDays={createEvent.setSelectedDays}
-						isShift={createEvent.isShift}
-						setIsShift={createEvent.setIsShift}
-						times={createEvent.times}
-						setTimes={createEvent.setTimes}
-					/>
-				</TabPanel>
-			</TabPanels>
-		</TabGroup>
+		<RightModal open={open} setOpen={setOpen} icon={FlagIcon} title="Eventos">
+			<ul className="flex flex-col gap-2">
+				{groupedEvents.map((group) => (
+					<Group key={group.id} {...group} />
+				))}
+			</ul>
+		</RightModal>
 	);
 }

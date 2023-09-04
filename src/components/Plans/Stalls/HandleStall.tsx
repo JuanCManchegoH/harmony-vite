@@ -1,6 +1,8 @@
 import { Select, SelectItem, TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { HandleStall as HandleStallType } from "../../../services/stalls/types";
+import { useAppSelector } from "../../../hooks/store";
+import { StallData } from "../../../hooks/useStalls";
+// import { HandleStall as HandleStallType } from "../../../services/stalls/types";
 
 export default function HandleStall({
 	branches,
@@ -9,22 +11,36 @@ export default function HandleStall({
 	creation,
 }: {
 	branches: string[];
-	data: HandleStallType;
-	setData: Dispatch<SetStateAction<HandleStallType>>;
+	data: StallData;
+	setData: Dispatch<SetStateAction<StallData>>;
 	creation?: boolean;
 }) {
+	const { tags } = useAppSelector((state) => state.auth.profile.company);
+	const allTags = [
+		"",
+		...tags.filter((tag) => tag.scope === "stalls").map((tag) => tag.name),
+	];
 	const allBranches = ["", ...branches];
 	const setCreation = creation ? creation : false;
 	return (
 		<form className="grid grid-cols-2 gap-2">
 			<TextInput
-				className="col-span-2"
+				className="col-span-1"
 				placeholder="Nombre"
 				color="sky"
 				maxLength={20}
 				value={data.name}
 				onChange={(e) => setData({ ...data, name: e.target.value })}
 			/>
+			<Select
+				placeholder="Sin etiqueta"
+				value={data.tag}
+				onValueChange={(value) => setData({ ...data, tag: value })}
+			>
+				{allTags.map((tag) => (
+					<SelectItem value={tag}>{tag}</SelectItem>
+				))}
+			</Select>
 			<div className="col-span-2 relative">
 				<label
 					htmlFor="comment"

@@ -1,13 +1,14 @@
 import axios from "axios";
 import Cookie from "js-cookie";
-import { Dispatch } from "react";
+import { Dispatch, useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
+import { Field as CompanyField } from "../services/company/types";
 import { setLoading, setWorkers } from "../services/workers/slice";
-import { HandleWorker, WorkerWithId } from "../services/workers/types";
+import { Field, HandleWorker, WorkerWithId } from "../services/workers/types";
 import { useAppDispatch } from "./store";
 
-export const useWorkers = () => {
+export const useWorkers = (workers: WorkerWithId[]) => {
 	const dispatch = useAppDispatch();
 
 	async function createWorker(worker: HandleWorker) {
@@ -50,11 +51,7 @@ export const useWorkers = () => {
 		}
 	}
 
-	async function updateWorker(
-		worker: HandleWorker,
-		workerId: string,
-		workers: WorkerWithId[],
-	) {
+	async function updateWorker(worker: HandleWorker, workerId: string) {
 		dispatch(setLoading(true));
 		try {
 			const access_token = Cookie.get("access_token");
@@ -91,3 +88,127 @@ export const useWorkers = () => {
 		deleteWorker,
 	};
 };
+
+export const useHandleWorker = (
+	workerFields: CompanyField[],
+	worker?: WorkerWithId,
+) => {
+	const [fields, setFields] = useState<Field[]>(
+		[
+			...(worker?.fields || []),
+			...workerFields.map((field) => ({
+				id: field.id,
+				name: field.name,
+				size: field.size,
+				type: field.type,
+				options: field.options,
+				required: field.required,
+				value: field.type === "date" ? new Date().toISOString() : "",
+			})),
+		] || [],
+	);
+	const [data, setData] = useState<WorkerData>({
+		name: "",
+		identification: "",
+		city: "",
+		phone: "",
+		address: "",
+		tags: [],
+		active: true,
+	});
+
+	const resetForm = () => {
+		setData({
+			name: "",
+			identification: "",
+			city: "",
+			phone: "",
+			address: "",
+			tags: [],
+			active: true,
+		});
+		setFields(
+			workerFields.map((field) => ({
+				id: field.id,
+				name: field.name,
+				size: field.size,
+				type: field.type,
+				options: field.options,
+				required: field.required,
+				value: field.type === "date" ? new Date().toISOString() : "",
+			})),
+		);
+	};
+
+	const handleCreate = async (
+		createWorker: (worker: HandleWorker) => Promise<WorkerWithId | undefined>,
+	) => {
+		if (
+			!data.name ||
+			!data.identification ||
+			!data.city ||
+			!data.phone ||
+			!data.address
+		)
+			return toast.error("Todos los campos con * son obligatorios");
+		if (fields.some((field) => field.required && !field.value))
+			return toast.error("Todos los campos con * son obligatorios");
+		const tags = data.tags.length === 0 ? ["all"] : data.tags;
+		const worker = {
+			...data,
+			tags,
+			fields,
+		};
+		await createWorker(worker).then((res) => {
+			if (res) {
+				resetForm();
+			}
+		});
+	};
+
+	const handleUpdate = async (
+		updateWorker: (
+			worker: HandleWorker,
+			workerId: string,
+		) => Promise<WorkerWithId | undefined>,
+		id: string,
+	) => {
+		if (
+			!data.name ||
+			!data.identification ||
+			!data.city ||
+			!data.phone ||
+			!data.address
+		)
+			return toast.error("Todos los campos con * son obligatorios");
+		if (fields.some((field) => field.required && !field.value))
+			return toast.error("Todos los campos con * son obligatorios");
+		const tags = data.tags.length === 0 ? ["all"] : data.tags;
+		const worker = {
+			...data,
+			tags,
+			fields,
+		};
+		await updateWorker(worker, id);
+	};
+
+	return {
+		fields,
+		setFields,
+		data,
+		setData,
+		resetForm,
+		handleCreate,
+		handleUpdate,
+	};
+};
+
+export interface WorkerData {
+	name: string;
+	identification: string;
+	city: string;
+	phone: string;
+	address: string;
+	tags: string[];
+	active: boolean;
+}

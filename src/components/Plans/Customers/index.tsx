@@ -5,28 +5,15 @@ import {
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import { Button, Card, Text, TextInput } from "@tremor/react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Dispatch, SetStateAction, useState } from "react";
 import Modal from "../../../common/RightModal";
 import { useAppSelector } from "../../../hooks/store";
-import { useCustomers } from "../../../hooks/useCustomers";
-import { CustomerWithId, Field } from "../../../services/customers/types";
+import { useCustomers, useHandleCustomer } from "../../../hooks/useCustomers";
+import { CustomerWithId } from "../../../services/customers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
 import Customer from "./Customer";
 import List from "./List";
-
-export interface CustomerData {
-	name: string;
-	identification: string;
-	city: string;
-	contact: string;
-	phone: string;
-	address: string;
-	tags: string[];
-	branches: string[];
-	active: boolean;
-}
 
 export default function Customers({
 	open,
@@ -40,126 +27,31 @@ export default function Customers({
 	setSelected: Dispatch<SetStateAction<string>>;
 }) {
 	const profile = useAppSelector((state) => state.auth.profile);
-	const { createCustomer, updateCustomer } = useCustomers();
 	const customers = useAppSelector((state) => state.customers.customers);
-	const [openCustomer, setOpenCustomer] = useState(false);
-	const [openDelete, setOpenDelete] = useState(false);
-	const [fields, setFields] = useState<Field[]>([]);
-	const [search, setSearch] = useState("");
-	useEffect(() => {
-		setFields(
-			profile.company.customerFields.map((field) => ({
-				id: field.id,
-				name: field.name,
-				size: field.size,
-				type: field.type,
-				options: field.options,
-				required: field.required,
-				value: field.type === "date" ? new Date().toISOString() : "",
-			})),
-		);
-	}, [profile]);
-
+	const { createCustomer, updateCustomer } = useCustomers(customers);
+	const {
+		data,
+		setData,
+		fields,
+		setFields,
+		branch,
+		setBranch,
+		resetForm,
+		handleCreate,
+		handleUpdate,
+	} = useHandleCustomer(profile.company.customerFields);
 	const [selectedCustomer, setSelectedCustomer] =
 		useState<CustomerWithId | null>(null);
-	const [branch, setBranch] = useState<string>("");
-	const [data, setData] = useState<CustomerData>({
-		name: "",
-		identification: "",
-		city: "",
-		contact: "",
-		phone: "",
-		address: "",
-		tags: [] as string[],
-		branches: [] as string[],
-		active: true,
-	});
-
-	const resetForm = () => {
-		setData({
-			name: "",
-			identification: "",
-			city: "",
-			contact: "",
-			phone: "",
-			address: "",
-			tags: [] as string[],
-			branches: [] as string[],
-			active: true,
-		});
-		setFields(
-			profile.company.customerFields.map((field) => ({
-				id: field.id,
-				name: field.name,
-				size: field.size,
-				type: field.type,
-				options: field.options,
-				required: field.required,
-				value: field.type === "date" ? new Date().toISOString() : "",
-			})),
-		);
-	};
-
-	const handleCreate = async () => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.contact ||
-			!data.phone ||
-			!data.address
-		) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
-		}
-		if (fields.some((field) => field.required && !field.value)) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
-		}
-		const tags = data.tags.length === 0 ? ["all"] : data.tags;
-		const customer = {
-			...data,
-			tags,
-			fields,
-		};
-		await createCustomer(customer, customers).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
-	};
-
-	const handleUpdate = async (id: string) => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.contact ||
-			!data.phone ||
-			!data.address
-		) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
-		}
-		if (fields.some((field) => field.required && !field.value)) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
-		}
-		const tags = data.tags.length === 0 ? ["all"] : data.tags;
-		const customer = {
-			...data,
-			tags,
-			fields,
-		};
-		await updateCustomer(customer, id, customers);
-	};
+	const [openCustomer, setOpenCustomer] = useState(false);
+	const [openDelete, setOpenDelete] = useState(false);
+	const [search, setSearch] = useState("");
 
 	const action = () => {
 		if (selectedCustomer) {
-			return handleUpdate(selectedCustomer.id);
+			return handleUpdate(updateCustomer, selectedCustomer.id);
 		}
 		if (openCustomer) {
-			return handleCreate();
+			return handleCreate(createCustomer);
 		}
 	};
 
@@ -170,12 +62,17 @@ export default function Customers({
 			icon={UserGroupIcon}
 			title="Clientes"
 			btnText={selectedCustomer ? "Actualizar" : "Crear"}
-			action={selectedCustomer || openCustomer ? action : undefined}
+			action={
+				validateRoles(profile.roles, ["handle_customers"], []) &&
+				(selectedCustomer || openCustomer)
+					? action
+					: undefined
+			}
 		>
 			<section className="flex flex-col gap-2">
 				<header className="flex gap-2">
 					<nav aria-label="Breadcrumb" className="w-full">
-						<ol className="flex space-x-2 rounded-md bg-white shadow p-2">
+						<ol className="flex space-x-2 rounded-md bg-gray-50 shadow p-2">
 							<li>
 								<button
 									type="button"
@@ -216,18 +113,22 @@ export default function Customers({
 							)}
 						</ol>
 					</nav>
-					<Button
-						color="sky"
-						size="xs"
-						onClick={() => {
-							resetForm();
-							!selectedCustomer && setOpenCustomer(!openCustomer);
-							selectedCustomer && setSelectedCustomer(null);
-						}}
-						variant={openCustomer || selectedCustomer ? "secondary" : "primary"}
-					>
-						{openCustomer || selectedCustomer ? "Volver" : "Crear Cliente"}
-					</Button>
+					{validateRoles(profile.roles, ["handle_customers"], []) && (
+						<Button
+							color="sky"
+							size="xs"
+							onClick={() => {
+								resetForm();
+								!selectedCustomer && setOpenCustomer(!openCustomer);
+								selectedCustomer && setSelectedCustomer(null);
+							}}
+							variant={
+								openCustomer || selectedCustomer ? "secondary" : "primary"
+							}
+						>
+							{openCustomer || selectedCustomer ? "Volver" : "Crear Cliente"}
+						</Button>
+					)}
 				</header>
 				{!openCustomer && !selectedCustomer && (
 					<div className="flex items-center">

@@ -1,19 +1,25 @@
 import {
 	ClockIcon,
 	IdentificationIcon,
-	MapPinIcon,
 	PencilSquareIcon,
+	TagIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { Badge, Card, Icon, Text, Title } from "@tremor/react";
+import { Badge, Card, Text, Title } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { eventTypes } from "..";
 import CenteredModal from "../../../common/CenteredModal";
 import { Dropdown, DropdownItem } from "../../../common/DropDown";
 import EmptyState from "../../../common/EmptyState";
+import Ping from "../../../common/Ping";
 import { PlansData } from "../../../hooks/Handlers/usePlans";
 import { useAppSelector } from "../../../hooks/store";
-import { useHandleStall, useStalls } from "../../../hooks/useStalls";
+import {
+	useHandleStall,
+	useHandleStallWorker,
+	useStalls,
+} from "../../../hooks/useStalls";
 import { StallWithId } from "../../../services/stalls/types";
 import classNames from "../../../utils/classNames";
 import { DateToSring, getDay, getDays } from "../../../utils/dates";
@@ -22,6 +28,7 @@ import {
 	getSchedules,
 	minutesToString,
 } from "../../../utils/hours";
+import { validateRoles } from "../../../utils/roles";
 import AddStallWorker from "./AddStallWorker";
 import HandleStall from "./HandleStall";
 import Worker from "./Worker";
@@ -35,54 +42,37 @@ export default function Stall({
 	stall,
 	plansData,
 }: { stall: StallWithId; plansData: PlansData }) {
-	const { workers } = useAppSelector((state) => state.workers);
+	const { profile } = useAppSelector((state) => state.auth);
 	const stalls = useAppSelector((state) => state.stalls.stalls);
 	const shifts = useAppSelector((state) => state.shifts.shifts);
-	const { updateStall, addWorker, deleteStall } = useStalls(stalls);
+	const { updateStall, addWorker, deleteStall } = useStalls(stalls, shifts);
 	const { stallData, setStallData, handleUpdateStall } = useHandleStall(
 		plansData.selectedMonth,
 		plansData.selectedYear,
 		plansData.actualCustomer,
 		stall,
 	);
+	const {
+		selectedWorker,
+		setSelectedWorker,
+		position,
+		setPosition,
+		handleAddWorker,
+	} = useHandleStallWorker();
+	const stallShifts = shifts.filter(
+		(shift) => shift.stall === stall.id && !eventTypes.includes(shift.type),
+	);
+	const stallEvents = shifts.filter(
+		(shift) => shift.stall === stall.id && eventTypes.includes(shift.type),
+	);
 	const schedules = [
 		{ startTime: "00:00", endTime: "00:00" },
-		...getSchedules(shifts.filter((shift) => shift.stall === stall.id)),
+		...getSchedules(stallShifts),
 	];
 	const monthDays = getDays(stall.month, stall.year);
 	const [hoverSchedule, setHoverSchedule] = useState<string>("");
 	const [openUpdate, setOpenUpdate] = useState(false);
 	const [openAddWorker, setOpenAddWorker] = useState(false);
-
-	const [selectedWorker, setSelectedWorker] = useState<string>("");
-	const [workerData, setWorkerData] = useState<WorkerData>({
-		position: "",
-		mode: "",
-	});
-
-	const handleAddWorker = () => {
-		const worker = workers.find((worker) => worker.id === selectedWorker);
-		if (!workerData.position || !workerData.mode)
-			return toast.error("Todos los campos con * obligatorios");
-		if (!selectedWorker) return toast.error("Seleccione una persona");
-		if (!worker) return toast.error("Persona no encontrada");
-		const data = {
-			id: worker.id,
-			name: worker.name,
-			identification: worker.identification,
-			position: workerData.position,
-			sequence: "",
-			index: 0,
-			jump: 0,
-			mode: workerData.mode,
-		};
-		addWorker(stall.id, data, stalls).then((res) => {
-			if (res) {
-				setSelectedWorker("");
-				setOpenAddWorker(false);
-			}
-		});
-	};
 
 	const options = [
 		{
@@ -116,28 +106,36 @@ export default function Stall({
 	];
 
 	return (
-		<Card className="p-2 flex flex-col gap-1 z-0 bg-gray-40">
+		<Card className="p-2 flex flex-col gap-1 bg-gray-40">
 			<header className="flex justify-between">
 				<div className="flex gap-2 items-center">
-					<Icon color="sky" size="sm" icon={MapPinIcon} variant="solid" />
+					<Title color="sky">{stall.name}</Title>
 					{stall.branch && (
 						<Badge color="sky" size="xs">
 							{stall.branch}
 						</Badge>
 					)}
-					<Title color="sky">{stall.name}</Title>
+					{stall.tag && (
+						<Badge color="sky" size="xs" icon={TagIcon}>
+							{stall.tag}
+						</Badge>
+					)}
 				</div>
-				<Dropdown btnText="Acciones" position="right">
-					{options.map((option) => (
-						<DropdownItem
-							key={option.name}
-							icon={option.icon}
-							onClick={option.action}
-						>
-							{option.name}
-						</DropdownItem>
-					))}
-				</Dropdown>
+				<div className="flex items-center gap-2">
+					{validateRoles(profile.roles, ["handle_stalls"], []) && (
+						<Dropdown btnText="Acciones" position="right">
+							{options.map((option) => (
+								<DropdownItem
+									key={option.name}
+									icon={option.icon}
+									onClick={option.action}
+								>
+									{option.name}
+								</DropdownItem>
+							))}
+						</Dropdown>
+					)}
+				</div>
 			</header>
 			<section className="flex gap-2">
 				{schedules.map((schedule, i) => {
@@ -167,9 +165,12 @@ export default function Stall({
 						key={`${stall.id}-day-${getDay(day.date)}`}
 						className={classNames(
 							day.isHoliday ? "text-rose-400" : "",
-							"flex w-full flex-col items-center font-semibold text-sm",
+							"flex w-full flex-col items-center font-semibold text-sm relative",
 						)}
 					>
+						{stallEvents.some(
+							(event) => event.day === DateToSring(day.date),
+						) && <Ping />}
 						<p>{day.day.substring(0, 2)}</p>
 						<p>{getDay(day.date)}</p>
 					</div>
@@ -191,7 +192,7 @@ export default function Stall({
 					key={worker.id}
 					worker={worker}
 					monthDays={monthDays}
-					stallId={stall.id}
+					stall={stall}
 					schedules={schedules}
 					setHoverSchedule={setHoverSchedule}
 				/>
@@ -216,7 +217,7 @@ export default function Stall({
 					</div>
 					<div className="flex justify-between mx-2 z-0">
 						{monthDays.map((day) => {
-							const minutes = shifts
+							const minutes = stallShifts
 								.filter(
 									(shift) =>
 										shift.day === DateToSring(day.date) &&
@@ -261,11 +262,11 @@ export default function Stall({
 				icon={IdentificationIcon}
 				title="Asignar persona"
 				btnText="Asignar"
-				action={handleAddWorker}
+				action={() => handleAddWorker(addWorker, stall.id)}
 			>
 				<AddStallWorker
-					data={workerData}
-					setData={setWorkerData}
+					position={position}
+					setPosition={setPosition}
 					selectedWorker={selectedWorker}
 					setSelectedWorker={setSelectedWorker}
 				/>

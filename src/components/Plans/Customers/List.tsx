@@ -8,10 +8,9 @@ import {
 	Text,
 } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { CustomerData } from ".";
 import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
-import { useCustomers } from "../../../hooks/useCustomers";
+import { CustomerData, useCustomers } from "../../../hooks/useCustomers";
 import { CustomerWithId, Field } from "../../../services/customers/types";
 import classNames from "../../../utils/classNames";
 
@@ -36,7 +35,7 @@ export default function List({
 		(state) => state.auth.profile.company.customerFields,
 	);
 	const customers = useAppSelector((state) => state.customers.customers);
-	const { deleteCustomer } = useCustomers();
+	const { deleteCustomer } = useCustomers(customers);
 
 	const handleSelect = (customer: CustomerWithId) => {
 		setData({
@@ -98,7 +97,7 @@ export default function List({
 							<TableCell className="p-2">
 								<XMarkIcon
 									className="w-5 h-5 cursor-pointer hover:text-red-500"
-									onClick={() => deleteCustomer(customer.id, customers)}
+									onClick={() => deleteCustomer(customer.id)}
 								/>
 							</TableCell>
 						)}

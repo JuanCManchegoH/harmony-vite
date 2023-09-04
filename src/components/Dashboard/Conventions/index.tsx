@@ -77,7 +77,7 @@ export default function Conventions() {
 					<TextInput
 						className="col-span-2"
 						placeholder="Nombre"
-						maxLength={15}
+						maxLength={20}
 						value={data.name}
 						onChange={(e) => setData({ ...data, name: e.target.value })}
 					/>
@@ -105,7 +105,7 @@ export default function Conventions() {
 						<Toggle
 							enabled={data.keep}
 							setEnabled={() => setData({ ...data, keep: !data.keep })}
-							label="Avtivar Sugerencia"
+							label="Activar Sugerencia"
 							description="Al desactivar el personal marcado con la comvencion no sera sugerido"
 						/>
 					</div>

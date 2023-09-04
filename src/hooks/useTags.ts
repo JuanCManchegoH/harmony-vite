@@ -87,8 +87,9 @@ export const useHandleTags = (tag?: Tag) => {
 		createTag: (tag: TagDto) => Promise<Company | undefined>,
 	) => {
 		if (!data.name) {
-			toast.error("Todos los campos son obligatorios");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		await createTag(data).then((res) => {
 			if (res) {
@@ -102,8 +103,9 @@ export const useHandleTags = (tag?: Tag) => {
 		id: string,
 	) => {
 		if (!data.name) {
-			toast.error("Todos los campos son obligatorios");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		updateTag(data, id);
 	};

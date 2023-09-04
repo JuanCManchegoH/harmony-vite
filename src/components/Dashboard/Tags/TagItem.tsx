@@ -16,12 +16,6 @@ import { useHandleTags, useTags } from "../../../hooks/useTags";
 import { Tag } from "../../../services/company/types";
 import { validateRoles } from "../../../utils/roles";
 
-const scopes = [
-	{ name: "stalls", value: "Puestos" },
-	{ name: "customers", value: "Clientes" },
-	{ name: "workers", value: "Personal" },
-];
-
 export default function TagItem({ tag }: { tag: Tag }) {
 	const profile = useAppSelector((state) => state.auth.profile);
 	const { deleteTag, updateTag } = useTags();

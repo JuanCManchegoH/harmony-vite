@@ -5,7 +5,7 @@ import React, { Dispatch, Fragment, SetStateAction, useState } from "react";
 import { IconType } from "./CustomToggle";
 import Toggle from "./Toggle";
 
-export default function Modal({
+export default function RightModal({
 	open,
 	setOpen,
 	icon: Icon,
@@ -61,7 +61,7 @@ export default function Modal({
 											</div>
 										</div>
 										{action && (
-											<div className="px-4 py-4">
+											<div className="px-4 py-4 bg-gray-50">
 												<Toggle
 													enabled={enabled}
 													setEnabled={setEnabled}

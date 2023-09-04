@@ -9,9 +9,9 @@ import {
 	TextInput,
 } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { CustomerData } from ".";
 import HandleFields from "../../../common/HandleFields";
 import { useAppSelector } from "../../../hooks/store";
+import { CustomerData } from "../../../hooks/useCustomers";
 import { Field } from "../../../services/customers/types";
 import cities from "../../../utils/cities";
 

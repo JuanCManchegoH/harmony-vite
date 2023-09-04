@@ -96,12 +96,14 @@ export const useHandleSequences = (sequence?: Sequence) => {
 		createSequence: (sequence: SequenceDto) => Promise<Company | undefined>,
 	) => {
 		if (!times.name) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		if (steps.length < 2) {
-			toast.error("Debe agregar al menos dos pasos");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Debe agregar al menos dos pasos",
+			});
 		}
 		const sequenceData = {
 			name: times.name,
@@ -122,12 +124,14 @@ export const useHandleSequences = (sequence?: Sequence) => {
 		id: string,
 	) => {
 		if (!times.name) {
-			toast.error("Todos los campos con * son obligatorios");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		if (steps.length < 2) {
-			toast.error("Debe agregar al menos dos pasos");
-			return;
+			return toast.message("Datos incompletos", {
+				description: "Debe agregar al menos dos pasos",
+			});
 		}
 		const sequenceData = {
 			name: times.name,

@@ -71,13 +71,13 @@ export const useConventions = () => {
 };
 
 export const useHandleConventions = (convention?: Convention) => {
+	const keep = convention ? convention.keep : true;
 	const [data, setData] = useState({
 		name: convention?.name || "",
 		abbreviation: convention?.abbreviation || "",
 		color: convention?.color || "",
-		keep: convention?.keep || (true as boolean),
+		keep,
 	});
-
 	const resetForm = () => {
 		setData({
 			name: "",

@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import api from "../services/api";
 import { CustomerWithId } from "../services/customers/types";
 import { setShifts } from "../services/shifts/slice";
+import { ShiftWithId } from "../services/shifts/types";
 import { setLoading, setStalls } from "../services/stalls/slice";
 import {
 	HandleStallWorker,
 	StallWithId,
 	StallsAndShifts,
 } from "../services/stalls/types";
+import { WorkerWithId } from "../services/workers/types";
 import { useAppDispatch } from "./store";
 
 export interface GetStalls {
@@ -19,7 +21,7 @@ export interface GetStalls {
 	customerId: string;
 }
 
-export const useStalls = (stalls: StallWithId[]) => {
+export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 	const dispatch = useAppDispatch();
 
 	async function createStall(stall: StallData) {
@@ -31,7 +33,6 @@ export const useStalls = (stalls: StallWithId[]) => {
 			toast.success("Puesto creado");
 			dispatch(setStalls([...stalls, data]));
 			return data;
-			// console.log error
 		} catch (error) {
 			console.log(error);
 			toast.error("Error Creando puesto");
@@ -74,26 +75,27 @@ export const useStalls = (stalls: StallWithId[]) => {
 
 	async function deleteStall(
 		stallId: string,
-		shifts: string[],
+		stallShifts: string[],
 		stalls: StallWithId[],
 	) {
 		dispatch(setLoading(true));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			await axios.post(api.stalls.delete(stallId), { shifts });
+			await axios.post(api.stalls.delete(stallId), { shifts: stallShifts });
 			toast.success("Puesto eliminado");
 			dispatch(setStalls(stalls.filter((s) => s.id !== stallId)));
+			dispatch(
+				setShifts(
+					shifts.filter((shift) => !stallShifts.includes(shift.id as string)),
+				),
+			);
 		} catch {
 			toast.error("Error eliminando puesto");
 		}
 	}
 
-	async function addWorker(
-		stallId: string,
-		worker: HandleStallWorker,
-		stalls: StallWithId[],
-	) {
+	async function addWorker(stallId: string, worker: HandleStallWorker) {
 		dispatch(setLoading(true));
 		try {
 			const access_token = Cookie.get("access_token");
@@ -113,17 +115,23 @@ export const useStalls = (stalls: StallWithId[]) => {
 	async function removeWorker(
 		stallId: string,
 		workerId: string,
-		stalls: StallWithId[],
+		workerShifts: string[],
 	) {
 		dispatch(setLoading(true));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<StallWithId>(
+			const { data } = await axios.post<StallWithId>(
 				api.stalls.removeWorker(stallId, workerId),
+				{ shifts: workerShifts },
 			);
 			toast.success("Persona eliminada");
 			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+			dispatch(
+				setShifts(
+					shifts.filter((shift) => !workerShifts.includes(shift.id as string)),
+				),
+			);
 			return data;
 		} catch {
 			toast.error("Error eliminando persona");
@@ -152,6 +160,7 @@ export const useHandleStall = (
 		ays: stall?.ays || "",
 		branch: stall?.branch || "",
 		stage: 0,
+		tag: stall?.tag || "",
 	});
 	const resetCreateStallData = () => {
 		setStallData({
@@ -160,6 +169,7 @@ export const useHandleStall = (
 			ays: "",
 			branch: "",
 			stage: 0,
+			tag: "",
 		});
 	};
 
@@ -167,7 +177,9 @@ export const useHandleStall = (
 		createStall: (data: StallData) => Promise<StallWithId | undefined>,
 	) => {
 		if (!stallData.name || !stallData.description || !stallData.ays) {
-			return toast.error("Todos los campos con * son obligatorios");
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		const data = {
 			...stallData,
@@ -193,7 +205,9 @@ export const useHandleStall = (
 		id: string,
 	) => {
 		if (!stallData.name || !stallData.description || !stallData.ays) {
-			return toast.error("Todos los campos con * son obligatorios");
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
 		}
 		updateStall(stallData, id);
 	};
@@ -205,10 +219,57 @@ export const useHandleStall = (
 	};
 };
 
+export const useHandleStallWorker = () => {
+	const [selectedWorker, setSelectedWorker] = useState<
+		WorkerWithId | undefined
+	>(undefined);
+	const [position, setPosition] = useState("");
+
+	const handleAddWorker = (
+		addWorker: (
+			stallId: string,
+			worker: HandleStallWorker,
+		) => Promise<StallWithId | undefined>,
+		stallId: string,
+	) => {
+		if (!position)
+			return toast.message("Datos incompletos", {
+				description: "Seleccione un cargo",
+			});
+		if (!selectedWorker)
+			return toast.message("Datos incompletos", {
+				description: "Seleccione una persona",
+			});
+		const data = {
+			id: selectedWorker.id,
+			name: selectedWorker.name,
+			identification: selectedWorker.identification,
+			position,
+			sequence: [],
+			index: 0,
+			jump: 0,
+		};
+		addWorker(stallId, data).then((res) => {
+			if (res) {
+				setSelectedWorker(undefined);
+			}
+		});
+	};
+
+	return {
+		selectedWorker,
+		setSelectedWorker,
+		position,
+		setPosition,
+		handleAddWorker,
+	};
+};
+
 export interface StallData {
 	name: string;
 	description: string;
 	ays: string;
 	branch: string;
 	stage: number;
+	tag: string;
 }

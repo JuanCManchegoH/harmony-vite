@@ -1,9 +1,5 @@
 import { Menu, Transition } from "@headlessui/react";
-import {
-	CalendarDaysIcon,
-	HomeIcon,
-	PresentationChartBarIcon,
-} from "@heroicons/react/24/solid";
+import { CalendarDaysIcon, HomeIcon } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { Tab, TabList } from "@tremor/react";
 import { Fragment } from "react";
@@ -13,7 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 export const navigation = [
 	{ name: "Dashboard", icon: HomeIcon },
 	{ name: "Programaciones", icon: CalendarDaysIcon },
-	{ name: "Seguimiento", icon: PresentationChartBarIcon },
+	// { name: "Seguimiento", icon: PresentationChartBarIcon },
 ];
 
 export default function Navbar() {
@@ -21,7 +17,7 @@ export default function Navbar() {
 	const { logout } = useAuth();
 
 	return (
-		<header className="fixed bg-gray-50 inset-x-0 px-2 top-0 z-10 flex justify-end items-center h-12 border-b border-gray-900/10 font-rhd">
+		<header className="fixed bg-gray-50 inset-x-0 px-2 top-0 z-20 flex justify-end items-center h-12 border-b border-gray-900/10 font-rhd">
 			<img
 				src="harmony-logo.png"
 				alt="Harmony"

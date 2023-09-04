@@ -125,17 +125,14 @@ export default function Sequences() {
 						isShift={isShift}
 						setIsShift={setIsShift}
 					/>
-					<Button
-						color="sky"
-						size="xs"
-						onClick={(e) => addStep(e)}
-						className="col-start-2"
-					>
-						Agregar
-					</Button>
+					<div className="col-span-2 flex justify-end">
+						<Button color="sky" size="xs" onClick={(e) => addStep(e)}>
+							Agregar
+						</Button>
+					</div>
 					<div className="col-span-2">
 						<h1 className="text-sm font-bold">Secuencia</h1>
-						<div className="flex flex-wrap gap-2 mt-2">
+						<div className="flex flex-wrap justify-center gap-2 mt-2">
 							{steps.length <= 0 && (
 								<EmptyState>
 									<ListBulletIcon className="w-8 h-8 text-sky-500" />
@@ -151,6 +148,7 @@ export default function Sequences() {
 								<Badge
 									key={`${step.startTime}-${step.endTime}-${i}`}
 									color={step.color}
+									size="xl"
 								>
 									<span className="flex items-center gap-1">
 										<span className="text-xs">

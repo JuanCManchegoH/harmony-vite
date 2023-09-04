@@ -76,12 +76,14 @@ export const useFields = () => {
 };
 
 export const useHandleField = (field?: FieldDto) => {
+	const required = field ? field.required : false;
+	const active = field ? field.active : true;
 	const [data, setData] = useState<CreateData>({
 		name: field?.name || "",
 		size: field?.size || 1,
 		type: field?.type || "",
-		required: field?.required || false,
-		active: field?.active || true,
+		required,
+		active: active,
 		option: "",
 		options: field?.options || [],
 	});

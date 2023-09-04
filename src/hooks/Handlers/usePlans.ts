@@ -1,24 +1,25 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Times } from "../../common/SelectHours";
-import { WorkerData } from "../../components/Plans/Stalls/Stall";
+import { toast } from "sonner";
 import { Profile } from "../../services/auth/types";
 import { Convention } from "../../services/company/types";
 import { CustomerWithId } from "../../services/customers/types";
 import { CreateShift, ShiftWithId } from "../../services/shifts/types";
 import { StallWithId } from "../../services/stalls/types";
+import { WorkerWithId } from "../../services/workers/types";
 import { MonthDay, getDays } from "../../utils/dates";
 import { getHour } from "../../utils/hours";
 import { useCustomers } from "../useCustomers";
-import { useShifts } from "../useShifts";
+import { HandleShiftsData, useShifts } from "../useShifts";
 import { useStalls } from "../useStalls";
 
 export function usePlans(
 	customers: CustomerWithId[],
 	profile: Profile,
 	stalls: StallWithId[],
+	shits: ShiftWithId[],
 ) {
-	const { getCustomers } = useCustomers();
-	const { getStallsByCustomer } = useStalls(stalls);
+	const { getCustomers } = useCustomers(customers);
+	const { getStallsByCustomer } = useStalls(stalls, shits);
 	const month = new Date().getMonth().toString();
 	const year = new Date().getFullYear().toString();
 	const [selectedMonth, setSelectedMonth] = useState<string>(month);
@@ -65,17 +66,16 @@ export function useCreateEvent(
 	selectedYear: string,
 	shifts: ShiftWithId[],
 ) {
-	const { createAndUpdate } = useShifts();
+	const { createAndUpdate } = useShifts(shifts, stalls);
 	// FirstStep
 	const list = [actualCustomer, ...stalls];
 	const [selected, setSelected] = useState(list[0]);
-	const [selectedWorker, setSelectedWorker] = useState<string>("");
+	const [selectedWorker, setSelectedWorker] = useState<
+		WorkerWithId | undefined
+	>(undefined);
 	const [description, setDescription] = useState<string>("");
 	const [selectedSequence, setSelectedSequence] = useState<string>("");
-	const [workerData, setWorkerData] = useState<WorkerData>({
-		position: "",
-		mode: "",
-	});
+	const [position, setPosition] = useState<string>("");
 
 	// SecondStep
 	const [selectedConvention, setSelectedConvention] = useState<
@@ -83,38 +83,53 @@ export function useCreateEvent(
 	>(undefined);
 	const monthDays = getDays(selectedMonth, selectedYear);
 	const [selectedDays, setSelectedDays] = useState<string[]>([]);
-	const [isShift, setIsShift] = useState<boolean>(true);
-	const [times, setTimes] = useState<Times>({
+	const [shiftsData, setShiftsData] = useState<HandleShiftsData>({
 		selectedStartHour: "6",
 		selectedStartMinute: "0",
 		selectedEndHour: "18",
 		selectedEndMinute: "0",
+		isShift: true,
 	});
 
 	const handleCreateEvent = () => {
+		if (selectedDays.length === 0)
+			return toast.message("Datos incompletos", {
+				description: "Seleccione al menos un día",
+			});
+		if (!selected && !description && !selectedWorker && !position) {
+			return toast.message("Datos incompletos", {
+				description: "Todos los campos con * son obligatorios",
+			});
+		}
+		if (!shiftsData.isShift) {
+			if (!selectedConvention) return toast.error("Seleccione una convención");
+		}
 		const data: CreateShift = {
 			day: "",
-			startTime: isShift
-				? `${getHour(times.selectedStartHour)}:${getHour(
-						times.selectedStartMinute,
+			startTime: shiftsData.isShift
+				? `${getHour(shiftsData.selectedStartHour)}:${getHour(
+						shiftsData.selectedStartMinute,
 				  )}`
 				: "00:00",
-			endTime: isShift
-				? `${getHour(times.selectedEndHour)}:${getHour(
-						times.selectedEndMinute,
+			endTime: shiftsData.isShift
+				? `${getHour(shiftsData.selectedEndHour)}:${getHour(
+						shiftsData.selectedEndMinute,
 				  )}`
 				: "00:00",
-			color: isShift ? selectedConvention?.color || "green" : "gray",
-			abbreviation: isShift ? selectedConvention?.abbreviation || "T" : "X",
+			color: shiftsData.isShift ? selectedConvention?.color || "green" : "gray",
+			abbreviation: shiftsData.isShift
+				? selectedConvention?.abbreviation || "T"
+				: "X",
 			description,
-			mode: workerData.mode,
-			position: workerData.position,
+			position,
 			sequence: selectedSequence,
-			type: selected?.id === actualCustomer?.id ? "customerEvent" : "event",
+			type: selected?.id === actualCustomer?.id ? "customer" : "event",
 			active: true,
 			keep: selectedConvention?.keep || true,
-			worker: selectedWorker || "",
+			worker: selectedWorker?.id || "",
+			workerName: selectedWorker?.name || "",
 			stall: selected?.id || "",
+			stallName: selected?.name || "",
 		};
 		const create = selectedDays.map((day) => {
 			return {
@@ -123,7 +138,7 @@ export function useCreateEvent(
 			};
 		});
 		const update: [] = [];
-		createAndUpdate(create, update, shifts).then((res) => {
+		createAndUpdate(create, update).then((res) => {
 			if (res) {
 				setSelectedDays([]);
 			}
@@ -136,8 +151,8 @@ export function useCreateEvent(
 		setSelected,
 		selectedWorker,
 		setSelectedWorker,
-		workerData,
-		setWorkerData,
+		position,
+		setPosition,
 		description,
 		setDescription,
 		selectedSequence,
@@ -147,13 +162,38 @@ export function useCreateEvent(
 		monthDays,
 		selectedDays,
 		setSelectedDays,
-		isShift,
-		setIsShift,
-		times,
-		setTimes,
+		shiftsData,
+		setShiftsData,
 		handleCreateEvent,
 	};
 }
+
+export const useHandleEvents = () => {
+	const [selectedDelete, setSelectedDelete] = useState<string[]>([]);
+
+	const handleDeleteEvents = (
+		deleteMany: (
+			shiftsIds: string[],
+			stallId: string,
+		) => Promise<void | undefined>,
+		stallId: string,
+	) => {
+		if (selectedDelete.length === 0) {
+			return toast.message("Datos incompletos", {
+				description: "Seleccione al menos un dia",
+			});
+		}
+		deleteMany(selectedDelete, stallId).then(() => {
+			setSelectedDelete([]);
+		});
+	};
+
+	return {
+		handleDeleteEvents,
+		selectedDelete,
+		setSelectedDelete,
+	};
+};
 
 export interface CreateEvent {
 	list: (CustomerWithId | StallWithId | undefined)[];
@@ -161,22 +201,20 @@ export interface CreateEvent {
 	setSelected: Dispatch<
 		SetStateAction<CustomerWithId | StallWithId | undefined>
 	>;
-	selectedWorker: string;
-	setSelectedWorker: Dispatch<SetStateAction<string>>;
-	workerData: WorkerData;
+	selectedWorker: WorkerWithId | undefined;
+	setSelectedWorker: Dispatch<SetStateAction<WorkerWithId | undefined>>;
+	position: string;
+	setPosition: Dispatch<SetStateAction<string>>;
 	description: string;
 	setDescription: Dispatch<SetStateAction<string>>;
 	selectedSequence: string;
 	setSelectedSequence: Dispatch<SetStateAction<string>>;
-	setWorkerData: Dispatch<SetStateAction<WorkerData>>;
 	selectedConvention: Convention | undefined;
 	setSelectedConvention: Dispatch<SetStateAction<Convention | undefined>>;
 	monthDays: MonthDay[];
 	selectedDays: string[];
 	setSelectedDays: Dispatch<SetStateAction<string[]>>;
-	isShift: boolean;
-	setIsShift: Dispatch<SetStateAction<boolean>>;
-	times: Times;
-	setTimes: Dispatch<SetStateAction<Times>>;
+	shiftsData: HandleShiftsData;
+	setShiftsData: Dispatch<SetStateAction<HandleShiftsData>>;
 	handleCreateEvent: Function;
 }

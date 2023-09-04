@@ -16,23 +16,23 @@ import { toast } from "sonner";
 import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
 import { useWorkers } from "../../../hooks/useWorkers";
+import { WorkerWithId } from "../../../services/workers/types";
 import classNames from "../../../utils/classNames";
-import { WorkerData } from "./Stall";
 
 export default function AddStallWorker({
-	data,
-	setData,
+	position,
+	setPosition,
 	selectedWorker,
 	setSelectedWorker,
 }: {
-	data: WorkerData;
-	setData: Dispatch<SetStateAction<WorkerData>>;
-	selectedWorker: string;
-	setSelectedWorker: Dispatch<SetStateAction<string>>;
+	position: string;
+	setPosition: Dispatch<SetStateAction<string>>;
+	selectedWorker: WorkerWithId | undefined;
+	setSelectedWorker: Dispatch<SetStateAction<WorkerWithId | undefined>>;
 }) {
 	const { positions } = useAppSelector((state) => state.auth.profile.company);
 	const { workers } = useAppSelector((state) => state.workers);
-	const { searchWorkers } = useWorkers();
+	const { searchWorkers } = useWorkers(workers);
 	const [search, setSearch] = useState("");
 	const [next, setNext] = useState<boolean>(false);
 	const [offset, setOffset] = useState<number>(0);
@@ -63,7 +63,7 @@ export default function AddStallWorker({
 				onSubmit={(e) => handleSearch(e)}
 			>
 				<TextInput
-					placeholder="Buscar trabajador"
+					placeholder="Buscar trabajador*"
 					color="sky"
 					maxLength={20}
 					onChange={(e) => setSearch(e.target.value)}
@@ -90,23 +90,23 @@ export default function AddStallWorker({
 							<Card
 								key={worker.id}
 								className={classNames(
-									selectedWorker === worker.id ? "bg-sky-400" : "",
+									selectedWorker?.id === worker.id ? "bg-sky-400" : "",
 									"flex flex-col items-center gap-2 p-2 cursor-pointer hover:bg-sky-100",
 								)}
 								onClick={() => {
-									setSelectedWorker(worker.id);
+									setSelectedWorker(worker);
 								}}
 							>
 								<Text
 									className={classNames(
-										selectedWorker === worker.id ? "text-white" : "",
+										selectedWorker?.id === worker.id ? "text-white" : "",
 									)}
 								>
 									{worker.name}
 								</Text>
 								<Text
 									className={classNames(
-										selectedWorker === worker.id ? "text-white" : "",
+										selectedWorker?.id === worker.id ? "text-white" : "",
 									)}
 								>
 									{worker.identification}
@@ -136,21 +136,14 @@ export default function AddStallWorker({
 			) : null}
 
 			<Select
+				className="col-span-2"
 				placeholder="Cargo*"
-				value={data.position}
-				onValueChange={(value) => setData({ ...data, position: value })}
+				value={position}
+				onValueChange={(value) => setPosition(value)}
 			>
 				{positions.map((position) => (
 					<SelectItem value={position.name}>{position.name}</SelectItem>
 				))}
-			</Select>
-			<Select
-				placeholder="Fase*"
-				value={data.mode}
-				onValueChange={(value) => setData({ ...data, mode: value })}
-			>
-				<SelectItem value="proyeccion">Proyección</SelectItem>
-				<SelectItem value="ejecucion">Ejecución</SelectItem>
 			</Select>
 		</div>
 	);

@@ -1,3 +1,5 @@
+import { Step } from "../company/types";
+
 export interface Shift {
 	day: string;
 	startTime: string;
@@ -5,14 +7,15 @@ export interface Shift {
 	color: "green" | "gray" | "yellow" | "sky" | "red";
 	abbreviation: string;
 	description: string;
-	position: string;
 	sequence: string;
-	mode: string;
+	position: string;
 	type: string;
 	active: boolean;
 	keep: boolean;
 	worker: string;
+	workerName: string;
 	stall: string;
+	stallName: string;
 	createdBy: string;
 	updatedBy: string;
 	createdAt: string;
@@ -30,14 +33,23 @@ export interface CreateShift {
 	color: "green" | "gray" | "yellow" | "sky" | "red";
 	abbreviation: string;
 	description: string;
-	position: string;
 	sequence: string;
-	mode: string;
+	position: string;
 	type: string;
 	active: boolean;
 	keep: boolean;
 	worker: string;
+	workerName: string;
 	stall: string;
+	stallName: string;
+}
+
+export interface AppliedSequence {
+	stall: string;
+	worker: string;
+	sequence: Step[];
+	index: number;
+	jump: number;
 }
 
 export interface UpdateShift {
@@ -45,7 +57,6 @@ export interface UpdateShift {
 	endTime: string;
 	color: "green" | "gray" | "yellow" | "sky" | "red";
 	abbreviation: string;
-	mode: string;
 	type: string;
 	active: boolean;
 	keep: boolean;

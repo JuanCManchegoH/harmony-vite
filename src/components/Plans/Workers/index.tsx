@@ -7,32 +7,16 @@ import {
 	TrashIcon,
 } from "@heroicons/react/24/solid";
 import { Button, Card, Text, TextInput } from "@tremor/react";
-import {
-	Dispatch,
-	FormEvent,
-	SetStateAction,
-	useEffect,
-	useState,
-} from "react";
+import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import Modal from "../../../common/RightModal";
 import { useAppSelector } from "../../../hooks/store";
-import { useWorkers } from "../../../hooks/useWorkers";
-import { Field, WorkerWithId } from "../../../services/workers/types";
+import { useHandleWorker, useWorkers } from "../../../hooks/useWorkers";
+import { WorkerWithId } from "../../../services/workers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
 import List from "./List";
 import Worker from "./Worker";
-
-export interface WorkerData {
-	name: string;
-	identification: string;
-	city: string;
-	phone: string;
-	address: string;
-	tags: string[];
-	active: boolean;
-}
 
 export default function Workers({
 	open,
@@ -42,90 +26,27 @@ export default function Workers({
 	setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
 	const profile = useAppSelector((state) => state.auth.profile);
-	const { createWorker, updateWorker, searchWorkers } = useWorkers();
 	const workers = useAppSelector((state) => state.workers.workers);
+	const { createWorker, updateWorker, searchWorkers } = useWorkers(workers);
+	const {
+		resetForm,
+		data,
+		setData,
+		fields,
+		setFields,
+		handleCreate,
+		handleUpdate,
+	} = useHandleWorker(profile.company.workerFields);
 	const [openWorker, setOpenWorker] = useState(false);
 	const [openDelete, setOpenDelete] = useState(false);
-	const [fields, setFields] = useState<Field[]>([]);
 	const [search, setSearch] = useState("");
 	const [next, setNext] = useState<boolean>(false);
 	const [offset, setOffset] = useState<number>(0);
 	const limit = 10;
 
-	useEffect(() => {
-		setFields(
-			profile.company.workerFields.map((field) => ({
-				id: field.id,
-				name: field.name,
-				size: field.size,
-				type: field.type,
-				options: field.options,
-				required: field.required,
-				value: field.type === "date" ? new Date().toISOString() : "",
-			})),
-		);
-	}, [profile]);
-
 	const [selectedWorker, setSelectedWorker] = useState<WorkerWithId | null>(
 		null,
 	);
-
-	const [data, setData] = useState<WorkerData>({
-		name: "",
-		identification: "",
-		city: "",
-		phone: "",
-		address: "",
-		tags: [],
-		active: true,
-	});
-
-	const resetForm = () => {
-		setData({
-			name: "",
-			identification: "",
-			city: "",
-			phone: "",
-			address: "",
-			tags: [],
-			active: true,
-		});
-		setFields(
-			profile.company.workerFields.map((field) => ({
-				id: field.id,
-				name: field.name,
-				size: field.size,
-				type: field.type,
-				options: field.options,
-				required: field.required,
-				value: field.type === "date" ? new Date().toISOString() : "",
-			})),
-		);
-	};
-
-	const handleCreate = async () => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.phone ||
-			!data.address
-		)
-			return toast.error("Todos los campos con * son obligatorios");
-		if (fields.some((field) => field.required && !field.value))
-			return toast.error("Todos los campos con * son obligatorios");
-		const tags = data.tags.length === 0 ? ["all"] : data.tags;
-		const worker = {
-			...data,
-			tags,
-			fields,
-		};
-		await createWorker(worker).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
-	};
 
 	const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -145,31 +66,11 @@ export default function Workers({
 		setOffset(offset - 10);
 	};
 
-	const handleUpdate = async (id: string) => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.phone ||
-			!data.address
-		)
-			return toast.error("Todos los campos con * son obligatorios");
-		if (fields.some((field) => field.required && !field.value))
-			return toast.error("Todos los campos con * son obligatorios");
-		const tags = data.tags.length === 0 ? ["all"] : data.tags;
-		const worker = {
-			...data,
-			tags,
-			fields,
-		};
-		await updateWorker(worker, id, workers);
-	};
-
 	const action = () => {
 		if (selectedWorker) {
-			handleUpdate(selectedWorker.id);
+			handleUpdate(updateWorker, selectedWorker.id);
 		} else {
-			handleCreate();
+			handleCreate(createWorker);
 		}
 	};
 
@@ -180,7 +81,12 @@ export default function Workers({
 			icon={IdentificationIcon}
 			title="Personal"
 			btnText={selectedWorker ? "Actualizar" : "Crear"}
-			action={selectedWorker || openWorker ? action : undefined}
+			action={
+				validateRoles(profile.roles, ["handle_workers"], []) &&
+				(selectedWorker || openWorker)
+					? action
+					: undefined
+			}
 		>
 			<section className="flex flex-col gap-2">
 				<header className="flex gap-2">
@@ -226,18 +132,20 @@ export default function Workers({
 							)}
 						</ol>
 					</nav>
-					<Button
-						color="sky"
-						size="xs"
-						onClick={() => {
-							resetForm();
-							!selectedWorker && setOpenWorker(!openWorker);
-							selectedWorker && setSelectedWorker(null);
-						}}
-						variant={openWorker || selectedWorker ? "secondary" : "primary"}
-					>
-						{openWorker || selectedWorker ? "Volver" : "Crear Persona"}
-					</Button>
+					{validateRoles(profile.roles, ["handle_workers"], []) && (
+						<Button
+							color="sky"
+							size="xs"
+							onClick={() => {
+								resetForm();
+								!selectedWorker && setOpenWorker(!openWorker);
+								selectedWorker && setSelectedWorker(null);
+							}}
+							variant={openWorker || selectedWorker ? "secondary" : "primary"}
+						>
+							{openWorker || selectedWorker ? "Volver" : "Crear Persona"}
+						</Button>
+					)}
 				</header>
 				{!openWorker && !selectedWorker && (
 					<form
@@ -254,7 +162,7 @@ export default function Workers({
 						<Button color="sky" size="sm" variant="secondary" type="submit">
 							Buscar
 						</Button>
-						{validateRoles(profile.roles, ["handle_customers"], []) && (
+						{validateRoles(profile.roles, ["handle_workers"], []) && (
 							<Card className="flex p-2 w-10 justify-center group cursor-pointer hover:bg-red-500">
 								<TrashIcon
 									className={classNames(

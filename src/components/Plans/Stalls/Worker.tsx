@@ -1,4 +1,5 @@
 import {
+	BackspaceIcon,
 	BoltIcon,
 	CalendarDaysIcon,
 	IdentificationIcon,
@@ -6,56 +7,75 @@ import {
 } from "@heroicons/react/24/solid";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import Calendar from "../../../common/Calendar";
+import { eventTypes } from "..";
 import CenteredModal from "../../../common/CenteredModal";
-import SelectHours, { Times } from "../../../common/SelectHours";
 import Tracker, { TrackerItem } from "../../../common/Tracker";
 import { useAppSelector } from "../../../hooks/store";
-import { useShifts } from "../../../hooks/useShifts";
+import { useHandleShifts, useShifts } from "../../../hooks/useShifts";
 import { useStalls } from "../../../hooks/useStalls";
-import { Sequence } from "../../../services/company/types";
-import { StallWorker } from "../../../services/stalls/types";
+import { StallWithId, StallWorker } from "../../../services/stalls/types";
 import { DateToSring, MonthDay, getDay } from "../../../utils/dates";
-import { getHour } from "../../../utils/hours";
+import { validateRoles } from "../../../utils/roles";
+import CalendarUpdate from "./CalendarUpdate";
+import DeleteShifts from "./DeleteShifts";
 import Info from "./Info";
 import SelectSequence from "./SelectSequence";
 
 export default function Worker({
 	worker,
 	monthDays,
-	stallId,
+	stall,
 	schedules,
 	setHoverSchedule,
 }: {
 	worker: StallWorker;
 	monthDays: MonthDay[];
-	stallId: string;
+	stall: StallWithId;
 	schedules: { startTime: string; endTime: string }[];
 	setHoverSchedule: Dispatch<SetStateAction<string>>;
 }) {
+	const { profile } = useAppSelector((state) => state.auth);
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { shifts } = useAppSelector((state) => state.shifts);
-	const { createAndUpdate } = useShifts();
+	const { createAndUpdate, deleteMany } = useShifts(shifts, stalls);
+	const { removeWorker } = useStalls(stalls, shifts);
+	const {
+		shiftsData,
+		setShiftsData,
+		selectedDays,
+		setSelectedDays,
+		handleCreateAndUpdate,
+		selectedSequence,
+		setSelectedSequence,
+		selectedIndex,
+		setSelectedIndex,
+		jump,
+		setJump,
+		handleSequence,
+		selectedDelete,
+		setSelectedDelete,
+		handleDeleteShifts,
+	} = useHandleShifts(shifts, worker, stall, monthDays);
+	const workerShifts = shifts.filter(
+		(shift) =>
+			shift.worker === worker.id &&
+			shift.stall === stall.id &&
+			!eventTypes.includes(shift.type),
+	);
+	const workerEvents = shifts.filter(
+		(shift) =>
+			shift.worker === worker.id &&
+			shift.stall === stall.id &&
+			eventTypes.includes(shift.type),
+	);
 	const [openInfo, setOpenInfo] = useState(false);
-	const [selectedSequence, setSelectedSequence] = useState<Sequence>();
-	const [selectedIndex, setSelectedIndex] = useState<number>(1);
-	const [openSequence, setOpenSequence] = useState<boolean>(false);
-	const [selectedDays, setSelectedDays] = useState<string[]>([]);
 	const [openCalendar, setOpenCalendar] = useState(false);
-	const [isShift, setIsShift] = useState<boolean>(true);
-	const { removeWorker } = useStalls(stalls);
-	const [times, setTimes] = useState<Times>({
-		selectedStartHour: "6",
-		selectedStartMinute: "0",
-		selectedEndHour: "18",
-		selectedEndMinute: "0",
-	});
+	const [openSequence, setOpenSequence] = useState<boolean>(false);
+	const [openDelete, setOpenDelete] = useState(false);
+
 	const data: TrackerItem[] = monthDays.map((day) => {
-		const shift = shifts.find(
-			(shift) =>
-				shift.day === DateToSring(day.date) &&
-				shift.worker === worker.id &&
-				shift.stall === stallId,
+		const shift = workerShifts.find(
+			(shift) => shift.day === DateToSring(day.date),
 		);
 		return {
 			key: getDay(day.date),
@@ -67,139 +87,6 @@ export default function Worker({
 		};
 	});
 
-	const handleCreateAndUpdate = () => {
-		const commonData = {
-			startTime: isShift
-				? `${getHour(times.selectedStartHour)}:${getHour(
-						times.selectedStartMinute,
-				  )}`
-				: "00:00",
-			endTime: isShift
-				? `${getHour(times.selectedEndHour)}:${getHour(
-						times.selectedEndMinute,
-				  )}`
-				: "00:00",
-			color: isShift ? "green" : ("gray" as "green" | "gray"),
-			abbreviation: isShift ? "T" : "X",
-			description: isShift ? "Turno" : "Descanso",
-			mode: "proyeccion",
-			type: isShift ? "shift" : "rest",
-			active: true,
-			keep: true,
-		};
-		const create = selectedDays
-			.filter(
-				(day) =>
-					!shifts.find(
-						(shift) =>
-							shift.day === day &&
-							shift.worker === worker.id &&
-							shift.stall === stallId,
-					),
-			)
-			.map((day) => ({
-				day,
-				...commonData,
-				worker: worker.id,
-				stall: stallId,
-				position: "",
-				sequence: "",
-			}));
-		const update = selectedDays
-			.filter((day) =>
-				shifts.find(
-					(shift) =>
-						shift.day === day &&
-						shift.worker === worker.id &&
-						shift.stall === stallId,
-				),
-			)
-			.map((day) => ({
-				id: shifts.find(
-					(shift) =>
-						shift.day === day &&
-						shift.worker === worker.id &&
-						shift.stall === stallId,
-				)?.id as string,
-				...commonData,
-			}));
-		createAndUpdate(create, update, shifts).then((res) => {
-			if (res) {
-				setSelectedDays([]);
-			}
-		});
-	};
-
-	const handleSequence = () => {
-		const sequenceShifts = monthDays.map((day, i) => {
-			const step =
-				selectedSequence?.steps[
-					(i + selectedIndex - 1) % (selectedSequence?.steps.length || 0)
-				];
-			return {
-				day: DateToSring(day.date),
-				startTime: step?.startTime || "",
-				endTime: step?.endTime || "",
-				color: step?.color || "gray",
-			};
-		});
-		const create = sequenceShifts
-			.filter(
-				(shift) =>
-					!shifts.find(
-						(s) =>
-							s.day === shift.day &&
-							s.worker === worker.id &&
-							s.stall === stallId,
-					),
-			)
-			.map((shift) => ({
-				...shift,
-				worker: worker.id,
-				stall: stallId,
-				mode: "proyeccion",
-				type: shift.color === "green" ? "shift" : "rest",
-				abbreviation: shift.color === "green" ? "T" : "X",
-				description: shift.color === "green" ? "Turno" : "Descanso",
-				active: true,
-				keep: true,
-				position: "",
-				sequence: "",
-			}));
-
-		const update = sequenceShifts
-			.filter((shift) =>
-				shifts.find(
-					(s) =>
-						s.day === shift.day &&
-						s.worker === worker.id &&
-						s.stall === stallId,
-				),
-			)
-			.map((shift) => ({
-				id: shifts.find(
-					(s) =>
-						s.day === shift.day &&
-						s.worker === worker.id &&
-						s.stall === stallId,
-				)?.id as string,
-				startTime: shift.startTime,
-				endTime: shift.endTime,
-				color: shift.color,
-				abbreviation: shift.color === "green" ? "T" : "X",
-				description: shift.color === "green" ? "Turno" : "Descanso",
-				mode: "proyeccion",
-				type: shift.color === "green" ? "shift" : "rest",
-				active: true,
-				keep: true,
-			}));
-		createAndUpdate(create, update, shifts).then((res) => {
-			if (res) {
-				setSelectedSequence(undefined);
-			}
-		});
-	};
-
 	return (
 		<div className="flex z-10 relative pt-4 m-2">
 			<label className="absolute -top-2 flex items-center bg-gray-50 px-1 text-sm font-medium text-gray-900 uppercase gap-2">
@@ -207,14 +94,22 @@ export default function Worker({
 					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
 					onClick={() => setOpenInfo(true)}
 				/>
-				<CalendarDaysIcon
-					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
-					onClick={() => setOpenCalendar(true)}
-				/>
-				<BoltIcon
-					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
-					onClick={() => setOpenSequence(true)}
-				/>
+				{validateRoles(profile.roles, ["handle_stalls"], []) && (
+					<>
+						<CalendarDaysIcon
+							className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
+							onClick={() => setOpenCalendar(true)}
+						/>
+						<BoltIcon
+							className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
+							onClick={() => setOpenSequence(true)}
+						/>
+						<BackspaceIcon
+							className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
+							onClick={() => setOpenDelete(true)}
+						/>
+					</>
+				)}
 				{worker.name} - {worker.identification}
 			</label>
 			<div className="bg-gray-50 absolute -top-2 right-0 flex">
@@ -224,7 +119,12 @@ export default function Worker({
 						toast("Confirmar eliminacion", {
 							action: {
 								label: "Eliminar",
-								onClick: () => removeWorker(stallId, worker.id, stalls),
+								onClick: () =>
+									removeWorker(
+										stall.id,
+										worker.id,
+										[...workerShifts, ...workerEvents].map((shift) => shift.id),
+									),
 							},
 						})
 					}
@@ -239,23 +139,17 @@ export default function Worker({
 				open={openCalendar}
 				setOpen={setOpenCalendar}
 				icon={CalendarDaysIcon}
-				title="Calendario"
+				title="Actualización por calendario"
 				btnText="Actualizar"
-				action={selectedDays.length > 0 ? handleCreateAndUpdate : undefined}
+				action={() => handleCreateAndUpdate(createAndUpdate)}
 			>
-				<Calendar
+				<CalendarUpdate
 					monthDays={monthDays}
 					selectedDays={selectedDays}
 					setSelectedDays={setSelectedDays}
+					data={shiftsData}
+					setData={setShiftsData}
 				/>
-				<form className="grid grid-cols-2 gap-2">
-					<SelectHours
-						times={times}
-						setTimes={setTimes}
-						isShift={isShift}
-						setIsShift={setIsShift}
-					/>
-				</form>
 			</CenteredModal>
 			<CenteredModal
 				open={openSequence}
@@ -263,14 +157,17 @@ export default function Worker({
 				icon={BoltIcon}
 				title="Secuencias"
 				btnText="Actualizar"
-				action={selectedSequence ? () => handleSequence() : undefined}
+				action={() => handleSequence(createAndUpdate)}
 			>
 				<form className="grid grid-cols-2 gap-2">
 					<SelectSequence
+						monthDays={monthDays}
 						selectedSequence={selectedSequence}
 						setSelectedSequence={setSelectedSequence}
 						selectedIndex={selectedIndex}
 						setSelectedIndex={setSelectedIndex}
+						jump={jump}
+						setJump={setJump}
 					/>
 				</form>
 			</CenteredModal>
@@ -280,9 +177,20 @@ export default function Worker({
 				icon={IdentificationIcon}
 				title="Información de la persona"
 			>
-				<Info
-					worker={worker}
-					shifts={shifts.filter((s) => s.worker === worker.id)}
+				<Info worker={worker} shifts={workerShifts} />
+			</CenteredModal>
+			<CenteredModal
+				open={openDelete}
+				setOpen={setOpenDelete}
+				icon={BackspaceIcon}
+				title="Eliminar Turnos"
+				btnText="Eliminar"
+				action={() => handleDeleteShifts(deleteMany, stall.id)}
+			>
+				<DeleteShifts
+					shifts={workerShifts}
+					selectedDelete={selectedDelete}
+					setSelectedDelete={setSelectedDelete}
 				/>
 			</CenteredModal>
 		</div>

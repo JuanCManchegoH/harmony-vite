@@ -74,18 +74,20 @@ export default function HandleField({
 				</div>
 			)}
 			<div className="col-span-2">
-				<h1 className="text-sm font-bold">Opciones</h1>
 				<div className="flex flex-wrap gap-2 mt-2">
-					{data.options.length <= 0 && (
-						<EmptyState>
-							<ListBulletIcon className="w-8 h-8 text-sky-500" />
-							<Text className="text-gray-600">
-								Aquí aparecerán las opciones agregadas
-							</Text>
-							<Text className="text-gray-400">
-								Para agregar una opción, haz click en el botón "Agregar"
-							</Text>
-						</EmptyState>
+					{data.type === "select" && data.options.length <= 0 && (
+						<>
+							<h1 className="text-sm font-bold">Opciones</h1>
+							<EmptyState>
+								<ListBulletIcon className="w-8 h-8 text-sky-500" />
+								<Text className="text-gray-600">
+									Aquí aparecerán las opciones agregadas
+								</Text>
+								<Text className="text-gray-400">
+									Para agregar una opción, haz click en el botón "Agregar"
+								</Text>
+							</EmptyState>
+						</>
 					)}
 					{data.options.map((option, i) => (
 						<Badge key={`${option}-${i}`} color="sky">

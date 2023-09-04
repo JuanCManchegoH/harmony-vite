@@ -3,23 +3,29 @@ import { Dispatch, SetStateAction } from "react";
 import { useAppSelector } from "../../../hooks/store";
 import { Sequence } from "../../../services/company/types";
 import classNames from "../../../utils/classNames";
+import { DateToSring, MonthDay } from "../../../utils/dates";
 
 export default function SelectSequence({
+	monthDays,
 	selectedSequence,
 	setSelectedSequence,
 	selectedIndex,
 	setSelectedIndex,
+	jump,
+	setJump,
 }: {
+	monthDays: MonthDay[];
 	selectedSequence: Sequence | undefined;
 	setSelectedSequence: Dispatch<SetStateAction<Sequence | undefined>>;
 	selectedIndex: number;
 	setSelectedIndex: Dispatch<SetStateAction<number>>;
+	jump: number;
+	setJump: Dispatch<SetStateAction<number>>;
 }) {
 	const { sequences } = useAppSelector((state) => state.auth.profile.company);
 	return (
 		<>
 			<Select
-				className="col-span-2"
 				placeholder="Selecciona una secuencia"
 				value={selectedSequence?.id || ""}
 				onValueChange={(value) =>
@@ -31,6 +37,17 @@ export default function SelectSequence({
 				{sequences.map((sequence) => (
 					<SelectItem key={sequence.id} value={sequence.id}>
 						{sequence.name}
+					</SelectItem>
+				))}
+			</Select>
+			<Select
+				placeholder="Selecciona dia de inicio"
+				value={jump.toString()}
+				onValueChange={(value) => setJump(parseInt(value))}
+			>
+				{monthDays.map((day, i) => (
+					<SelectItem key={DateToSring(day.date)} value={i.toString()}>
+						{DateToSring(day.date)} - {day.day}
 					</SelectItem>
 				))}
 			</Select>

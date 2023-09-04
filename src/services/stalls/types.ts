@@ -1,3 +1,4 @@
+import { Step } from "../company/types";
 import { ShiftWithId } from "../shifts/types";
 
 export interface StallWorker {
@@ -5,10 +6,9 @@ export interface StallWorker {
 	name: string;
 	identification: string;
 	position: string;
-	sequence: string;
+	sequence: Step[];
 	index: number;
 	jump: number;
-	mode: string;
 	createdBy: string;
 	updatedBy: string;
 	createdAt: string;
@@ -26,6 +26,7 @@ export interface Stall {
 	customerName: string;
 	workers: StallWorker[];
 	stage: number;
+	tag: string;
 	createdBy: string;
 	updatedBy: string;
 	createdAt: string;
@@ -41,10 +42,9 @@ export interface HandleStallWorker {
 	name: string;
 	identification: string;
 	position: string;
-	sequence: string;
+	sequence: Step[];
 	index: number;
 	jump: number;
-	mode: string;
 }
 
 export interface StallsAndShifts {

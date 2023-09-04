@@ -2,8 +2,8 @@ export interface Field {
 	id: string;
 	name: string;
 	type: string;
-	options: string[];
 	size: number;
+	options: string[];
 	required: boolean;
 	active: boolean;
 }
@@ -18,7 +18,7 @@ export interface Position {
 export interface Convention {
 	id: string;
 	name: string;
-	color: "sky" | "red";
+	color: "sky" | "red" | "green" | "yellow" | "gray";
 	abbreviation: string;
 	keep: boolean;
 }

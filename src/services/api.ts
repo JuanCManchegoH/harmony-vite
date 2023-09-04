@@ -67,7 +67,7 @@ const api = {
 	},
 	shifts: {
 		createAndUpdate: `${API}/shifts`,
-		deleteMany: `${API}/shifts/`,
+		deleteMany: (stallId: string) => `${API}/shifts/delete/${stallId}`,
 	},
 };
 
