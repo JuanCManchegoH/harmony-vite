@@ -1,8 +1,8 @@
 import { MultiSelect, Select, SelectItem, TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { WorkerData } from ".";
 import HandleFields from "../../../common/HandleFields";
 import { useAppSelector } from "../../../hooks/store";
+import { WorkerData } from "../../../hooks/useWorkers";
 import { Field } from "../../../services/customers/types";
 import cities from "../../../utils/cities";
 

@@ -8,10 +8,9 @@ import {
 	Text,
 } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { WorkerData } from ".";
 import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
-import { useWorkers } from "../../../hooks/useWorkers";
+import { WorkerData, useWorkers } from "../../../hooks/useWorkers";
 import { Field, WorkerWithId } from "../../../services/workers/types";
 
 export default function List({
@@ -30,7 +29,7 @@ export default function List({
 	);
 	const workers = useAppSelector((state) => state.workers.workers);
 
-	const { deleteWorker } = useWorkers();
+	const { deleteWorker } = useWorkers(workers);
 
 	const handleSelect = (customer: WorkerWithId) => {
 		setData({

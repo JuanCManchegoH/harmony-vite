@@ -13,6 +13,7 @@ export const DEFAULT_STALL: StallWithId = {
 	customerName: "",
 	workers: [],
 	stage: 0,
+	tag: "",
 	createdBy: "",
 	updatedBy: "",
 	createdAt: "",
