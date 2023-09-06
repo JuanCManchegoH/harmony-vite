@@ -4,4 +4,14 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [react()],
+	build: {
+		rollupOptions: {
+			external: ["react", "react-router-dom", "react-redux"],
+			output: {
+				globals: {
+					react: "React",
+				},
+			},
+		},
+	},
 });
