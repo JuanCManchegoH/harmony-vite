@@ -1,7 +1,8 @@
-import { KeyIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { HomeIcon, KeyIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { Button, Subtitle, TextInput } from "@tremor/react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Background from "../common/Background";
 import { useAuth } from "../hooks/useAuth";
 
@@ -34,6 +35,13 @@ export default function Login() {
 					zIndex: 10,
 				}}
 			/>
+			<div className="flex flex-1 justify-end absolute top-6 right-8">
+				<Link to="/">
+					<Button color="rose" icon={HomeIcon}>
+						Volver al inicio
+					</Button>
+				</Link>
+			</div>
 			<section className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 z-10">
 				<div className="sm:mx-auto sm:w-full sm:max-w-sm z-10">
 					<div className="flex flex-col items-center justify-center">

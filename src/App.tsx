@@ -1,5 +1,5 @@
+import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
-import { Route } from "wouter";
 import Harmony from "./pages/Harmony";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -9,9 +9,11 @@ function App() {
 		<>
 			<Toaster richColors closeButton position="bottom-center" />
 			<div className="h-full">
-				<Route path="/" component={Home} />
-				<Route path="/login" component={Login} />
-				<Route path="/harmony" component={Harmony} />
+				<Routes>
+					<Route path="/" element={<Home />} />
+					<Route path="/login" element={<Login />} />
+					<Route path="/harmony" element={<Harmony />} />
+				</Routes>
 			</div>
 		</>
 	);

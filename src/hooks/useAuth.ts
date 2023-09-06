@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookie from "js-cookie";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
 import api from "../services/api";
 import { setLoading, setProfile, setToken } from "../services/auth/slice";
 import { Profile, Token } from "../services/auth/types";
@@ -9,13 +9,14 @@ import { useAppDispatch } from "./store";
 
 export const useAuth = () => {
 	const dispatch = useAppDispatch();
-	const [location, setLocation] = useLocation();
+	const navigate = useNavigate();
+	const location = useLocation().pathname;
 
 	const getProfile = async () => {
 		const access_token = Cookie.get("access_token");
 
 		if (!access_token || location === "/") {
-			setLocation("/login");
+			navigate("/login");
 			return;
 		}
 
@@ -26,12 +27,12 @@ export const useAuth = () => {
 			const { data } = await axios.get<Profile>(api.auth.profile);
 			dispatch(setProfile(data));
 			if (location === "/login") {
-				setLocation("/harmony");
+				navigate("/harmony");
 			}
 		} catch {
 			Cookie.remove("access_token");
 			dispatch(setToken(""));
-			setLocation("/login");
+			navigate("/login");
 		} finally {
 			dispatch(setLoading(false));
 		}
@@ -41,7 +42,7 @@ export const useAuth = () => {
 	if (location !== "/" && location !== "/login") {
 		const access_token = Cookie.get("access_token");
 		if (!access_token) {
-			setLocation("/login");
+			navigate("/login");
 		}
 	}
 
@@ -72,7 +73,7 @@ export const useAuth = () => {
 		dispatch(setToken(""));
 		dispatch(setProfile({} as Profile));
 		toast.success("Hasta pronto");
-		setLocation("/login");
+		navigate("/login");
 	};
 
 	return { getProfile, login, logout };
