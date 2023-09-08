@@ -3,8 +3,8 @@ import Cookie from "js-cookie";
 import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
-import { setLoading, setLogs } from "../services/logs/slice";
-import { Log } from "../services/logs/types";
+import { setLoading, setLogs } from "../services/appLogs/slice";
+import { Log } from "../services/appLogs/types";
 import { useAppDispatch } from "./store";
 
 export const useLogs = () => {

@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
+import logsReducer from "./appLogs/slice";
 import authReducer from "./auth/slice";
 import customersReducer from "./customers/slice";
-import logsReducer from "./logs/slice";
 import shiftsReducer from "./shifts/slice";
 import stallsReducer from "./stalls/slice";
 import usersReducer from "./users/slice";
