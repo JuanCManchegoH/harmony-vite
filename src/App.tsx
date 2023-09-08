@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
@@ -10,15 +10,13 @@ function App() {
 		<>
 			<Toaster richColors closeButton position="bottom-center" />
 			<div className="h-full">
-				<HashRouter>
-					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route path="/login" element={<Login />} />
-						<Route path="/dashboard" element={<Dashboard />} />
-						<Route path="/programaciones" element={<Plans />} />
-						{/* <Route path="/seguimiento" element={<Tracing />} /> */}
-					</Routes>
-				</HashRouter>
+				<Routes>
+					<Route path="/" element={<Home />} />
+					<Route path="/login" element={<Login />} />
+					<Route path="/dashboard" element={<Dashboard />} />
+					<Route path="/programaciones" element={<Plans />} />
+					{/* <Route path="/seguimiento" element={<Tracing />} /> */}
+				</Routes>
 			</div>
 		</>
 	);
