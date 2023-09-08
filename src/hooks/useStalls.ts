@@ -4,9 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { CustomerWithId } from "../services/customers/types";
-import { setShifts } from "../services/shifts/slice";
+import { setPlansShifts, setTracingShifts } from "../services/shifts/slice";
 import { ShiftWithId } from "../services/shifts/types";
-import { setLoading, setStalls } from "../services/stalls/slice";
+import {
+	setLoading,
+	setPlansStalls,
+	setTracingStalls,
+} from "../services/stalls/slice";
 import {
 	HandleStallWorker,
 	StallWithId,
@@ -18,7 +22,7 @@ import { useAppDispatch } from "./store";
 export interface GetStalls {
 	months: string[];
 	years: string[];
-	customerId: string;
+	customerId?: string;
 }
 
 export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
@@ -31,7 +35,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			const { data } = await axios.post<StallWithId>(api.stalls.create, stall);
 			toast.success("Puesto creado");
-			dispatch(setStalls([...stalls, data]));
+			dispatch(setPlansStalls([...stalls, data]));
 			return data;
 		} catch (error) {
 			console.log(error);
@@ -39,17 +43,38 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		}
 	}
 
-	async function getStallsByCustomer(getStalls: GetStalls) {
+	async function getStallsByCustomer(
+		months: string[],
+		years: string[],
+		customerId: string,
+	) {
 		dispatch(setLoading(true));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			const { data } = await axios.post<StallsAndShifts>(
 				api.stalls.getByCustomer,
-				getStalls,
+				{ months, years, customerId },
 			);
-			dispatch(setStalls(data.stalls));
-			dispatch(setShifts(data.shifts));
+			dispatch(setPlansStalls(data.stalls));
+			dispatch(setPlansShifts(data.shifts));
+			return data;
+		} catch {
+			toast.error("Error obteniendo puestos");
+		}
+	}
+
+	async function getStallsByCustomers(months: string[], years: string[]) {
+		dispatch(setLoading(true));
+		try {
+			const access_token = Cookie.get("access_token");
+			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+			const { data } = await axios.post<StallsAndShifts>(
+				api.stalls.getByCustomers,
+				{ months, years },
+			);
+			dispatch(setTracingStalls(data.stalls));
+			dispatch(setTracingShifts(data.shifts));
 			return data;
 		} catch {
 			toast.error("Error obteniendo puestos");
@@ -66,7 +91,9 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				stall,
 			);
 			toast.success("Puesto actualizado");
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+			dispatch(
+				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
+			);
 			return data;
 		} catch {
 			toast.error("Error actualizando puesto");
@@ -84,9 +111,9 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			await axios.post(api.stalls.delete(stallId), { shifts: stallShifts });
 			toast.success("Puesto eliminado");
-			dispatch(setStalls(stalls.filter((s) => s.id !== stallId)));
+			dispatch(setPlansStalls(stalls.filter((s) => s.id !== stallId)));
 			dispatch(
-				setShifts(
+				setPlansShifts(
 					shifts.filter((shift) => !stallShifts.includes(shift.id as string)),
 				),
 			);
@@ -105,7 +132,9 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				worker,
 			);
 			toast.success("Persona agregada");
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+			dispatch(
+				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
+			);
 			return data;
 		} catch {
 			toast.error("Error agregando persona");
@@ -126,9 +155,11 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				{ shifts: workerShifts },
 			);
 			toast.success("Persona eliminada");
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
 			dispatch(
-				setShifts(
+				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
+			);
+			dispatch(
+				setPlansShifts(
 					shifts.filter((shift) => !workerShifts.includes(shift.id as string)),
 				),
 			);
@@ -140,6 +171,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 
 	return {
 		createStall,
+		getStallsByCustomers,
 		getStallsByCustomer,
 		updateStall,
 		deleteStall,

@@ -1,7 +1,5 @@
-import { TabGroup, TabPanel, TabPanels } from "@tremor/react";
 import { useEffect } from "react";
 import Background from "../common/Background";
-import Dashboard from "../components/Dashboard";
 import Navbar from "../components/Navbar";
 import Plans from "../components/Plans";
 import { useAuth } from "../hooks/useAuth";
@@ -15,18 +13,13 @@ export default function Harmony() {
 
 	return (
 		<>
-			<TabGroup className="h-full font-rhd">
+			<section className="h-full font-rhd">
 				<Navbar />
-				<TabPanels className="h-full pt-12">
-					<TabPanel className="h-full mt-0">
-						<Dashboard />
-					</TabPanel>
-					<TabPanel className="h-full mt-0">
-						<Plans />
-					</TabPanel>
-				</TabPanels>
+				<main className="h-full pt-12">
+					<Plans />
+				</main>
 				<Background />
-			</TabGroup>
+			</section>
 		</>
 	);
 }

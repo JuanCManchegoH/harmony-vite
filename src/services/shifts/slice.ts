@@ -26,12 +26,14 @@ export const DEFAULT_SHIFT: ShiftWithId = {
 
 export interface ShiftsState {
 	loading: boolean;
-	shifts: ShiftWithId[];
+	plansShifts: ShiftWithId[];
+	tracingShifts: ShiftWithId[];
 }
 
 const initialState: ShiftsState = {
 	loading: false,
-	shifts: [],
+	plansShifts: [],
+	tracingShifts: [],
 };
 
 export const shiftsSlice = createSlice({
@@ -41,11 +43,15 @@ export const shiftsSlice = createSlice({
 		setLoading: (state, action) => {
 			state.loading = action.payload;
 		},
-		setShifts: (state, action) => {
-			state.shifts = action.payload;
+		setPlansShifts: (state, action) => {
+			state.plansShifts = action.payload;
+		},
+		setTracingShifts: (state, action) => {
+			state.tracingShifts = action.payload;
 		},
 	},
 });
 
-export const { setLoading, setShifts } = shiftsSlice.actions;
+export const { setLoading, setPlansShifts, setTracingShifts } =
+	shiftsSlice.actions;
 export default shiftsSlice.reducer;

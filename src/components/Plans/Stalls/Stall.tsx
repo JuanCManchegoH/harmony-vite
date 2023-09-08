@@ -43,9 +43,12 @@ export default function Stall({
 	plansData,
 }: { stall: StallWithId; plansData: PlansData }) {
 	const { profile } = useAppSelector((state) => state.auth);
-	const stalls = useAppSelector((state) => state.stalls.stalls);
-	const shifts = useAppSelector((state) => state.shifts.shifts);
-	const { updateStall, addWorker, deleteStall } = useStalls(stalls, shifts);
+	const { plansStalls } = useAppSelector((state) => state.stalls);
+	const { plansShifts } = useAppSelector((state) => state.shifts);
+	const { updateStall, addWorker, deleteStall } = useStalls(
+		plansStalls,
+		plansShifts,
+	);
 	const { stallData, setStallData, handleUpdateStall } = useHandleStall(
 		plansData.selectedMonth,
 		plansData.selectedYear,
@@ -59,10 +62,10 @@ export default function Stall({
 		setPosition,
 		handleAddWorker,
 	} = useHandleStallWorker();
-	const stallShifts = shifts.filter(
+	const stallShifts = plansShifts.filter(
 		(shift) => shift.stall === stall.id && !eventTypes.includes(shift.type),
 	);
-	const stallEvents = shifts.filter(
+	const stallEvents = plansShifts.filter(
 		(shift) => shift.stall === stall.id && eventTypes.includes(shift.type),
 	);
 	const schedules = [
@@ -95,10 +98,10 @@ export default function Stall({
 						onClick: () =>
 							deleteStall(
 								stall.id,
-								shifts
+								plansShifts
 									.filter((shift) => shift.stall === stall.id)
 									.map((shift) => shift.id),
-								stalls,
+								plansStalls,
 							),
 					},
 				}),
@@ -106,7 +109,7 @@ export default function Stall({
 	];
 
 	return (
-		<Card className="p-2 flex flex-col gap-1 bg-gray-40">
+		<Card className="p-2 flex flex-col gap-1 bg-transparent">
 			<header className="flex justify-between">
 				<div className="flex gap-2 items-center">
 					<Title color="sky">{stall.name}</Title>

@@ -30,16 +30,16 @@ const Dropdown = ({
 			: "right-0"
 		: "";
 	return (
-		<Menu as="div" className="relative inline-block text-left z-20">
+		<Menu as="div" className="relative inline-block text-left">
 			<div>
 				<Menu.Button
 					className={classNames(
-						"inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50",
+						"inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm p-2 bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-50",
 						className || "",
 					)}
 				>
 					{btnText}
-					<ChevronDownIcon className="-mr-1 ml-2 h-5 w-5" aria-hidden="true" />
+					<ChevronDownIcon className=" h-5 w-5" aria-hidden="true" />
 				</Menu.Button>
 			</div>
 			<Transition
@@ -54,7 +54,7 @@ const Dropdown = ({
 				<Menu.Items
 					className={classNames(
 						position ? positionClass : "left-0",
-						"origin-top-right absolute mt-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none",
+						"origin-top-right absolute mt-2 rounded-md shadow-lg bg-gray-50 ring-1 ring-black ring-opacity-5 focus:outline-none z-20",
 					)}
 				>
 					<div className="flex flex-col p-1 gap-1">{children}</div>

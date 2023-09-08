@@ -76,13 +76,7 @@ export default function Login() {
 							onChange={(e) => setData({ ...data, password: e.target.value })}
 						/>
 						<div className="flex justify-end">
-							<Button
-								size="lg"
-								color="gray"
-								variant="primary"
-								type="submit"
-								className="bg-gray-900"
-							>
+							<Button size="lg" color="sky" type="submit">
 								Iniciar sesión
 							</Button>
 						</div>

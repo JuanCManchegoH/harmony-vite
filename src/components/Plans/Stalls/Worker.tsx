@@ -35,10 +35,10 @@ export default function Worker({
 	setHoverSchedule: Dispatch<SetStateAction<string>>;
 }) {
 	const { profile } = useAppSelector((state) => state.auth);
-	const { stalls } = useAppSelector((state) => state.stalls);
-	const { shifts } = useAppSelector((state) => state.shifts);
-	const { createAndUpdate, deleteMany } = useShifts(shifts, stalls);
-	const { removeWorker } = useStalls(stalls, shifts);
+	const { plansStalls } = useAppSelector((state) => state.stalls);
+	const { plansShifts } = useAppSelector((state) => state.shifts);
+	const { createAndUpdate, deleteMany } = useShifts(plansShifts, plansStalls);
+	const { removeWorker } = useStalls(plansStalls, plansShifts);
 	const {
 		shiftsData,
 		setShiftsData,
@@ -55,14 +55,14 @@ export default function Worker({
 		selectedDelete,
 		setSelectedDelete,
 		handleDeleteShifts,
-	} = useHandleShifts(shifts, worker, stall, monthDays);
-	const workerShifts = shifts.filter(
+	} = useHandleShifts(plansShifts, worker, stall, monthDays);
+	const workerShifts = plansShifts.filter(
 		(shift) =>
 			shift.worker === worker.id &&
 			shift.stall === stall.id &&
 			!eventTypes.includes(shift.type),
 	);
-	const workerEvents = shifts.filter(
+	const workerEvents = plansShifts.filter(
 		(shift) =>
 			shift.worker === worker.id &&
 			shift.stall === stall.id &&
@@ -88,7 +88,7 @@ export default function Worker({
 	});
 
 	return (
-		<div className="flex z-10 relative pt-4 m-2">
+		<div className="flex relative pt-4 m-2 z-[1]">
 			<label className="absolute -top-2 flex items-center bg-gray-50 px-1 text-sm font-medium text-gray-900 uppercase gap-2">
 				<IdentificationIcon
 					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"

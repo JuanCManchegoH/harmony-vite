@@ -1,4 +1,4 @@
-import { LockOpenIcon } from "@heroicons/react/24/solid";
+import { AcademicCapIcon, LockOpenIcon } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { Button } from "@tremor/react";
 import { Link } from "react-router-dom";
@@ -70,7 +70,9 @@ export default function Home() {
 							y procesos automatizados.
 						</p>
 						<div className="mt-10 flex items-center justify-center gap-x-6">
-							<Button color="sky">Tutoriales</Button>
+							<Button icon={AcademicCapIcon} color="sky">
+								Tutoriales
+							</Button>
 							<Link
 								to="/login"
 								className="text-sm font-semibold leading-6 text-gray-900"

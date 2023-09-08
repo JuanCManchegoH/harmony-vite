@@ -4,14 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Sequence } from "../services/company/types";
-import { setLoading, setShifts } from "../services/shifts/slice";
+import { setLoading, setPlansShifts } from "../services/shifts/slice";
 import {
 	AppliedSequence,
 	CreateShift,
 	ShiftWithId,
 	UpdateShift,
 } from "../services/shifts/types";
-import { setStalls } from "../services/stalls/slice";
+import { setPlansStalls } from "../services/stalls/slice";
 import { StallWithId, StallWorker } from "../services/stalls/types";
 import { DateToSring, MonthDay } from "../utils/dates";
 import { getHour } from "../utils/hours";
@@ -56,7 +56,7 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 				if (updatedShift) return updatedShift;
 				return shift;
 			});
-			dispatch(setShifts([...updatedShifts, ...data.created]));
+			dispatch(setPlansShifts([...updatedShifts, ...data.created]));
 			if (data.stall) {
 				const updatedStalls = stalls.map((stall) => {
 					if (stall.id === data.stall?.id) {
@@ -64,7 +64,7 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 					}
 					return stall;
 				});
-				dispatch(setStalls(updatedStalls));
+				dispatch(setPlansStalls(updatedStalls));
 			}
 			return data;
 		} catch {
@@ -82,7 +82,7 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 			});
 			toast.success("Turnos eliminados");
 			dispatch(
-				setShifts(
+				setPlansShifts(
 					shifts.filter((shift) => !shiftsIds.includes(shift.id as string)),
 				),
 			);

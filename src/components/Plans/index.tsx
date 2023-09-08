@@ -27,10 +27,10 @@ export const eventTypes = ["event", "customer"];
 export default function Plans() {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { customers } = useAppSelector((state) => state.customers);
-	const { stalls } = useAppSelector((state) => state.stalls);
-	const { shifts } = useAppSelector((state) => state.shifts);
-	const plansData = usePlans(customers, profile, stalls, shifts);
-	const { createStall } = useStalls(stalls, shifts);
+	const { plansStalls } = useAppSelector((state) => state.stalls);
+	const { plansShifts } = useAppSelector((state) => state.shifts);
+	const plansData = usePlans(customers, profile, plansStalls, plansShifts);
+	const { createStall } = useStalls(plansStalls, plansShifts);
 	const { stallData, setStallData, handleCreateStall } = useHandleStall(
 		plansData.selectedMonth,
 		plansData.selectedYear,
@@ -38,12 +38,12 @@ export default function Plans() {
 	);
 	const createEvent = useCreateEvent(
 		plansData.actualCustomer,
-		stalls,
+		plansStalls,
 		plansData.selectedMonth,
 		plansData.selectedYear,
-		shifts,
+		plansShifts,
 	);
-	const events = shifts.filter((shift) => eventTypes.includes(shift.type));
+	const events = plansShifts.filter((shift) => eventTypes.includes(shift.type));
 	const [openCustomers, setOpenCustomers] = useState(false);
 	const [openWorkers, setOpenWorkers] = useState(false);
 	const [openEvents, setOpenEvents] = useState(false);
@@ -77,7 +77,7 @@ export default function Plans() {
 	];
 
 	return (
-		<Grid numItems={1} className="gap-2 h-full p-2">
+		<Grid numItems={1} className="gap-2 h-full p-2 pt-4">
 			<Card className="p-1 overflow-y-auto bg-gray-50">
 				<header className="flex justify-end gap-2 border rounded-md p-1 sticky top-0 bg-gray-50 z-10">
 					<label
@@ -158,22 +158,26 @@ export default function Plans() {
 					)}
 				</header>
 				<main className="py-2">
-					{stalls.length <= 0 && (
+					{plansData.actualCustomer && <Stalls plansData={plansData} />}
+					{!plansData.actualCustomer && (
 						<EmptyState>
 							<MapPinIcon className="w-8 h-8 text-sky-500" />
-							<Text className="text-gray-600">
-								{plansData.actualCustomer
-									? "Aqui aparecerán los puestos"
-									: "Selecciona un cliente"}
-							</Text>
+							<Text className="text-gray-600">Selecciona un cliente</Text>
 							<Text className="text-gray-400">
-								{plansData.actualCustomer
-									? "Para agregar un puesto, despliega el menú de opciones y haz click en 'Crear puesto'"
-									: "Para seleccionar un cliente, haz click en el icono de 'Clientes'"}
+								Para seleccionar un cliente, haz click en el icono de 'Clientes'
 							</Text>
 						</EmptyState>
 					)}
-					<Stalls plansData={plansData} />
+					{plansData.actualCustomer && plansStalls.length <= 0 && (
+						<EmptyState>
+							<MapPinIcon className="w-8 h-8 text-sky-500" />
+							<Text className="text-gray-600">Aqui aparecerán los puestos</Text>
+							<Text className="text-gray-400">
+								Para agregar un puesto, despliega el menú de opciones y haz
+								click en 'Crear puesto'
+							</Text>
+						</EmptyState>
+					)}
 				</main>
 			</Card>
 			<Customers

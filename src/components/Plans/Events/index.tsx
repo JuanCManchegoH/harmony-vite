@@ -14,8 +14,8 @@ export default function Events({
 	open,
 	setOpen,
 }: { open: boolean; setOpen: Dispatch<SetStateAction<boolean>> }) {
-	const { shifts } = useAppSelector((state) => state.shifts);
-	const events = shifts.filter((shift) => eventTypes.includes(shift.type));
+	const { plansShifts } = useAppSelector((state) => state.shifts);
+	const events = plansShifts.filter((shift) => eventTypes.includes(shift.type));
 
 	const groupedEvents: EventGroup[] = events.reduce(
 		(acc: EventGroup[], event: ShiftWithId) => {

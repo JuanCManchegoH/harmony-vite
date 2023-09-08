@@ -30,12 +30,7 @@ export function usePlans(
 		profile.company.id && getCustomers();
 	}, [profile]);
 	useEffect(() => {
-		selected &&
-			getStallsByCustomer({
-				months: [selectedMonth],
-				years: [selectedYear],
-				customerId: selected,
-			});
+		selected && getStallsByCustomer([selectedMonth], [selectedYear], selected);
 	}, [selected, selectedMonth, selectedYear]);
 
 	return {

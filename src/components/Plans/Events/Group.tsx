@@ -14,9 +14,9 @@ import { validateRoles } from "../../../utils/roles";
 
 export default function Group(group: EventGroup) {
 	const { profile } = useAppSelector((state) => state.auth);
-	const { shifts } = useAppSelector((state) => state.shifts);
-	const { stalls } = useAppSelector((state) => state.stalls);
-	const { deleteMany } = useShifts(shifts, stalls);
+	const { plansStalls } = useAppSelector((state) => state.stalls);
+	const { plansShifts } = useAppSelector((state) => state.shifts);
+	const { deleteMany } = useShifts(plansShifts, plansStalls);
 	const { handleDeleteEvents, selectedDelete, setSelectedDelete } =
 		useHandleEvents();
 

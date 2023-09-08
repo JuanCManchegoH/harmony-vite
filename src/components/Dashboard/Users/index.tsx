@@ -6,7 +6,7 @@ import { getRolName, validateRoles } from "../../../utils/roles";
 import HandleUser from "./HandleUser";
 import User from "./User";
 // import Modal from "../../../common/RightModal";
-import { Button, Table, TableBody, Title } from "@tremor/react";
+import { Button, Title } from "@tremor/react";
 import { Fragment, useState } from "react";
 // import HandleUser from "./HandleUser";
 // import User from "./User";
@@ -20,7 +20,7 @@ export default function Users() {
 
 	return (
 		<>
-			<div className="flex space-x-2 items-center justify-between border-b sticky top-0 p-2 bg-gray-50">
+			<div className="flex space-x-2 items-center justify-between border-b sticky top-0 p-2 px-4 bg-gray-50">
 				<Title>Usuarios</Title>
 				{validateRoles(profile.roles, ["admin"], []) && (
 					<Button
@@ -33,22 +33,20 @@ export default function Users() {
 					</Button>
 				)}
 			</div>
-			<Table className="mx-4">
-				<TableBody>
-					{users.map((user) => {
-						const superAdmin =
-							getRolName(user.roles) === "SuperAdmin" ? true : false;
-						return (
-							<Fragment key={user.id}>
-								{superAdmin && getRolName(profile.roles) === "SuperAdmin" && (
-									<User user={user} />
-								)}
-								{!superAdmin && <User user={user} />}
-							</Fragment>
-						);
-					})}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{users.map((user) => {
+					const superAdmin =
+						getRolName(user.roles) === "SuperAdmin" ? true : false;
+					return (
+						<Fragment key={user.id}>
+							{superAdmin && getRolName(profile.roles) === "SuperAdmin" && (
+								<User user={user} />
+							)}
+							{!superAdmin && <User user={user} />}
+						</Fragment>
+					);
+				})}
+			</ul>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}

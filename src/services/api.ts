@@ -58,6 +58,7 @@ const api = {
 	stalls: {
 		create: `${API}/stalls`,
 		getByCustomer: `${API}/stalls/getByCustomer`,
+		getByCustomers: `${API}/stalls/getByCustomers`,
 		update: (stallId: string) => `${API}/stalls/${stallId}`,
 		delete: (stallId: string) => `${API}/stalls/${stallId}`,
 		// workers
@@ -68,6 +69,10 @@ const api = {
 	shifts: {
 		createAndUpdate: `${API}/shifts`,
 		deleteMany: (stallId: string) => `${API}/shifts/delete/${stallId}`,
+	},
+	logs: {
+		getByMonthAndYear: (month: string, year: string) =>
+			`${API}/logs/${month}/${year}`,
 	},
 };
 

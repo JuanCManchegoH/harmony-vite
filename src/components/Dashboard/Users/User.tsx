@@ -1,8 +1,14 @@
-import { UserCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { Badge, Button, TableCell, TableRow } from "@tremor/react";
+import {
+	PencilSquareIcon,
+	UserCircleIcon,
+	XMarkIcon,
+} from "@heroicons/react/24/solid";
+import { Badge } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Avatar from "../../../common/Avatar";
 import CenteredModal from "../../../common/CenteredModal";
+import { Dropdown, DropdownItem } from "../../../common/DropDown";
 import { useAppSelector } from "../../../hooks/store";
 import { useHandleUser, useUsers } from "../../../hooks/useUsers";
 import { UsersWithId } from "../../../services/users/types";
@@ -16,52 +22,58 @@ export default function User({ user }: { user: UsersWithId }) {
 	const { updateUser, deleteUser } = useUsers(profile, users);
 	const { data, setData, handleUpdateUser } = useHandleUser(user);
 
+	const options = [
+		{
+			icon: PencilSquareIcon,
+			name: "Editar",
+			action: () => setOpenUpdate(true),
+		},
+		{
+			icon: XMarkIcon,
+			name: "Eliminar",
+			action: () =>
+				toast("Confirmar acción", {
+					action: {
+						label: "Eliminar",
+						onClick: () => deleteUser(user.id),
+					},
+				}),
+		},
+	];
+
 	return (
-		<TableRow className="border-b">
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="pl-0 py-2 w-4">
-					<XMarkIcon
-						className="w-5 h-5 cursor-pointer hover:text-red-500"
-						onClick={() =>
-							toast("Confirmar acción", {
-								action: {
-									label: "Eliminar",
-									onClick: () => deleteUser(user.id),
-								},
-							})
-						}
-					/>
-				</TableCell>
-			)}
-			<TableCell className="py-2">
-				<div
-					className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-500"
-					title={user.userName}
-				>
-					<span className="leading-none text-white font-pacifico">
-						{user.userName[0]}
-					</span>
+		<li className="flex justify-between p-2 px-4 bg-gray-50">
+			<div className="flex items-center min-w-0 gap-x-4">
+				<Avatar title={user.userName} letter={user.userName[0]} />
+				<div className="min-w-0 flex-auto">
+					<p className="text-sm font-semibold leading-6 text-gray-900">
+						{user.userName}
+					</p>
+					<p className="flex text-xs leading-5 text-gray-500">{user.email}</p>
 				</div>
-				<span className="ml-2">{user.userName}</span>
-			</TableCell>
-			<TableCell className="hidden py-2 lg:table-cell">{user.email}</TableCell>
-			<TableCell className="hidden py-2 lg:table-cell">
-				<Badge size="sm" color="sky">
-					{getRolName(user.roles)}
-				</Badge>
-			</TableCell>
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="flex justify-end pr-0 py-2">
-					<Button
-						variant="secondary"
-						color="sky"
-						onClick={() => setOpenUpdate(true)}
-						size="xs"
-					>
-						Editar
-					</Button>
-				</TableCell>
-			)}
+			</div>
+			<div className="flex shrink-0 items-center gap-x-6">
+				<div className="hidden sm:flex sm:flex-col sm:items-end">
+					<Badge size="sm" color="sky" className="font-semibold">
+						{getRolName(user.roles)}
+					</Badge>
+				</div>
+				{validateRoles(profile.roles, ["admin"], []) && (
+					<Dropdown btnText="Gestionar" position="right">
+						{options
+
+						.map((option) => (
+							<DropdownItem
+								key={option.name}
+								icon={option.icon}
+								onClick={option.action}
+							>
+								{option.name}
+							</DropdownItem>
+						))}
+					</Dropdown>
+				)}
+			</div>
 			<CenteredModal
 				open={openUpdate}
 				setOpen={setOpenUpdate}
@@ -77,6 +89,6 @@ export default function User({ user }: { user: UsersWithId }) {
 					profile={profile}
 				/>
 			</CenteredModal>
-		</TableRow>
+		</li>
 	);
 }

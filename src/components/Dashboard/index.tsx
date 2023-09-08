@@ -68,7 +68,7 @@ export default function Dashboard() {
 			numItems={1}
 			numItemsSm={2}
 			numItemsLg={3}
-			className="gap-4 h-full p-2"
+			className="gap-4 h-full p-2 pt-4"
 		>
 			<Card
 				decoration="bottom"

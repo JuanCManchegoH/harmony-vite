@@ -27,7 +27,7 @@ export const useAuth = () => {
 			const { data } = await axios.get<Profile>(api.auth.profile);
 			dispatch(setProfile(data));
 			if (location === "/login") {
-				navigate("/harmony");
+				navigate("/dashboard");
 			}
 		} catch {
 			Cookie.remove("access_token");

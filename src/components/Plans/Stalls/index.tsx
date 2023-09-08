@@ -7,13 +7,15 @@ export default function Stalls({
 }: {
 	plansData: PlansData;
 }) {
-	const stalls = useAppSelector((state) => state.stalls.stalls);
+	const { plansStalls } = useAppSelector((state) => state.stalls);
 
 	return (
 		<section className="flex flex-col gap-2">
-			{stalls.map((stall) => (
-				<Stall key={stall.id} stall={stall} plansData={plansData} />
-			))}
+			{plansStalls
+				.filter((stall) => stall.customer === plansData.actualCustomer?.id)
+				.map((stall) => (
+					<Stall key={stall.id} stall={stall} plansData={plansData} />
+				))}
 		</section>
 	);
 }
