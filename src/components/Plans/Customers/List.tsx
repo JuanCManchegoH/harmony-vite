@@ -108,7 +108,9 @@ export default function List({
 								setSelectedCustomer(customer);
 							}}
 						>
-							<Text className="group-hover:text-sky-500">{customer.name}</Text>
+							<Text className="group-hover:text-sky-500 truncate max-w-[220px]">
+								{customer.name}
+							</Text>
 							<Subtitle className="group-hover:text-sky-900">
 								{customer.identification}
 							</Subtitle>
