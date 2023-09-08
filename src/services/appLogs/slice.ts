@@ -5,7 +5,7 @@ export const DEFAULT_LOG: Log = {
 	id: "",
 	company: "",
 	user: "",
-	useraName: "",
+	userName: "",
 	type: "",
 	message: "",
 	month: "",
