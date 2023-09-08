@@ -57,7 +57,7 @@ export default function Plans() {
 			icon: MapPinIcon,
 			name: "Crear puesto",
 			action: () => setOpenCreateStall(true),
-			show: validateRoles(profile.roles, ["handle_stalls"], []),
+			show: validateRoles(profile.roles, [], ["handle_stalls", "admin"]),
 		},
 		{
 			icon: FlagIcon,
@@ -66,7 +66,7 @@ export default function Plans() {
 			show: validateRoles(
 				profile.roles,
 				[],
-				["handle_stalls", "handle_events"],
+				["handle_stalls", "handle_events", "admin"],
 			),
 		},
 		// {
@@ -89,7 +89,7 @@ export default function Plans() {
 					{validateRoles(
 						profile.roles,
 						[],
-						["handle_stalls", "handle_events"],
+						["handle_stalls", "handle_events", "admin"],
 					) &&
 						plansData.actualCustomer && (
 							<div className="flex absolute left-1 gap-2">
