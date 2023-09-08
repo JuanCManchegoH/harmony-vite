@@ -147,14 +147,7 @@ export const useHandleCustomer = (
 			customer: HandleCustomer,
 		) => Promise<CustomerWithId | undefined>,
 	) => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.contact ||
-			!data.phone ||
-			!data.address
-		) {
+		if (!data.name || !data.identification || !data.city) {
 			toast.error("Todos los campos con * son obligatorios");
 			return;
 		}
@@ -182,14 +175,7 @@ export const useHandleCustomer = (
 		) => Promise<CustomerWithId | undefined>,
 		id: string,
 	) => {
-		if (
-			!data.name ||
-			!data.identification ||
-			!data.city ||
-			!data.contact ||
-			!data.phone ||
-			!data.address
-		) {
+		if (!data.name || !data.identification || !data.city) {
 			toast.error("Todos los campos con * son obligatorios");
 			return;
 		}
