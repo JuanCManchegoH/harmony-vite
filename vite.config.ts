@@ -1,21 +1,9 @@
 import { defineConfig } from "vite";
 import pluginRewriteAll from "vite-plugin-rewrite-all";
 
-const removeViteSpaFallbackMiddleware = (middlewares) => {
-	const { stack } = middlewares;
-	const index = stack.findIndex(
-		({ handle }) => handle.name === "viteSpaFallbackMiddleware",
-	);
-	if (index > -1) {
-		stack.splice(index, 1);
-	} else {
-		throw Error("viteSpaFallbackMiddleware() not found in server middleware");
-	}
-};
-
-const removeHistoryFallback = () => {
+const rewriteSlashToIndexHtml = () => {
 	return {
-		name: "remove-history-fallback",
+		name: "rewrite-slash-to-index-html",
 		apply: "serve",
 		enforce: "post",
 		configureServer(server) {
@@ -26,13 +14,12 @@ const removeHistoryFallback = () => {
 				}
 				next();
 			});
-
-			return () => removeViteSpaFallbackMiddleware(server.middlewares);
 		},
 	};
 };
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [pluginRewriteAll(), removeHistoryFallback()],
+	appType: "mpa",
+	plugins: [pluginRewriteAll(), rewriteSlashToIndexHtml()],
 });
