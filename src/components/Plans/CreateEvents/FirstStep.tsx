@@ -18,8 +18,6 @@ export default function FirstStep({
 		setPosition,
 		selectedSequence,
 		setSelectedSequence,
-		shiftsData,
-		setShiftsData,
 	} = createEvent;
 
 	const { sequences } = useAppSelector((state) => state.auth.profile.company);

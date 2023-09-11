@@ -7,13 +7,6 @@ interface InsetLabelProps {
 	type: string;
 }
 
-interface MultiSelectProps {
-	value?: string[];
-	onValueChange?: (value: string[]) => void;
-	placeholder: string;
-	items: { key: string; value: string; name: string }[];
-}
-
 // Components
 function InsetLabel({
 	label,
