@@ -3,8 +3,6 @@ import {
 	Button,
 	Select,
 	SelectItem,
-	Table,
-	TableBody,
 	Text,
 	TextInput,
 	Title,
@@ -55,16 +53,14 @@ export default function Conventions() {
 					</Text>
 				</EmptyState>
 			)}
-			<Table>
-				<TableBody>
-					{conventions
-						.slice()
-						.sort((a, b) => a.color.localeCompare(b.color))
-						.map((convention) => (
-							<ConventionItem key={convention.id} convention={convention} />
-						))}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{conventions
+					.slice()
+					.sort((a, b) => a.color.localeCompare(b.color))
+					.map((convention) => (
+						<ConventionItem key={convention.id} convention={convention} />
+					))}
+			</ul>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}

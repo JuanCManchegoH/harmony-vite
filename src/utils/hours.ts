@@ -1,5 +1,5 @@
-export const hours = Array.from(Array(25).keys()).slice(1);
-export const minutes = Array.from(Array(61).keys());
+export const hours = Array.from(Array(24).keys());
+export const minutes = Array.from(Array(60).keys());
 
 export const getHour = (hour: string) => {
 	if (hour.length === 1) {

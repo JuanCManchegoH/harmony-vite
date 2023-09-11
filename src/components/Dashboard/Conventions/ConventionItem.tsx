@@ -1,16 +1,9 @@
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import {
-	Button,
-	Select,
-	SelectItem,
-	TableCell,
-	TableRow,
-	Text,
-	TextInput,
-} from "@tremor/react";
+import { PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { Select, SelectItem, Text, TextInput } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CenteredModal from "../../../common/CenteredModal";
+import { Dropdown, DropdownItem } from "../../../common/DropDown";
 import Toggle from "../../../common/Toggle";
 import { useAppSelector } from "../../../hooks/store";
 import {
@@ -18,7 +11,6 @@ import {
 	useHandleConventions,
 } from "../../../hooks/useConventions";
 import { Convention } from "../../../services/company/types";
-import classNames from "../../../utils/classNames";
 import { conventionsColors } from "../../../utils/colors";
 import { validateRoles } from "../../../utils/roles";
 
@@ -29,52 +21,61 @@ export default function ConventionItem({
 	const { deleteConvention, updateConvention } = useConventions();
 	const { data, setData, handleUpdateConvention } =
 		useHandleConventions(convention);
-	const [update, setUpdate] = useState(false);
+	const [openUpdate, setOpenUpdate] = useState(false);
+
+	const options = [
+		{
+			icon: PencilSquareIcon,
+			name: "Editar",
+			action: () => setOpenUpdate(true),
+		},
+		{
+			icon: XMarkIcon,
+			name: "Eliminar",
+			action: () =>
+				toast("Confirmar acción", {
+					action: {
+						label: "Eliminar",
+						onClick: () => deleteConvention(convention.id),
+					},
+				}),
+		},
+	];
 
 	return (
-		<TableRow className="uppercase border-b">
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="pl-0 py-2">
-					<XMarkIcon
-						className="w-5 h-5 cursor-pointer hover:text-red-500"
-						onClick={() =>
-							toast("Confirmar acción", {
-								action: {
-									label: "Eliminar",
-									onClick: () => deleteConvention(convention.id),
-								},
-							})
-						}
-					/>
-				</TableCell>
-			)}
-			<TableCell className="py-2">{convention.name}</TableCell>
-			<TableCell
-				className={classNames(
-					`text-${convention.color}-400`,
-					"font-semibold hidden py-2 lg:table-cell",
-				)}
-			>
-				{
-					conventionsColors.find((c) => c.value === convention.color)
-						?.abbreviation
-				}
-			</TableCell>
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="flex justify-end pr-0 py-2">
-					<Button
-						variant="secondary"
-						onClick={() => setUpdate(true)}
-						color="sky"
-						size="xs"
+		<li className="flex justify-between py-2 bg-gray-50">
+			<div className="flex items-center min-w-0 gap-x-4">
+				<div className="min-w-0 flex-auto">
+					<p className="text-sm font-semibold leading-6 text-gray-900">
+						{convention.name}
+					</p>
+					<p
+						className={`flex text-xs leading-5 font-semibold text-${
+							conventionsColors.find((c) => c.value === convention.color)?.value
+						}-500`}
 					>
-						Editar
-					</Button>
-				</TableCell>
+						{conventionsColors.find((c) => c.value === convention.color)?.name}
+					</p>
+				</div>
+			</div>
+			{validateRoles(profile.roles, ["admin"], []) && (
+				<Dropdown btnText="Gestionar" position="right">
+					{options
+
+					.map((option) => (
+						<DropdownItem
+							key={option.name}
+							icon={option.icon}
+							onClick={option.action}
+						>
+							{option.name}
+						</DropdownItem>
+					))}
+				</Dropdown>
 			)}
 			<CenteredModal
-				open={update}
-				setOpen={setUpdate}
+				open={openUpdate}
+				setOpen={setOpenUpdate}
 				title="Editar Convención"
 				btnText="Editar"
 				action={() => handleUpdateConvention(updateConvention, convention.id)}
@@ -119,6 +120,6 @@ export default function ConventionItem({
 					</div>
 				</form>
 			</CenteredModal>
-		</TableRow>
+		</li>
 	);
 }

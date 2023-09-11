@@ -6,6 +6,7 @@ import { Times } from "../common/SelectHours";
 import api from "../services/api";
 import { setCompany } from "../services/auth/slice";
 import { Company, Sequence, Step } from "../services/company/types";
+import { ColorGroup, sequenceGroups } from "../utils/colors";
 import { useAppDispatch } from "./store";
 
 interface SequenceDto {
@@ -72,7 +73,9 @@ export const useSequences = () => {
 
 export const useHandleSequences = (sequence?: Sequence) => {
 	const [steps, setSteps] = useState<Step[]>(sequence?.steps || []);
-	const [isShift, setIsShift] = useState<boolean>(true);
+	const [selectedColor, setSelectedColor] = useState<ColorGroup>(
+		sequenceGroups[0],
+	);
 	const [times, setTimes] = useState<Times>({
 		name: sequence?.name || "",
 		selectedStartHour: "6",
@@ -90,7 +93,7 @@ export const useHandleSequences = (sequence?: Sequence) => {
 			selectedEndMinute: "0",
 		});
 		setSteps([]);
-		setIsShift(true);
+		setSelectedColor(sequenceGroups[0]);
 	};
 	const handleCreateSequence = (
 		createSequence: (sequence: SequenceDto) => Promise<Company | undefined>,
@@ -146,9 +149,9 @@ export const useHandleSequences = (sequence?: Sequence) => {
 		handleUpdateSequence,
 		steps,
 		setSteps,
-		isShift,
-		setIsShift,
 		times,
 		setTimes,
+		selectedColor,
+		setSelectedColor,
 	};
 };

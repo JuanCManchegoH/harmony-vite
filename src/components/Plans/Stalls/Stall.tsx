@@ -22,6 +22,7 @@ import {
 } from "../../../hooks/useStalls";
 import { StallWithId } from "../../../services/stalls/types";
 import classNames from "../../../utils/classNames";
+import { colorOps } from "../../../utils/colors";
 import { DateToSring, getDay, getDays } from "../../../utils/dates";
 import {
 	getDiference,
@@ -62,9 +63,7 @@ export default function Stall({
 		setPosition,
 		handleAddWorker,
 	} = useHandleStallWorker();
-	const stallShifts = plansShifts.filter(
-		(shift) => shift.stall === stall.id && !eventTypes.includes(shift.type),
-	);
+	const stallShifts = plansShifts.filter((shift) => shift.stall === stall.id);
 	const stallEvents = plansShifts.filter(
 		(shift) => shift.stall === stall.id && eventTypes.includes(shift.type),
 	);
@@ -226,11 +225,19 @@ export default function Stall({
 										shift.day === DateToSring(day.date) &&
 										shift.stall === stall.id,
 								)
-								.reduce(
-									(acc, shift) =>
-										acc + getDiference(shift.startTime, shift.endTime).minutes,
-									0,
-								);
+								.reduce((acc, shift) => {
+									if (colorOps.add.includes(shift.color)) {
+										return (
+											acc + getDiference(shift.startTime, shift.endTime).minutes
+										);
+									}
+									if (colorOps.sub.includes(shift.color)) {
+										return (
+											acc - getDiference(shift.startTime, shift.endTime).minutes
+										);
+									}
+									return acc;
+								}, 0);
 							return (
 								<div
 									key={`stall${stall.id}hours${getDay(day.date)})}`}

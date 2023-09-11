@@ -4,8 +4,6 @@ import {
 	NumberInput,
 	Select,
 	SelectItem,
-	Table,
-	TableBody,
 	Text,
 	TextInput,
 	Title,
@@ -51,13 +49,11 @@ export default function Positions() {
 					</Text>
 				</EmptyState>
 			)}
-			<Table>
-				<TableBody>
-					{positions.map((position) => (
-						<PositionItem key={position.id} position={position} />
-					))}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{positions.map((position) => (
+					<PositionItem key={position.id} position={position} />
+				))}
+			</ul>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}

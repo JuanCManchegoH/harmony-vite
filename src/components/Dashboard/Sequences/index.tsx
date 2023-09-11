@@ -1,14 +1,6 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ListBulletIcon, RectangleStackIcon } from "@heroicons/react/24/solid";
-import {
-	Badge,
-	Button,
-	Table,
-	TableBody,
-	Text,
-	TextInput,
-	Title,
-} from "@tremor/react";
+import { Badge, Button, Text, TextInput, Title } from "@tremor/react";
 import { useState } from "react";
 import CenteredModal from "../../../common/CenteredModal";
 import EmptyState from "../../../common/EmptyState";
@@ -28,8 +20,8 @@ export default function Sequences() {
 		setTimes,
 		steps,
 		setSteps,
-		isShift,
-		setIsShift,
+		selectedColor,
+		setSelectedColor,
 		handleCreateSequence,
 	} = useHandleSequences();
 	const [openCreate, setOpenCreate] = useState(false);
@@ -51,17 +43,19 @@ export default function Sequences() {
 			return;
 		}
 		const step: Step = {
-			startTime: isShift
-				? `${getHour(times.selectedStartHour)}:${getHour(
-						times.selectedStartMinute,
-				  )}`
-				: "00:00",
-			endTime: isShift
-				? `${getHour(times.selectedEndHour)}:${getHour(
-						times.selectedEndMinute,
-				  )}`
-				: "00:00",
-			color: isShift ? "green" : "gray",
+			startTime:
+				selectedColor.name === "Descanso"
+					? "00:00"
+					: `${getHour(times.selectedStartHour)}:${getHour(
+							times.selectedStartMinute,
+					  )}`,
+			endTime:
+				selectedColor.name === "Descanso"
+					? "00:00"
+					: `${getHour(times.selectedEndHour)}:${getHour(
+							times.selectedEndMinute,
+					  )}`,
+			color: selectedColor.color,
 		};
 		setSteps([...steps, step]);
 	};
@@ -97,13 +91,11 @@ export default function Sequences() {
 					</Text>
 				</EmptyState>
 			)}
-			<Table className="w-full">
-				<TableBody>
-					{sequences.map((sequence) => (
-						<SequenceItem key={sequence.id} sequence={sequence} />
-					))}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{sequences.map((sequence) => (
+					<SequenceItem key={sequence.id} sequence={sequence} />
+				))}
+			</ul>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}
@@ -122,8 +114,8 @@ export default function Sequences() {
 					<SelectHours
 						times={times}
 						setTimes={setTimes}
-						isShift={isShift}
-						setIsShift={setIsShift}
+						selectedColor={selectedColor}
+						setSelectedColor={setSelectedColor}
 					/>
 					<div className="col-span-2 flex justify-end">
 						<Button color="sky" size="xs" onClick={(e) => addStep(e)}>

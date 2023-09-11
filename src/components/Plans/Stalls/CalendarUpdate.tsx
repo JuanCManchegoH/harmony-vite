@@ -1,11 +1,12 @@
 import { ArrowsRightLeftIcon } from "@heroicons/react/24/solid";
 import { Badge, Select, SelectItem } from "@tremor/react";
-import { Dispatch, SetStateAction } from "react";
-import ShiftToggle from "../../../common/ShiftToggle";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import ColorSelector from "../../../common/ColorSelector";
 import { useAppSelector } from "../../../hooks/store";
 import { HandleShiftsData } from "../../../hooks/useShifts";
 import { Convention } from "../../../services/company/types";
 import classNames from "../../../utils/classNames";
+import { calendarColors } from "../../../utils/colors";
 import { DateToSring, MonthDay, getDay, weekDays } from "../../../utils/dates";
 import { getHour, hours, minutes } from "../../../utils/hours";
 
@@ -23,8 +24,8 @@ export default function CalendarUpdate({
 	setSelectedDays: Dispatch<SetStateAction<string[]>>;
 	data: HandleShiftsData;
 	setData: Dispatch<SetStateAction<HandleShiftsData>>;
-	selectedConvention?: Convention | undefined;
-	setSelectedConvention?: Dispatch<SetStateAction<Convention | undefined>>;
+	selectedConvention: Convention | undefined;
+	setSelectedConvention: Dispatch<SetStateAction<Convention | undefined>>;
 }) {
 	const { conventions } = useAppSelector((state) => state.auth.profile.company);
 	const allConventions: Convention[] = [
@@ -36,6 +37,13 @@ export default function CalendarUpdate({
 			keep: true,
 		},
 		{
+			id: "DESCANSO",
+			name: "DESCANSO",
+			color: "gray",
+			abbreviation: "X",
+			keep: true,
+		},
+		{
 			id: "TURNO",
 			name: "TURNO",
 			color: "green",
@@ -44,6 +52,14 @@ export default function CalendarUpdate({
 		},
 		...conventions,
 	];
+
+	useEffect(() => {
+		setSelectedConvention(
+			allConventions.filter(
+				(item) => item.color === data.selectedColor.color,
+			)[0],
+		);
+	}, [data.selectedColor]);
 
 	const days = Object.values(weekDays);
 	const handleSelectDay = (day: string) => {
@@ -131,7 +147,7 @@ export default function CalendarUpdate({
 			</section>
 			<div className="flex items-center gap-2">
 				<Select
-					disabled={!data.isShift}
+					disabled={data.selectedColor.name === "Descanso"}
 					value={data.selectedStartHour}
 					onValueChange={(value) =>
 						setData({ ...data, selectedStartHour: value })
@@ -143,13 +159,13 @@ export default function CalendarUpdate({
 						</SelectItem>
 					))}
 				</Select>
-				<Badge color={data.isShift ? "green" : "gray"} className="w-24">
-					{data.isShift ? "Inicio" : "Descanso"}
+				<Badge color={data.selectedColor.color} className="w-24">
+					{data.selectedColor.name !== "Descanso" ? "Inicio" : "Descanso"}
 				</Badge>
 			</div>
 			<div className="flex items-center gap-2">
 				<Select
-					disabled={!data.isShift}
+					disabled={data.selectedColor.name === "Descanso"}
 					placeholder="Minuto inicio"
 					value={data.selectedStartMinute}
 					onValueChange={(value) =>
@@ -162,18 +178,18 @@ export default function CalendarUpdate({
 						</SelectItem>
 					))}
 				</Select>
-				<Badge color={data.isShift ? "green" : "gray"} className="w-24">
-					{data.isShift
-						? `${getHour(data.selectedStartHour)}:${getHour(
+				<Badge color={data.selectedColor.color} className="w-24">
+					{data.selectedColor.name === "Descanso"
+						? "00:00"
+						: `${getHour(data.selectedStartHour)}:${getHour(
 								data.selectedStartMinute,
-						  )}`
-						: "Descanso"}
+						  )}`}
 				</Badge>
 			</div>
 			<div className="flex items-center gap-2">
 				<Select
 					className="w-full"
-					disabled={!data.isShift}
+					disabled={data.selectedColor.name === "Descanso"}
 					placeholder="Hora fin"
 					value={data.selectedEndHour}
 					onValueChange={(value) =>
@@ -186,14 +202,14 @@ export default function CalendarUpdate({
 						</SelectItem>
 					))}
 				</Select>
-				<Badge color={data.isShift ? "green" : "gray"} className="w-24">
-					{data.isShift ? "Final" : "Descanso"}
+				<Badge color={data.selectedColor.color} className="w-24">
+					{data.selectedColor.name !== "Descanso" ? "Final" : "Descanso"}
 				</Badge>
 			</div>
 			<div className="flex items-center gap-2">
 				<Select
 					className="w-full"
-					disabled={!data.isShift}
+					disabled={data.selectedColor.name === "Descanso"}
 					placeholder="Minuto fin"
 					value={data.selectedEndMinute}
 					onValueChange={(value) =>
@@ -206,53 +222,60 @@ export default function CalendarUpdate({
 						</SelectItem>
 					))}
 				</Select>
-				<Badge color={data.isShift ? "green" : "gray"} className="w-24">
-					{data.isShift
-						? `${getHour(data.selectedEndHour)}:${getHour(
+				<Badge color={data.selectedColor.color} className="w-24">
+					{data.selectedColor.name !== "Descanso"
+						? "00:00"
+						: `${getHour(data.selectedEndHour)}:${getHour(
 								data.selectedEndMinute,
-						  )}`
-						: "Descanso"}
+						  )}`}
 				</Badge>
 			</div>
 
-			<div
-				className={classNames(
-					"flex justify-between items-center bg-gray-50 border rounded-md p-2",
-					setSelectedConvention ? "" : "col-span-2",
-				)}
-			>
-				<ShiftToggle
-					enabled={data.isShift}
-					setEnabled={() => setData({ ...data, isShift: !data.isShift })}
-				/>
+			<div className="flex justify-between items-center bg-gray-50 border rounded-md p-2">
+				<div className="flex gap-2">
+					<ColorSelector
+						colorsGroup={calendarColors}
+						selectedColor={data.selectedColor}
+						setSelectedColor={(color) =>
+							setData({ ...data, selectedColor: color })
+						}
+					/>
+					<Badge color={data.selectedColor.color}>
+						{data.selectedColor.name}
+					</Badge>
+				</div>
 				<ArrowsRightLeftIcon
 					title="Intercambiar horas"
 					className="w-5 h-5 cursor-pointer hover:text-sky-500"
 					onClick={() => exchange()}
 				/>
 			</div>
-			{/* Event */}
-			{setSelectedConvention && (
-				<div className="flex items-center gap-2">
-					<Select
-						className="w-full"
-						placeholder="Convención"
-						value={selectedConvention?.name || ""}
-						disabled={!data.isShift}
-						onValueChange={(value) =>
-							setSelectedConvention(
-								allConventions.find((item) => item.name === value),
-							)
-						}
-					>
-						{allConventions.map((item) => (
+			<div className="flex items-center gap-2">
+				<Select
+					className="w-full"
+					placeholder="Convención"
+					value={selectedConvention?.name || ""}
+					onValueChange={(value) =>
+						setSelectedConvention(
+							allConventions.find((item) => item.name === value),
+						)
+					}
+				>
+					{allConventions
+						.filter((item) => item.color === data.selectedColor.color)
+						.map((item) => (
 							<SelectItem key={item?.id} value={item?.name || ""}>
 								{item?.name}
 							</SelectItem>
 						))}
-					</Select>
-				</div>
-			)}
+				</Select>
+			</div>
+			<textarea
+				className="col-span-2 px-4 py-2 rounded-md border border-gray-200 focus:border-sky-500 focus:outline-none max-h-20 text-sm"
+				placeholder="Descripción"
+				value={data.description}
+				onChange={(e) => setData({ ...data, description: e.target.value })}
+			/>
 		</form>
 	);
 }

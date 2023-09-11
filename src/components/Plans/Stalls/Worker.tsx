@@ -5,6 +5,7 @@ import {
 	IdentificationIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { Badge } from "@tremor/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { eventTypes } from "..";
@@ -55,6 +56,8 @@ export default function Worker({
 		selectedDelete,
 		setSelectedDelete,
 		handleDeleteShifts,
+		selectedConvention,
+		setSelectedConvention,
 	} = useHandleShifts(plansShifts, worker, stall, monthDays);
 	const workerShifts = plansShifts.filter(
 		(shift) =>
@@ -74,12 +77,12 @@ export default function Worker({
 	const [openDelete, setOpenDelete] = useState(false);
 
 	const data: TrackerItem[] = monthDays.map((day) => {
-		const shift = workerShifts.find(
+		const shift = [...workerShifts, ...workerEvents].find(
 			(shift) => shift.day === DateToSring(day.date),
 		);
 		return {
 			key: getDay(day.date),
-			tooltip: shift?.description || day.day,
+			tooltip: shift?.description || "",
 			color: shift?.color || "gray",
 			content: shift?.abbreviation || "-",
 			startTime: shift?.startTime || "",
@@ -89,7 +92,7 @@ export default function Worker({
 
 	return (
 		<div className="flex relative pt-4 m-2 z-[1]">
-			<label className="absolute -top-2 flex items-center bg-gray-50 px-1 text-sm font-medium text-gray-900 uppercase gap-2">
+			<label className="absolute -top-3 flex items-center bg-gray-50 px-1 text-sm font-medium text-gray-900 uppercase gap-2">
 				<IdentificationIcon
 					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
 					onClick={() => setOpenInfo(true)}
@@ -110,7 +113,12 @@ export default function Worker({
 						/>
 					</>
 				)}
-				{worker.name} - {worker.identification}
+				<Badge size="xs" color="sky">
+					{worker.name} | {worker.identification}
+				</Badge>
+				<Badge size="xs" color="sky" className="uppercase">
+					{worker.position}
+				</Badge>
 			</label>
 			<div className="bg-gray-50 absolute -top-2 right-0 flex">
 				{validateRoles(profile.roles, [], ["handle_stalls", "admin"]) && (
@@ -153,6 +161,8 @@ export default function Worker({
 					setSelectedDays={setSelectedDays}
 					data={shiftsData}
 					setData={setShiftsData}
+					selectedConvention={selectedConvention}
+					setSelectedConvention={setSelectedConvention}
 				/>
 			</CenteredModal>
 			<CenteredModal
@@ -192,7 +202,7 @@ export default function Worker({
 				action={() => handleDeleteShifts(deleteMany, stall.id)}
 			>
 				<DeleteShifts
-					shifts={workerShifts}
+					shifts={[...workerShifts, ...workerEvents]}
 					selectedDelete={selectedDelete}
 					setSelectedDelete={setSelectedDelete}
 				/>

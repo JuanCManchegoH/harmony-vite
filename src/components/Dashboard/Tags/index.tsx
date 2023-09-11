@@ -3,8 +3,6 @@ import {
 	Button,
 	Select,
 	SelectItem,
-	Table,
-	TableBody,
 	Text,
 	TextInput,
 	Title,
@@ -50,16 +48,14 @@ export default function Tags() {
 					</Text>
 				</EmptyState>
 			)}
-			<Table className="w-full">
-				<TableBody>
-					{tags
-						.slice()
-						.sort((a, b) => a.scope.localeCompare(b.scope))
-						.map((tag) => (
-							<TagItem key={tag.id} tag={tag} />
-						))}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{tags
+					.slice()
+					.sort((a, b) => a.scope.localeCompare(b.scope))
+					.map((tag) => (
+						<TagItem key={tag.id} tag={tag} />
+					))}
+			</ul>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}

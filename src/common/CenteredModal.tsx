@@ -1,7 +1,7 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Square2StackIcon } from "@heroicons/react/24/solid";
 import { Button } from "@tremor/react";
-import { Dispatch, Fragment, SetStateAction, useRef, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, useState } from "react";
 import { IconType } from "./CustomToggle";
 import Toggle from "./Toggle";
 
@@ -24,17 +24,11 @@ export default function CenteredModal({
 	children: React.ReactNode;
 	action?: Function;
 }) {
-	const cancelButtonRef = useRef(null);
 	const [enabled, setEnabled] = useState(disabled || false);
 
 	return (
 		<Transition.Root show={open} as={Fragment}>
-			<Dialog
-				as="div"
-				className="relative z-20"
-				initialFocus={cancelButtonRef}
-				onClose={setOpen}
-			>
+			<Dialog as="div" className="relative z-20" onClose={setOpen}>
 				<Transition.Child
 					as={Fragment}
 					enter="ease-out duration-300"

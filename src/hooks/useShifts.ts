@@ -3,7 +3,7 @@ import Cookie from "js-cookie";
 import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
-import { Sequence } from "../services/company/types";
+import { Convention, Sequence } from "../services/company/types";
 import { setLoading, setPlansShifts } from "../services/shifts/slice";
 import {
 	AppliedSequence,
@@ -13,6 +13,7 @@ import {
 } from "../services/shifts/types";
 import { setPlansStalls } from "../services/stalls/slice";
 import { StallWithId, StallWorker } from "../services/stalls/types";
+import { ColorGroup, calendarColors } from "../utils/colors";
 import { DateToSring, MonthDay } from "../utils/dates";
 import { getHour } from "../utils/hours";
 import { useAppDispatch } from "./store";
@@ -104,13 +105,17 @@ export const useHandleShifts = (
 	monthDays: MonthDay[],
 ) => {
 	// Calendar data
+	const [selectedConvention, setSelectedConvention] = useState<
+		Convention | undefined
+	>(undefined);
 	const [selectedDays, setSelectedDays] = useState<string[]>([]);
 	const [shiftsData, setShiftsData] = useState<HandleShiftsData>({
 		selectedStartHour: "6",
 		selectedStartMinute: "0",
 		selectedEndHour: "18",
 		selectedEndMinute: "0",
-		isShift: true,
+		selectedColor: calendarColors[0],
+		description: "",
 	});
 	// Sequence data
 	const [selectedSequence, setSelectedSequence] = useState<Sequence>();
@@ -133,22 +138,26 @@ export const useHandleShifts = (
 			});
 		}
 		const commonData = {
-			startTime: shiftsData.isShift
-				? `${getHour(shiftsData.selectedStartHour)}:${getHour(
-						shiftsData.selectedStartMinute,
-				  )}`
-				: "00:00",
-			endTime: shiftsData.isShift
-				? `${getHour(shiftsData.selectedEndHour)}:${getHour(
-						shiftsData.selectedEndMinute,
-				  )}`
-				: "00:00",
-			color: shiftsData.isShift ? "green" : ("gray" as "green" | "gray"),
-			abbreviation: shiftsData.isShift ? "T" : "X",
-			description: shiftsData.isShift ? "Turno" : "Descanso",
-			type: shiftsData.isShift ? "shift" : "rest",
+			startTime:
+				shiftsData.selectedColor.name !== "Descanso"
+					? `${getHour(shiftsData.selectedStartHour)}:${getHour(
+							shiftsData.selectedStartMinute,
+					  )}`
+					: "00:00",
+			endTime:
+				shiftsData.selectedColor.name !== "Descanso"
+					? `${getHour(shiftsData.selectedEndHour)}:${getHour(
+							shiftsData.selectedEndMinute,
+					  )}`
+					: "00:00",
+			color: shiftsData.selectedColor.color,
+			abbreviation: shiftsData.selectedColor.abbreviation,
+			description: shiftsData.selectedColor.description
+				? shiftsData.selectedColor.description
+				: shiftsData.description,
+			type: shiftsData.selectedColor.type,
 			active: true,
-			keep: true,
+			keep: selectedConvention?.keep || true,
 		};
 		const create = selectedDays
 			.filter(
@@ -320,6 +329,8 @@ export const useHandleShifts = (
 		selectedDelete,
 		setSelectedDelete,
 		handleDeleteShifts,
+		selectedConvention,
+		setSelectedConvention,
 	};
 };
 
@@ -328,5 +339,6 @@ export interface HandleShiftsData {
 	selectedStartMinute: string;
 	selectedEndHour: string;
 	selectedEndMinute: string;
-	isShift: boolean;
+	selectedColor: ColorGroup;
+	description: string;
 }

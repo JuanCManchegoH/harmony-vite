@@ -1,5 +1,5 @@
 import { DocumentTextIcon, ListBulletIcon } from "@heroicons/react/24/solid";
-import { Button, List, ListItem, Table, TableBody, Text } from "@tremor/react";
+import { Button, List, ListItem, Text } from "@tremor/react";
 import { useState } from "react";
 import CenteredModal from "../../../common/CenteredModal";
 import EmptyState from "../../../common/EmptyState";
@@ -28,16 +28,6 @@ export default function FieldsSection({
 
 	return (
 		<>
-			<List className="border-y mb-2">
-				{validateRoles(roles, ["admin"], []) && (
-					<ListItem>
-						<span> Agregar un nuevo campo</span>
-						<Button color="sky" size="xs" onClick={() => setOpenCreate(true)}>
-							Agregar
-						</Button>
-					</ListItem>
-				)}
-			</List>
 			{selectedItems.length <= 0 && (
 				<EmptyState>
 					<ListBulletIcon className="w-8 h-8 text-sky-500" />
@@ -49,13 +39,20 @@ export default function FieldsSection({
 					</Text>
 				</EmptyState>
 			)}
-			<Table>
-				<TableBody>
-					{selectedItems.map((field, i) => (
-						<FieldItem key={`${field.name}-${i}`} field={field} type={type} />
-					))}
-				</TableBody>
-			</Table>
+			<ul className="divide-y divide-gray-200">
+				{selectedItems.map((field, i) => (
+					<FieldItem key={`${field.name}-${i}`} field={field} type={type} />
+				))}
+			</ul>
+			<List className="border-t mb-2">
+				{validateRoles(roles, ["admin"], []) && (
+					<ListItem className="justify-center">
+						<Button color="sky" size="xs" onClick={() => setOpenCreate(true)}>
+							Agregar nuevo campo
+						</Button>
+					</ListItem>
+				)}
+			</List>
 			<CenteredModal
 				open={openCreate}
 				setOpen={setOpenCreate}

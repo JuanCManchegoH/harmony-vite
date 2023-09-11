@@ -1,16 +1,13 @@
-import { RectangleGroupIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import {
-	Button,
-	NumberInput,
-	Select,
-	SelectItem,
-	TableCell,
-	TableRow,
-	TextInput,
-} from "@tremor/react";
+	PencilSquareIcon,
+	RectangleGroupIcon,
+	XMarkIcon,
+} from "@heroicons/react/24/solid";
+import { NumberInput, Select, SelectItem, TextInput } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CenteredModal from "../../../common/CenteredModal";
+import { Dropdown, DropdownItem } from "../../../common/DropDown";
 import { useAppSelector } from "../../../hooks/store";
 import { useHandlePosition, usePositions } from "../../../hooks/usePositions";
 import { Position } from "../../../services/company/types";
@@ -23,45 +20,57 @@ export default function PositionItem({ position }: { position: Position }) {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { updatePosition, deletePosition } = usePositions();
 	const { data, setData, handleUpdatePosition } = useHandlePosition(position);
-	const [update, setUpdate] = useState(false);
+	const [openUpdate, setOpenUpdate] = useState(false);
+
+	const options = [
+		{
+			icon: PencilSquareIcon,
+			name: "Editar",
+			action: () => setOpenUpdate(true),
+		},
+		{
+			icon: XMarkIcon,
+			name: "Eliminar",
+			action: () =>
+				toast("Confirmar acción", {
+					action: {
+						label: "Eliminar",
+						onClick: () => deletePosition(position.id),
+					},
+				}),
+		},
+	];
 
 	return (
-		<TableRow className="uppercase border-b">
+		<li className="flex justify-between py-2 bg-gray-50">
+			<div className="flex items-center min-w-0 gap-x-4">
+				<div className="min-w-0 flex-auto">
+					<p className="text-sm font-semibold leading-6 text-gray-900">
+						{position.name}
+					</p>
+					<p className="flex text-xs leading-5 text-gray-500">
+						{formatCurrency(position.value)} - {position.year}
+					</p>
+				</div>
+			</div>
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="pl-0 py-2">
-					<XMarkIcon
-						className="w-5 h-5 cursor-pointer hover:text-red-500"
-						onClick={() =>
-							toast("Confirmar acción", {
-								action: {
-									label: "Eliminar",
-									onClick: () => deletePosition(position.id),
-								},
-							})
-						}
-					/>
-				</TableCell>
-			)}
-			<TableCell className="py-2">{position.name}</TableCell>
-			<TableCell className="hidden py-2 xl:table-cell">
-				{formatCurrency(position.value)}
-			</TableCell>
-			<TableCell className="py-2">{position.year}</TableCell>
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="flex justify-end pr-0 py-2">
-					<Button
-						variant="secondary"
-						onClick={() => setUpdate(true)}
-						color="sky"
-						size="xs"
-					>
-						Editar
-					</Button>
-				</TableCell>
+				<Dropdown btnText="Gestionar" position="right">
+					{options
+
+					.map((option) => (
+						<DropdownItem
+							key={option.name}
+							icon={option.icon}
+							onClick={option.action}
+						>
+							{option.name}
+						</DropdownItem>
+					))}
+				</Dropdown>
 			)}
 			<CenteredModal
-				open={update}
-				setOpen={setUpdate}
+				open={openUpdate}
+				setOpen={setOpenUpdate}
 				icon={RectangleGroupIcon}
 				title="Editar Cargo"
 				btnText="Editar"
@@ -94,6 +103,6 @@ export default function PositionItem({ position }: { position: Position }) {
 					</Select>
 				</form>
 			</CenteredModal>
-		</TableRow>
+		</li>
 	);
 }

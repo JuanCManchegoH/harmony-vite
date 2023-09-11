@@ -1,4 +1,5 @@
-import { MultiSelect, MultiSelectItem, TextInput } from "@tremor/react";
+import { MultiSelect, MultiSelectItem } from "@tremor/react";
+import { InsetLabel } from "../../../common/Inputs";
 import { CreateData } from "../../../hooks/useUsers";
 import { Profile } from "../../../services/auth/types";
 import { UsersWithId } from "../../../services/users/types";
@@ -27,13 +28,15 @@ export default function HandleUser({
 			: roles.filter((role) => role.name !== "SuperAdmin");
 	return (
 		<form className="grid grid-cols-2 gap-2">
-			<TextInput
+			<InsetLabel
+				label="Nombre de usuario"
 				type="text"
 				placeholder="Nombre de usuario*"
 				value={data.userName}
 				onChange={(e) => setData({ ...data, userName: e.target.value })}
 			/>
-			<TextInput
+			<InsetLabel
+				label="Correo"
 				type="email"
 				placeholder="Correo electrónico*"
 				value={data.email}
@@ -41,15 +44,16 @@ export default function HandleUser({
 			/>
 			{!user && (
 				<>
-					<TextInput
+					<InsetLabel
+						label="Contraseña"
 						type="password"
 						placeholder="Contraseña*"
 						value={data.password}
 						onChange={(e) => setData({ ...data, password: e.target.value })}
 					/>
-					<TextInput
+					<InsetLabel
+						label="Repetir contraseña"
 						type="password"
-						autoComplete="off"
 						placeholder="Repetir contraseña*"
 						value={data.repPassword}
 						onChange={(e) => setData({ ...data, repPassword: e.target.value })}

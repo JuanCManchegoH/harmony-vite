@@ -18,8 +18,8 @@ export default function FirstStep({
 		setPosition,
 		selectedSequence,
 		setSelectedSequence,
-		description,
-		setDescription,
+		shiftsData,
+		setShiftsData,
 	} = createEvent;
 
 	const { sequences } = useAppSelector((state) => state.auth.profile.company);
@@ -51,12 +51,6 @@ export default function FirstStep({
 							</SelectItem>
 						))}
 					</Select>
-					<textarea
-						className="col-span-2 px-4 py-2 rounded-md border border-gray-200 focus:border-sky-500 focus:outline-none max-h-20 text-sm"
-						placeholder="Descripción*"
-						value={description}
-						onChange={(e) => setDescription(e.target.value)}
-					/>
 				</>
 			)}
 			<div className="col-span-2">

@@ -1,19 +1,14 @@
 import {
 	ListBulletIcon,
+	PencilSquareIcon,
 	RectangleStackIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
-import {
-	Badge,
-	Button,
-	TableCell,
-	TableRow,
-	Text,
-	TextInput,
-} from "@tremor/react";
+import { Badge, Button, Text, TextInput } from "@tremor/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import CenteredModal from "../../../common/CenteredModal";
+import { Dropdown, DropdownItem } from "../../../common/DropDown";
 import EmptyState from "../../../common/EmptyState";
 import SelectHours from "../../../common/SelectHours";
 import { useAppSelector } from "../../../hooks/store";
@@ -30,11 +25,11 @@ export default function SequenceItem({ sequence }: { sequence: Sequence }) {
 		setTimes,
 		steps,
 		setSteps,
-		isShift,
-		setIsShift,
+		selectedColor,
+		setSelectedColor,
 		handleUpdateSequence,
 	} = useHandleSequences(sequence);
-	const [update, setUpdate] = useState(false);
+	const [openUpdate, setOpenUpdate] = useState(false);
 
 	const addStep = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.preventDefault();
@@ -47,17 +42,19 @@ export default function SequenceItem({ sequence }: { sequence: Sequence }) {
 			return;
 		}
 		const step: Step = {
-			startTime: isShift
-				? `${getHour(times.selectedStartHour)}:${getHour(
-						times.selectedStartMinute,
-				  )}`
-				: "00:00",
-			endTime: isShift
-				? `${getHour(times.selectedEndHour)}:${getHour(
-						times.selectedEndMinute,
-				  )}`
-				: "00:00",
-			color: isShift ? "green" : "gray",
+			startTime:
+				selectedColor.name === "Descanso"
+					? "00:00"
+					: `${getHour(times.selectedStartHour)}:${getHour(
+							times.selectedStartMinute,
+					  )}`,
+			endTime:
+				selectedColor.name === "Descanso"
+					? "00:00"
+					: `${getHour(times.selectedEndHour)}:${getHour(
+							times.selectedEndMinute,
+					  )}`,
+			color: selectedColor.color,
 		};
 		setSteps([...steps, step]);
 	};
@@ -67,40 +64,55 @@ export default function SequenceItem({ sequence }: { sequence: Sequence }) {
 		setSteps(newSteps);
 	};
 
+	const options = [
+		{
+			icon: PencilSquareIcon,
+			name: "Editar",
+			action: () => setOpenUpdate(true),
+		},
+		{
+			icon: XMarkIcon,
+			name: "Eliminar",
+			action: () =>
+				toast("Confirmar acción", {
+					action: {
+						label: "Eliminar",
+						onClick: () => deleteSequence(sequence.id),
+					},
+				}),
+		},
+	];
+
 	return (
-		<TableRow className="uppercase border-b">
+		<li className="flex justify-between py-2 bg-gray-50">
+			<div className="flex items-center min-w-0 gap-x-4">
+				<div className="min-w-0 flex-auto">
+					<p className="text-sm font-semibold leading-6 text-gray-900">
+						{sequence.name}
+					</p>
+					<p className="flex text-xs leading-5 text-gray-500">
+						{sequence.steps.length} pasos
+					</p>
+				</div>
+			</div>
 			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="pl-0 py-2">
-					<XMarkIcon
-						className="w-5 h-5 cursor-pointer hover:text-red-500"
-						onClick={() =>
-							toast("Confirmar acción", {
-								action: {
-									label: "Eliminar",
-									onClick: () => deleteSequence(sequence.id),
-								},
-							})
-						}
-					/>
-				</TableCell>
-			)}
-			<TableCell className="py-2">{sequence.name}</TableCell>
-			<TableCell className="py-2">{sequence.steps.length}</TableCell>
-			{validateRoles(profile.roles, ["admin"], []) && (
-				<TableCell className="flex justify-end pr-0 py-2">
-					<Button
-						variant="secondary"
-						onClick={() => setUpdate(true)}
-						color="sky"
-						size="xs"
-					>
-						Editar
-					</Button>
-				</TableCell>
+				<Dropdown btnText="Gestionar" position="right">
+					{options
+
+					.map((option) => (
+						<DropdownItem
+							key={option.name}
+							icon={option.icon}
+							onClick={option.action}
+						>
+							{option.name}
+						</DropdownItem>
+					))}
+				</Dropdown>
 			)}
 			<CenteredModal
-				open={update}
-				setOpen={setUpdate}
+				open={openUpdate}
+				setOpen={setOpenUpdate}
 				icon={RectangleStackIcon}
 				title="Editar Secuencia"
 				btnText="Editar"
@@ -116,8 +128,8 @@ export default function SequenceItem({ sequence }: { sequence: Sequence }) {
 					<SelectHours
 						times={times}
 						setTimes={setTimes}
-						isShift={isShift}
-						setIsShift={setIsShift}
+						selectedColor={selectedColor}
+						setSelectedColor={setSelectedColor}
 					/>
 					<div className="col-span-2 flex justify-end">
 						<Button color="sky" size="xs" onClick={(e) => addStep(e)}>
@@ -161,6 +173,6 @@ export default function SequenceItem({ sequence }: { sequence: Sequence }) {
 					</div>
 				</form>
 			</CenteredModal>
-		</TableRow>
+		</li>
 	);
 }

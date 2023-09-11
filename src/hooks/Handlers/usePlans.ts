@@ -6,6 +6,7 @@ import { CustomerWithId } from "../../services/customers/types";
 import { CreateShift, ShiftWithId } from "../../services/shifts/types";
 import { StallWithId } from "../../services/stalls/types";
 import { WorkerWithId } from "../../services/workers/types";
+import { calendarColors } from "../../utils/colors";
 import { MonthDay, getDays } from "../../utils/dates";
 import { getHour } from "../../utils/hours";
 import { useCustomers } from "../useCustomers";
@@ -68,7 +69,6 @@ export function useCreateEvent(
 	const [selectedWorker, setSelectedWorker] = useState<
 		WorkerWithId | undefined
 	>(undefined);
-	const [description, setDescription] = useState<string>("");
 	const [selectedSequence, setSelectedSequence] = useState<string>("");
 	const [position, setPosition] = useState<string>("");
 
@@ -83,39 +83,48 @@ export function useCreateEvent(
 		selectedStartMinute: "0",
 		selectedEndHour: "18",
 		selectedEndMinute: "0",
-		isShift: true,
+		selectedColor: calendarColors[0],
+		description: "",
 	});
 
 	const handleCreateEvent = () => {
+		if (
+			selected?.id !== actualCustomer?.id &&
+			selected &&
+			(selected as StallWithId).workers.some(
+				(worker) => worker.id === selectedWorker?.id,
+			)
+		) {
+			return toast.message("Prsonal asignado", {
+				description: "La persona se encuentra asignada al puesto seleccionado.",
+			});
+		}
 		if (selectedDays.length === 0)
 			return toast.message("Datos incompletos", {
 				description: "Seleccione al menos un día",
 			});
-		if (!selected && !description && !selectedWorker && !position) {
+		if (!selected && !shiftsData.description && !selectedWorker && !position) {
 			return toast.message("Datos incompletos", {
 				description: "Todos los campos con * son obligatorios",
 			});
 		}
-		if (!shiftsData.isShift) {
-			if (!selectedConvention) return toast.error("Seleccione una convención");
-		}
 		const data: CreateShift = {
 			day: "",
-			startTime: shiftsData.isShift
-				? `${getHour(shiftsData.selectedStartHour)}:${getHour(
-						shiftsData.selectedStartMinute,
-				  )}`
-				: "00:00",
-			endTime: shiftsData.isShift
-				? `${getHour(shiftsData.selectedEndHour)}:${getHour(
-						shiftsData.selectedEndMinute,
-				  )}`
-				: "00:00",
-			color: shiftsData.isShift ? selectedConvention?.color || "green" : "gray",
-			abbreviation: shiftsData.isShift
-				? selectedConvention?.abbreviation || "T"
-				: "X",
-			description,
+			startTime:
+				shiftsData.selectedColor.name !== "Descanso"
+					? `${getHour(shiftsData.selectedStartHour)}:${getHour(
+							shiftsData.selectedStartMinute,
+					  )}`
+					: "00:00",
+			endTime:
+				shiftsData.selectedColor.name !== "Descanso"
+					? `${getHour(shiftsData.selectedEndHour)}:${getHour(
+							shiftsData.selectedEndMinute,
+					  )}`
+					: "00:00",
+			color: shiftsData.selectedColor.color,
+			abbreviation: shiftsData.selectedColor.abbreviation,
+			description: shiftsData.description,
 			position,
 			sequence: selectedSequence,
 			type: selected?.id === actualCustomer?.id ? "customer" : "event",
@@ -126,6 +135,21 @@ export function useCreateEvent(
 			stall: selected?.id || "",
 			stallName: selected?.name || "",
 		};
+		const resetForm = () => {
+			setSelectedWorker(undefined);
+			setSelectedSequence("");
+			setPosition("");
+			setSelectedConvention(undefined);
+			setSelectedDays([]);
+			setShiftsData({
+				selectedStartHour: "6",
+				selectedStartMinute: "0",
+				selectedEndHour: "18",
+				selectedEndMinute: "0",
+				selectedColor: calendarColors[0],
+				description: "",
+			});
+		};
 		const create = selectedDays.map((day) => {
 			return {
 				...data,
@@ -135,7 +159,7 @@ export function useCreateEvent(
 		const update: [] = [];
 		createAndUpdate(create, update).then((res) => {
 			if (res) {
-				setSelectedDays([]);
+				resetForm();
 			}
 		});
 	};
@@ -148,8 +172,6 @@ export function useCreateEvent(
 		setSelectedWorker,
 		position,
 		setPosition,
-		description,
-		setDescription,
 		selectedSequence,
 		setSelectedSequence,
 		selectedConvention,
@@ -200,8 +222,6 @@ export interface CreateEvent {
 	setSelectedWorker: Dispatch<SetStateAction<WorkerWithId | undefined>>;
 	position: string;
 	setPosition: Dispatch<SetStateAction<string>>;
-	description: string;
-	setDescription: Dispatch<SetStateAction<string>>;
 	selectedSequence: string;
 	setSelectedSequence: Dispatch<SetStateAction<string>>;
 	selectedConvention: Convention | undefined;
