@@ -28,7 +28,6 @@ export default function HandleStall({
 				className="col-span-1"
 				placeholder="Nombre"
 				color="sky"
-				maxLength={20}
 				value={data.name}
 				onChange={(e) => setData({ ...data, name: e.target.value })}
 			/>
