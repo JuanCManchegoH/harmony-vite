@@ -223,7 +223,7 @@ export default function CalendarUpdate({
 					))}
 				</Select>
 				<Badge color={data.selectedColor.color} className="w-24">
-					{data.selectedColor.name !== "Descanso"
+					{data.selectedColor.name === "Descanso"
 						? "00:00"
 						: `${getHour(data.selectedEndHour)}:${getHour(
 								data.selectedEndMinute,
