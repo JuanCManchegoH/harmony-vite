@@ -44,12 +44,9 @@ export default function Stall({
 	plansData,
 }: { stall: StallWithId; plansData: PlansData }) {
 	const { profile } = useAppSelector((state) => state.auth);
-	const { plansStalls } = useAppSelector((state) => state.stalls);
-	const { plansShifts } = useAppSelector((state) => state.shifts);
-	const { updateStall, addWorker, deleteStall } = useStalls(
-		plansStalls,
-		plansShifts,
-	);
+	const { stalls } = useAppSelector((state) => state.stalls);
+	const { shifts } = useAppSelector((state) => state.shifts);
+	const { updateStall, addWorker, deleteStall } = useStalls(stalls, shifts);
 	const { stallData, setStallData, handleUpdateStall } = useHandleStall(
 		plansData.selectedMonth,
 		plansData.selectedYear,
@@ -63,8 +60,8 @@ export default function Stall({
 		setPosition,
 		handleAddWorker,
 	} = useHandleStallWorker();
-	const stallShifts = plansShifts.filter((shift) => shift.stall === stall.id);
-	const stallEvents = plansShifts.filter(
+	const stallShifts = shifts.filter((shift) => shift.stall === stall.id);
+	const stallEvents = shifts.filter(
 		(shift) => shift.stall === stall.id && eventTypes.includes(shift.type),
 	);
 	const schedules = [
@@ -97,10 +94,10 @@ export default function Stall({
 						onClick: () =>
 							deleteStall(
 								stall.id,
-								plansShifts
+								shifts
 									.filter((shift) => shift.stall === stall.id)
 									.map((shift) => shift.id),
-								plansStalls,
+								stalls,
 							),
 					},
 				}),

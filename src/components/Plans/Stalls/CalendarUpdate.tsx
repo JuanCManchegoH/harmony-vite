@@ -18,6 +18,7 @@ export default function CalendarUpdate({
 	setData,
 	selectedConvention,
 	setSelectedConvention,
+	event,
 }: {
 	monthDays: MonthDay[];
 	selectedDays: string[];
@@ -26,6 +27,7 @@ export default function CalendarUpdate({
 	setData: Dispatch<SetStateAction<HandleShiftsData>>;
 	selectedConvention: Convention | undefined;
 	setSelectedConvention: Dispatch<SetStateAction<Convention | undefined>>;
+	event?: boolean;
 }) {
 	const { conventions } = useAppSelector((state) => state.auth.profile.company);
 	const allConventions: Convention[] = [
@@ -234,7 +236,9 @@ export default function CalendarUpdate({
 			<div className="flex justify-between items-center bg-gray-50 border rounded-md p-2">
 				<div className="flex gap-2">
 					<ColorSelector
-						colorsGroup={calendarColors}
+						colorsGroup={
+							event ? calendarColors : [calendarColors[0], calendarColors[1]]
+						}
 						selectedColor={data.selectedColor}
 						setSelectedColor={(color) =>
 							setData({ ...data, selectedColor: color })
@@ -270,12 +274,14 @@ export default function CalendarUpdate({
 						))}
 				</Select>
 			</div>
-			<textarea
-				className="col-span-2 px-4 py-2 rounded-md border border-gray-200 focus:border-sky-500 focus:outline-none max-h-20 text-sm"
-				placeholder="Descripción"
-				value={data.description}
-				onChange={(e) => setData({ ...data, description: e.target.value })}
-			/>
+			{event && (
+				<textarea
+					className="col-span-2 px-4 py-2 rounded-md border border-gray-200 focus:border-sky-500 focus:outline-none max-h-20 text-sm"
+					placeholder="Descripción"
+					value={data.description}
+					onChange={(e) => setData({ ...data, description: e.target.value })}
+				/>
+			)}
 		</form>
 	);
 }

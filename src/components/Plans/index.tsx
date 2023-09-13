@@ -1,18 +1,30 @@
 import {
 	FlagIcon,
+	FunnelIcon,
 	IdentificationIcon,
 	MapPinIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
-import { Card, Grid, Icon, Select, SelectItem, Text } from "@tremor/react";
-import { useState } from "react";
+import {
+	Card,
+	Grid,
+	Icon,
+	MultiSelect,
+	MultiSelectItem,
+	Select,
+	SelectItem,
+	Text,
+} from "@tremor/react";
+import { useEffect, useState } from "react";
 import CenteredModal from "../../common/CenteredModal";
 import { Dropdown, DropdownItem } from "../../common/DropDown";
 import EmptyState from "../../common/EmptyState";
 import { useCreateEvent, usePlans } from "../../hooks/Handlers/usePlans";
 
+import Loading from "../../common/Loading";
 import { useAppSelector } from "../../hooks/store";
 import { useHandleStall, useStalls } from "../../hooks/useStalls";
+import { StallWithId } from "../../services/stalls/types";
 import { months, years } from "../../utils/dates";
 import { validateRoles } from "../../utils/roles";
 import CreateEvents from "./CreateEvents";
@@ -24,13 +36,22 @@ import Workers from "./Workers";
 
 export const eventTypes = ["event", "customer"];
 
+export const filterByBranch = (
+	stall: StallWithId,
+	activeBranches: string[],
+) => {
+	if (stall.branch === "" && activeBranches.includes("Sin sede")) return true;
+	if (activeBranches.includes(stall.branch)) return true;
+	return false;
+};
+
 export default function Plans() {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { customers } = useAppSelector((state) => state.customers);
-	const { plansStalls } = useAppSelector((state) => state.stalls);
-	const { plansShifts } = useAppSelector((state) => state.shifts);
-	const plansData = usePlans(customers, profile, plansStalls, plansShifts);
-	const { createStall } = useStalls(plansStalls, plansShifts);
+	const { stalls, loading } = useAppSelector((state) => state.stalls);
+	const { shifts } = useAppSelector((state) => state.shifts);
+	const plansData = usePlans(customers, profile, stalls, shifts);
+	const { createStall } = useStalls(stalls, shifts);
 	const { stallData, setStallData, handleCreateStall } = useHandleStall(
 		plansData.selectedMonth,
 		plansData.selectedYear,
@@ -38,19 +59,29 @@ export default function Plans() {
 	);
 	const createEvent = useCreateEvent(
 		plansData.actualCustomer,
-		plansStalls,
+		stalls,
 		plansData.selectedMonth,
 		plansData.selectedYear,
-		plansShifts,
+		shifts,
 	);
-	const events = plansShifts.filter((shift) => eventTypes.includes(shift.type));
+	const events = shifts.filter((shift) => eventTypes.includes(shift.type));
 	const [openCustomers, setOpenCustomers] = useState(false);
 	const [openWorkers, setOpenWorkers] = useState(false);
 	const [openEvents, setOpenEvents] = useState(false);
 	const [openCreateStall, setOpenCreateStall] = useState(false);
 	const [openCreateEvent, setOpenCreateEvent] = useState(false);
-
 	// const [openSuggestNextMonth, setOpenSuggestNextMonth] = useState(false);
+	const branches = ["Sin sede", ...(plansData.actualCustomer?.branches || [])];
+	const [activeBranches, setActiveBranches] = useState<string[]>([
+		"Sin sede",
+		...(plansData.actualCustomer?.branches || []),
+	]);
+
+	useEffect(() => {
+		if (plansData.actualCustomer) {
+			setActiveBranches(["Sin sede", ...plansData.actualCustomer.branches]);
+		}
+	}, [plansData.actualCustomer]);
 
 	const options = [
 		{
@@ -108,6 +139,22 @@ export default function Plans() {
 								</Dropdown>
 							</div>
 						)}
+					{plansData.actualCustomer && (
+						<div>
+							<MultiSelect
+								icon={FunnelIcon}
+								placeholder="Sedes"
+								value={activeBranches}
+								onValueChange={(value) => setActiveBranches(value)}
+							>
+								{branches.map((branch) => (
+									<MultiSelectItem key={`branch-${branch}`} value={branch}>
+										{branch}
+									</MultiSelectItem>
+								))}
+							</MultiSelect>
+						</div>
+					)}
 					<div className="flex gap-2">
 						<Select
 							value={plansData.selectedMonth}
@@ -158,7 +205,9 @@ export default function Plans() {
 					)}
 				</header>
 				<main className="py-2">
-					{plansData.actualCustomer && <Stalls plansData={plansData} />}
+					{plansData.actualCustomer && (
+						<Stalls plansData={plansData} activeBranches={activeBranches} />
+					)}
 					{!plansData.actualCustomer && (
 						<EmptyState>
 							<MapPinIcon className="w-8 h-8 text-sky-500" />
@@ -168,18 +217,23 @@ export default function Plans() {
 							</Text>
 						</EmptyState>
 					)}
-					{plansData.actualCustomer && plansStalls.length <= 0 && (
-						<EmptyState>
-							<MapPinIcon className="w-8 h-8 text-sky-500" />
-							<Text className="text-gray-600">Aqui aparecerán los puestos</Text>
-							<Text className="text-gray-400">
-								Para agregar un puesto, despliega el menú de opciones y haz
-								click en 'Crear puesto'
-							</Text>
-						</EmptyState>
-					)}
+					{plansData.actualCustomer &&
+						stalls.filter((stall) => filterByBranch(stall, activeBranches))
+							.length <= 0 && (
+							<EmptyState>
+								<MapPinIcon className="w-8 h-8 text-sky-500" />
+								<Text className="text-gray-600">
+									Aqui aparecerán los puestos
+								</Text>
+								<Text className="text-gray-400">
+									Para agregar un puesto, despliega el menú de opciones y haz
+									click en 'Crear puesto'
+								</Text>
+							</EmptyState>
+						)}
 				</main>
 			</Card>
+			<Loading show={loading.state} text={loading.message} />
 			<Customers
 				open={openCustomers}
 				setOpen={setOpenCustomers}

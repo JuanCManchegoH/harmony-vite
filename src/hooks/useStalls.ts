@@ -4,13 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { CustomerWithId } from "../services/customers/types";
-import { setPlansShifts, setTracingShifts } from "../services/shifts/slice";
+import { setShifts } from "../services/shifts/slice";
 import { ShiftWithId } from "../services/shifts/types";
-import {
-	setLoading,
-	setPlansStalls,
-	setTracingStalls,
-} from "../services/stalls/slice";
+import { setLoading, setStalls } from "../services/stalls/slice";
 import {
 	HandleStallWorker,
 	StallWithId,
@@ -29,17 +25,19 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 	const dispatch = useAppDispatch();
 
 	async function createStall(stall: StallData) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Creando puesto" }));
+		toast.message("Creando puesto");
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			const { data } = await axios.post<StallWithId>(api.stalls.create, stall);
-			toast.success("Puesto creado");
-			dispatch(setPlansStalls([...stalls, data]));
+			dispatch(setStalls([...stalls, data]));
 			return data;
 		} catch (error) {
-			console.log(error);
 			toast.error("Error Creando puesto");
+		} finally {
+			toast.success("Puesto creado");
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
@@ -48,7 +46,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		years: string[],
 		customerId: string,
 	) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Obteniendo puestos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -56,16 +54,18 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.getByCustomer,
 				{ months, years, customerId },
 			);
-			dispatch(setPlansStalls(data.stalls));
-			dispatch(setPlansShifts(data.shifts));
+			dispatch(setStalls(data.stalls));
+			dispatch(setShifts(data.shifts));
 			return data;
 		} catch {
 			toast.error("Error obteniendo puestos");
+		} finally {
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
 	async function getStallsByCustomers(months: string[], years: string[]) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Obteniendo puestos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -73,16 +73,18 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.getByCustomers,
 				{ months, years },
 			);
-			dispatch(setTracingStalls(data.stalls));
-			dispatch(setTracingShifts(data.shifts));
+			dispatch(setStalls(data.stalls));
+			dispatch(setShifts(data.shifts));
 			return data;
 		} catch {
 			toast.error("Error obteniendo puestos");
+		} finally {
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
 	async function updateStall(stall: StallData, stallId: string) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Actualizando puesto" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -90,13 +92,13 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.update(stallId),
 				stall,
 			);
-			toast.success("Puesto actualizado");
-			dispatch(
-				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
-			);
+			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
 			return data;
 		} catch {
 			toast.error("Error actualizando puesto");
+		} finally {
+			toast.success("Puesto actualizado");
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
@@ -105,25 +107,27 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		stallShifts: string[],
 		stalls: StallWithId[],
 	) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Eliminando puesto" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			await axios.post(api.stalls.delete(stallId), { shifts: stallShifts });
-			toast.success("Puesto eliminado");
-			dispatch(setPlansStalls(stalls.filter((s) => s.id !== stallId)));
+			dispatch(setStalls(stalls.filter((s) => s.id !== stallId)));
 			dispatch(
-				setPlansShifts(
+				setShifts(
 					shifts.filter((shift) => !stallShifts.includes(shift.id as string)),
 				),
 			);
 		} catch {
 			toast.error("Error eliminando puesto");
+		} finally {
+			toast.success("Puesto eliminado");
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
 	async function addWorker(stallId: string, worker: HandleStallWorker) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Agregando persona" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -131,13 +135,13 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.addWorker(stallId),
 				worker,
 			);
-			toast.success("Persona agregada");
-			dispatch(
-				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
-			);
+			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
 			return data;
 		} catch {
 			toast.error("Error agregando persona");
+		} finally {
+			toast.success("Persona agregada");
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
@@ -146,7 +150,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		workerId: string,
 		workerShifts: string[],
 	) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Eliminando persona" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -154,18 +158,18 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.removeWorker(stallId, workerId),
 				{ shifts: workerShifts },
 			);
-			toast.success("Persona eliminada");
+			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
 			dispatch(
-				setPlansStalls(stalls.map((s) => (s.id === stallId ? data : s))),
-			);
-			dispatch(
-				setPlansShifts(
+				setShifts(
 					shifts.filter((shift) => !workerShifts.includes(shift.id as string)),
 				),
 			);
 			return data;
 		} catch {
 			toast.error("Error eliminando persona");
+		} finally {
+			toast.success("Persona eliminada");
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 

@@ -31,6 +31,9 @@ export function usePlans(
 		profile.company.id && getCustomers();
 	}, [profile]);
 	useEffect(() => {
+		customers.length > 0 && setSelected(customers[0].id);
+	}, [customers]);
+	useEffect(() => {
 		selected && getStallsByCustomer([selectedMonth], [selectedYear], selected);
 	}, [selected, selectedMonth, selectedYear]);
 
@@ -64,7 +67,7 @@ export function useCreateEvent(
 ) {
 	const { createAndUpdate } = useShifts(shifts, stalls);
 	// FirstStep
-	const list = [actualCustomer, ...stalls];
+	const list = stalls;
 	const [selected, setSelected] = useState(list[0]);
 	const [selectedWorker, setSelectedWorker] = useState<
 		WorkerWithId | undefined
@@ -88,17 +91,6 @@ export function useCreateEvent(
 	});
 
 	const handleCreateEvent = () => {
-		if (
-			selected?.id !== actualCustomer?.id &&
-			selected &&
-			(selected as StallWithId).workers.some(
-				(worker) => worker.id === selectedWorker?.id,
-			)
-		) {
-			return toast.message("Prsonal asignado", {
-				description: "La persona se encuentra asignada al puesto seleccionado.",
-			});
-		}
 		if (selectedDays.length === 0)
 			return toast.message("Datos incompletos", {
 				description: "Seleccione al menos un día",

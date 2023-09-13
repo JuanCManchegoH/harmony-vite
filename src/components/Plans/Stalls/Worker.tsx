@@ -36,10 +36,10 @@ export default function Worker({
 	setHoverSchedule: Dispatch<SetStateAction<string>>;
 }) {
 	const { profile } = useAppSelector((state) => state.auth);
-	const { plansStalls } = useAppSelector((state) => state.stalls);
-	const { plansShifts } = useAppSelector((state) => state.shifts);
-	const { createAndUpdate, deleteMany } = useShifts(plansShifts, plansStalls);
-	const { removeWorker } = useStalls(plansStalls, plansShifts);
+	const { stalls } = useAppSelector((state) => state.stalls);
+	const { shifts } = useAppSelector((state) => state.shifts);
+	const { createAndUpdate, deleteMany } = useShifts(shifts, stalls);
+	const { removeWorker } = useStalls(stalls, shifts);
 	const {
 		shiftsData,
 		setShiftsData,
@@ -58,14 +58,14 @@ export default function Worker({
 		handleDeleteShifts,
 		selectedConvention,
 		setSelectedConvention,
-	} = useHandleShifts(plansShifts, worker, stall, monthDays);
-	const workerShifts = plansShifts.filter(
+	} = useHandleShifts(shifts, worker, stall, monthDays);
+	const workerShifts = shifts.filter(
 		(shift) =>
 			shift.worker === worker.id &&
 			shift.stall === stall.id &&
 			!eventTypes.includes(shift.type),
 	);
-	const workerEvents = plansShifts.filter(
+	const workerEvents = shifts.filter(
 		(shift) =>
 			shift.worker === worker.id &&
 			shift.stall === stall.id &&
@@ -202,7 +202,7 @@ export default function Worker({
 				action={() => handleDeleteShifts(deleteMany, stall.id)}
 			>
 				<DeleteShifts
-					shifts={[...workerShifts, ...workerEvents]}
+					shifts={[...workerShifts]}
 					selectedDelete={selectedDelete}
 					setSelectedDelete={setSelectedDelete}
 				/>

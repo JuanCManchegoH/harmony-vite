@@ -21,33 +21,30 @@ export const DEFAULT_STALL: StallWithId = {
 };
 
 export interface StallsState {
-	loading: boolean;
-	plansStalls: StallWithId[];
-	tracingStalls: StallWithId[];
+	loading: { state: boolean; message: string };
+	stalls: StallWithId[];
 }
 
 const initialState: StallsState = {
-	loading: false,
-	plansStalls: [],
-	tracingStalls: [],
+	loading: { state: false, message: "" },
+	stalls: [],
 };
 
 export const stallsSlice = createSlice({
 	name: "stalls",
 	initialState,
 	reducers: {
-		setLoading: (state, action) => {
+		setLoading: (
+			state,
+			action: { payload: { state: boolean; message: string } },
+		) => {
 			state.loading = action.payload;
 		},
-		setPlansStalls: (state, action) => {
-			state.plansStalls = action.payload;
-		},
-		setTracingStalls: (state, action) => {
-			state.tracingStalls = action.payload;
+		setStalls: (state, action) => {
+			state.stalls = action.payload;
 		},
 	},
 });
 
-export const { setLoading, setPlansStalls, setTracingStalls } =
-	stallsSlice.actions;
+export const { setLoading, setStalls } = stallsSlice.actions;
 export default stallsSlice.reducer;

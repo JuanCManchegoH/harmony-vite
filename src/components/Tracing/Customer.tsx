@@ -1,3 +1,4 @@
+import { CalendarDaysIcon } from "@heroicons/react/24/solid";
 import { Badge, Card, Flex, ProgressBar, Text } from "@tremor/react";
 import { useAppSelector } from "../../hooks/store";
 import { TracingData } from "../../hooks/useTracing";
@@ -9,27 +10,26 @@ export default function Customer({
 	customer,
 	tracingData,
 }: { customer: CustomerWithId; tracingData: TracingData }) {
-	const { tracingStalls } = useAppSelector((state) => state.stalls);
-	const { tracingShifts } = useAppSelector((state) => state.shifts);
-	const customerStalls = tracingStalls.filter(
+	const { stalls } = useAppSelector((state) => state.stalls);
+	const { shifts } = useAppSelector((state) => state.shifts);
+	const customerStalls = stalls.filter(
 		(stall) => stall.customer === customer.id,
 	);
-	const shifts = tracingShifts.filter(
+	const tracingShifts = shifts.filter(
 		(shift) =>
 			!eventTypes.includes(shift.type) &&
 			customerStalls.some((stall) => stall.id === shift.stall),
 	);
-	const events = tracingShifts.filter(
+	const events = shifts.filter(
 		(shift) =>
 			eventTypes.includes(shift.type) &&
 			customerStalls.some((stall) => stall.id === shift.stall),
 	);
-	const customerEvents = tracingShifts.filter(
-		(shift) => shift.stall === customer.id,
-	);
+	const customerEvents = shifts.filter((shift) => shift.stall === customer.id);
 
 	const percentage = (data: ShiftWithId[]) => {
-		const total = shifts.length + events.length + customerEvents.length;
+		const total = tracingShifts.length + events.length + customerEvents.length;
+		if (data.length === 0 || total === 0) return 0;
 		return (data.length / total) * 100;
 	};
 
@@ -46,7 +46,10 @@ export default function Customer({
 	return (
 		<Card className="flex flex-col gap-2 p-2 bg-gray-50">
 			<header className="flex justify-between items-center border-b pb-2">
-				<h2 className="font-bold">{customer.name}</h2>
+				<h2 className="flex font-bold items-center">
+					<CalendarDaysIcon className="w-5 h-5 mr-2" />
+					{customer.name}
+				</h2>
 				<Badge className="font-bold" color="sky">
 					{actualMonthAndYear ? "En curso" : "Finalizado"}
 				</Badge>
@@ -68,12 +71,12 @@ export default function Customer({
 					<Flex>
 						<Text>Turnos</Text>
 						<Text>
-							{shifts.filter((shift) => shift.color === "green").length}
+							{tracingShifts.filter((shift) => shift.color === "green").length}
 						</Text>
 					</Flex>
 					<ProgressBar
 						value={percentage(
-							shifts.filter((shift) => shift.color === "green"),
+							tracingShifts.filter((shift) => shift.color === "green"),
 						)}
 						color="green"
 						className="mt-1"
@@ -83,11 +86,13 @@ export default function Customer({
 					<Flex>
 						<Text>Descansos</Text>
 						<Text>
-							{shifts.filter((shift) => shift.color === "gray").length}
+							{tracingShifts.filter((shift) => shift.color === "gray").length}
 						</Text>
 					</Flex>
 					<ProgressBar
-						value={percentage(shifts.filter((shift) => shift.color === "gray"))}
+						value={percentage(
+							tracingShifts.filter((shift) => shift.color === "gray"),
+						)}
 						color="gray"
 						className="mt-1"
 					/>

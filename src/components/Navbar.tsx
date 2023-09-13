@@ -1,6 +1,10 @@
 import { Menu, Transition } from "@headlessui/react";
 import { BellIcon } from "@heroicons/react/24/outline";
-import { CalendarDaysIcon, HomeIcon } from "@heroicons/react/24/solid";
+import {
+	CalendarDaysIcon,
+	HomeIcon,
+	PresentationChartBarIcon,
+} from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { Button, Icon } from "@tremor/react";
 import { Fragment, useState } from "react";
@@ -13,7 +17,7 @@ import Logs from "./Logs";
 export const navigation = [
 	{ name: "Dashboard", icon: HomeIcon, href: "/dashboard" },
 	{ name: "Programaciones", icon: CalendarDaysIcon, href: "/programaciones" },
-	// { name: "Seguimiento", icon: PresentationChartBarIcon, href: "/seguimiento" },
+	{ name: "Seguimiento", icon: PresentationChartBarIcon, href: "/seguimiento" },
 ];
 
 export default function Navbar() {

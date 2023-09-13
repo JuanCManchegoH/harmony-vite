@@ -80,4 +80,47 @@ const StringToDate = (date: string) => {
 	return new Date(Number(year), Number(month) - 1, Number(day));
 };
 
-export { DateToSring, StringToDate, getDay, getDays, months, years };
+function groupDates(dates: string[]) {
+	const sortedDates = dates.sort((a, b) => {
+		const dateA = StringToDate(a);
+		const dateB = StringToDate(b);
+		if (dateA > dateB) return 1;
+		if (dateA < dateB) return -1;
+		return 0;
+	});
+	const groupedDates: string[] = [];
+	let startDate = sortedDates[0];
+	let endDate = sortedDates[0];
+	for (let i = 1; i < sortedDates.length; i++) {
+		const date = sortedDates[i];
+		const dateA = StringToDate(endDate);
+		const dateB = StringToDate(date);
+		if (dateA.getTime() + 86400000 === dateB.getTime()) {
+			endDate = date;
+		} else {
+			if (startDate === endDate) {
+				groupedDates.push(startDate.slice(0, 2));
+			} else {
+				groupedDates.push(`${startDate.slice(0, 2)}-${endDate.slice(0, 2)}`);
+			}
+			startDate = date;
+			endDate = date;
+		}
+	}
+	if (startDate === endDate) {
+		groupedDates.push(startDate.slice(0, 2));
+	} else {
+		groupedDates.push(`${startDate.slice(0, 2)}-${endDate.slice(0, 2)}`);
+	}
+	return groupedDates;
+}
+
+export {
+	DateToSring,
+	StringToDate,
+	getDay,
+	getDays,
+	groupDates,
+	months,
+	years,
+};

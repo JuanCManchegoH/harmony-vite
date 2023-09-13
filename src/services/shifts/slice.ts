@@ -25,33 +25,30 @@ export const DEFAULT_SHIFT: ShiftWithId = {
 };
 
 export interface ShiftsState {
-	loading: boolean;
-	plansShifts: ShiftWithId[];
-	tracingShifts: ShiftWithId[];
+	loading: { state: boolean; message: string };
+	shifts: ShiftWithId[];
 }
 
 const initialState: ShiftsState = {
-	loading: false,
-	plansShifts: [],
-	tracingShifts: [],
+	loading: { state: false, message: "" },
+	shifts: [],
 };
 
 export const shiftsSlice = createSlice({
 	name: "shifts",
 	initialState,
 	reducers: {
-		setLoading: (state, action) => {
+		setLoading: (
+			state,
+			action: { payload: { state: boolean; message: string } },
+		) => {
 			state.loading = action.payload;
 		},
-		setPlansShifts: (state, action) => {
-			state.plansShifts = action.payload;
-		},
-		setTracingShifts: (state, action) => {
-			state.tracingShifts = action.payload;
+		setShifts: (state, action) => {
+			state.shifts = action.payload;
 		},
 	},
 });
 
-export const { setLoading, setPlansShifts, setTracingShifts } =
-	shiftsSlice.actions;
+export const { setLoading, setShifts } = shiftsSlice.actions;
 export default shiftsSlice.reducer;

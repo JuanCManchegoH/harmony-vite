@@ -4,14 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Convention, Sequence } from "../services/company/types";
-import { setLoading, setPlansShifts } from "../services/shifts/slice";
+import { setLoading, setShifts } from "../services/shifts/slice";
 import {
 	AppliedSequence,
 	CreateShift,
 	ShiftWithId,
 	UpdateShift,
 } from "../services/shifts/types";
-import { setPlansStalls } from "../services/stalls/slice";
+import { setStalls } from "../services/stalls/slice";
 import { StallWithId, StallWorker } from "../services/stalls/types";
 import { ColorGroup, calendarColors } from "../utils/colors";
 import { DateToSring, MonthDay } from "../utils/dates";
@@ -32,7 +32,7 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 		update: UpdateShift[],
 		sequence?: AppliedSequence,
 	) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Creando turnos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -57,7 +57,7 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 				if (updatedShift) return updatedShift;
 				return shift;
 			});
-			dispatch(setPlansShifts([...updatedShifts, ...data.created]));
+			dispatch(setShifts([...updatedShifts, ...data.created]));
 			if (data.stall) {
 				const updatedStalls = stalls.map((stall) => {
 					if (stall.id === data.stall?.id) {
@@ -65,16 +65,18 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 					}
 					return stall;
 				});
-				dispatch(setPlansStalls(updatedStalls));
+				dispatch(setStalls(updatedStalls));
 			}
 			return data;
 		} catch {
 			toast.error("Error Creando turnos");
+		} finally {
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 
 	async function deleteMany(shiftsIds: string[], stallId: string) {
-		dispatch(setLoading(true));
+		dispatch(setLoading({ state: true, message: "Eliminando turnos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
@@ -83,12 +85,14 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 			});
 			toast.success("Turnos eliminados");
 			dispatch(
-				setPlansShifts(
+				setShifts(
 					shifts.filter((shift) => !shiftsIds.includes(shift.id as string)),
 				),
 			);
 		} catch {
 			toast.error("Error eliminando turnos");
+		} finally {
+			dispatch(setLoading({ state: false, message: "" }));
 		}
 	}
 

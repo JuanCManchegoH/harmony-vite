@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Plans from "./pages/Plans";
+import Tracing from "./pages/Tracing";
 
 function App() {
 	return (
@@ -15,7 +16,7 @@ function App() {
 					<Route path="/login" element={<Login />} />
 					<Route path="/dashboard" element={<Dashboard />} />
 					<Route path="/programaciones" element={<Plans />} />
-					{/* <Route path="/seguimiento" element={<Tracing />} /> */}
+					<Route path="/seguimiento" element={<Tracing />} />
 				</Routes>
 			</div>
 		</>

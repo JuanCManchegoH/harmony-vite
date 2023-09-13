@@ -16,6 +16,7 @@ export default function SecondStep({
 				setData={createEvent.setShiftsData}
 				selectedConvention={createEvent.selectedConvention}
 				setSelectedConvention={createEvent.setSelectedConvention}
+				event
 			/>
 		</>
 	);

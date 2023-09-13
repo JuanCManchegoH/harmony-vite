@@ -26,7 +26,7 @@ export default function FirstStep({
 			{list.length > 0 && (
 				<>
 					<Select
-						placeholder="Seleccionar puesto o cliente*"
+						placeholder="Seleccionar puesto*"
 						value={selected?.id || ""}
 						onValueChange={(value) =>
 							setSelected(list.find((item) => item?.id === value) || list[0])
