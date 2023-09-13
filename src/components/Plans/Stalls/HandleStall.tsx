@@ -8,7 +8,7 @@ export default function HandleStall({
 	branches,
 	data,
 	setData,
-	creation,
+	// creation,
 }: {
 	branches: string[];
 	data: StallData;
@@ -21,7 +21,7 @@ export default function HandleStall({
 		...tags.filter((tag) => tag.scope === "stalls").map((tag) => tag.name),
 	];
 	const allBranches = ["", ...branches];
-	const setCreation = creation ? creation : false;
+	// const setCreation = creation ? creation : false;
 	return (
 		<form className="grid grid-cols-2 gap-2">
 			<TextInput
@@ -75,7 +75,7 @@ export default function HandleStall({
 					))}
 				</Select>
 			)}
-			{!setCreation && (
+			{/* {!setCreation && (
 				<Select
 					placeholder="Ays"
 					value={data.stage.toString()}
@@ -87,7 +87,7 @@ export default function HandleStall({
 					<SelectItem value="1">Bloqueado</SelectItem>
 					<SelectItem value="2">Archivado</SelectItem>
 				</Select>
-			)}
+			)} */}
 		</form>
 	);
 }
