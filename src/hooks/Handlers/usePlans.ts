@@ -205,11 +205,9 @@ export const useHandleEvents = () => {
 };
 
 export interface CreateEvent {
-	list: (CustomerWithId | StallWithId | undefined)[];
-	selected: CustomerWithId | StallWithId | undefined;
-	setSelected: Dispatch<
-		SetStateAction<CustomerWithId | StallWithId | undefined>
-	>;
+	list: StallWithId[];
+	selected: StallWithId;
+	setSelected: Dispatch<SetStateAction<StallWithId>>;
 	selectedWorker: WorkerWithId | undefined;
 	setSelectedWorker: Dispatch<SetStateAction<WorkerWithId | undefined>>;
 	position: string;
