@@ -251,9 +251,9 @@ export default function WorkerList({
 										className="font-medium uppercase"
 									>
 										<TableCell>
-											{groupedShifts.findIndex(
-												(s) => s[0].id === shifts[0].id,
-											) + 1}
+											{groupedShifts
+												.filter((shifts) => shouldIncludeShift(shifts[0]))
+												.findIndex((s) => s[0].id === shifts[0].id) + 1}
 										</TableCell>
 										<TableCell title="Nombre">
 											<Text>{shifts[0].workerName}</Text>
