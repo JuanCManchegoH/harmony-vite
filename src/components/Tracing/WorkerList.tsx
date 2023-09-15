@@ -7,6 +7,7 @@ import {
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import {
+	Button,
 	Card,
 	Icon,
 	MultiSelect,
@@ -39,6 +40,8 @@ export default function WorkerList({
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { customers } = useAppSelector((state) => state.customers);
 	const { workers } = useAppSelector((state) => state.workers);
+	const totalPages = Math.ceil(groupedShifts.length / 100) || 1;
+	const [pages, setPages] = useState(1);
 	function getUniqueValues(arr: ShiftWithId[], property: string) {
 		const uniqueValues = new Set();
 		arr.forEach((item) => {
@@ -150,9 +153,15 @@ export default function WorkerList({
 		<Card className="p-0">
 			{/* Filters */}
 			<header className="flex justify-between items-center p-2">
-				<Text className="text-lg font-medium">Filtros</Text>
 				<div className="flex gap-2 items-center">
-					{/* MultiSelect for every filter */}
+					<Icon
+						size="sm"
+						variant="solid"
+						icon={ArrowDownCircleIcon}
+						onClick={generateExcel}
+						className="cursor-pointer"
+						tooltip="Descargar Listado"
+					/>
 					{filtersArray.map((filter) => (
 						<MultiSelect
 							key={Object.keys(filter)[0]}
@@ -173,14 +182,29 @@ export default function WorkerList({
 							))}
 						</MultiSelect>
 					))}
-					<Icon
+				</div>
+				<div className="flex gap-2 items-center">
+					<Button
 						size="sm"
-						variant="solid"
-						icon={ArrowDownCircleIcon}
-						onClick={generateExcel}
-						className="cursor-pointer"
-						tooltip="Descargar Listado"
-					/>
+						color="sky"
+						variant="secondary"
+						onClick={() => setPages(pages - 1)}
+						disabled={pages === 1}
+					>
+						Anterior
+					</Button>
+					<Text className="text-lg font-medium">
+						{pages} / {totalPages}
+					</Text>
+					<Button
+						size="sm"
+						color="sky"
+						variant="secondary"
+						onClick={() => setPages(pages + 1)}
+						disabled={pages === totalPages}
+					>
+						Siguiente
+					</Button>
 				</div>
 			</header>
 
@@ -199,6 +223,7 @@ export default function WorkerList({
 				</TableHead>
 				<TableBody>
 					{groupedShifts
+						.slice((pages - 1) * 100, pages * 100)
 						.filter((shifts) => shouldIncludeShift(shifts[0]))
 						.map((shifts, index) => {
 							const stall = stalls.find(
@@ -220,7 +245,11 @@ export default function WorkerList({
 										key={`shifts-${index}`}
 										className="font-medium uppercase"
 									>
-										<TableCell>{index + 1}</TableCell>
+										<TableCell>
+											{groupedShifts.findIndex(
+												(s) => s[0].id === shifts[0].id,
+											) + 1}
+										</TableCell>
 										<TableCell title="Nombre">
 											<Text>{shifts[0].workerName}</Text>
 											{worker?.identification} | {position || "-"}
