@@ -40,8 +40,7 @@ export default function WorkerList({
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { customers } = useAppSelector((state) => state.customers);
 	const { workers } = useAppSelector((state) => state.workers);
-	const totalPages = Math.ceil(groupedShifts.length / 100) || 1;
-	const [pages, setPages] = useState(1);
+
 	function getUniqueValues(arr: ShiftWithId[], property: string) {
 		const uniqueValues = new Set();
 		arr.forEach((item) => {
@@ -94,6 +93,12 @@ export default function WorkerList({
 		types,
 		customers: customersNames,
 	});
+	const totalPages =
+		Math.ceil(
+			groupedShifts.filter((shifts) => shouldIncludeShift(shifts[0])).length /
+				100,
+		) || 1;
+	const [pages, setPages] = useState(1);
 
 	const filtersArray = [
 		{
@@ -223,8 +228,8 @@ export default function WorkerList({
 				</TableHead>
 				<TableBody>
 					{groupedShifts
-						.slice((pages - 1) * 100, pages * 100)
 						.filter((shifts) => shouldIncludeShift(shifts[0]))
+						.slice((pages - 1) * 100, pages * 100)
 						.map((shifts, index) => {
 							const stall = stalls.find(
 								(stall) => stall.id === shifts[0].stall,
