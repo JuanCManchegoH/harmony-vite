@@ -88,8 +88,11 @@ export function useExcel(
 			// Freeze first row
 			worksheet.views = [{ state: "frozen", ySplit: 1 }];
 			header.forEach((_, i) => {
-				if (i) {
-					worksheet.getColumn(i + 1).width = 100;
+				if (i > 0 && i < 4) {
+					worksheet.getColumn(i + 1).width = 40;
+				}
+				if (i > 5) {
+					worksheet.getColumn(i + 1).width = 40;
 				}
 			});
 

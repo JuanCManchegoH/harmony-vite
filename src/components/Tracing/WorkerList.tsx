@@ -21,7 +21,7 @@ import {
 } from "@tremor/react";
 import { useState } from "react";
 import { useAppSelector } from "../../hooks/store";
-import { useExcel } from "../../hooks/useExcel";
+import { useExcel } from "../../hooks/useTracing";
 import { ShiftWithId } from "../../services/shifts/types";
 import { groupDates } from "../../utils/dates";
 import { getDiference } from "../../utils/hours";
