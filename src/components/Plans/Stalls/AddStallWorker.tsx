@@ -85,7 +85,7 @@ export default function AddStallWorker({
 					</EmptyState>
 				)}
 				{workers.length > 0 && (
-					<div className="grid grid-cols-3">
+					<div className="grid grid-cols-3 gap-2 border rounded-md p-2">
 						{workers.map((worker) => (
 							<Card
 								key={worker.id}

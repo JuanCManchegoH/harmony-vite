@@ -115,7 +115,7 @@ export function useCreateEvent(
 					  )}`
 					: "00:00",
 			color: shiftsData.selectedColor.color,
-			abbreviation: shiftsData.selectedColor.abbreviation,
+			abbreviation: selectedConvention?.abbreviation || "",
 			description: shiftsData.description,
 			position,
 			sequence: selectedSequence,

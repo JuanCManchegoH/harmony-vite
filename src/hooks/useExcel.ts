@@ -1,72 +1,10 @@
 import ExcelJS from "exceljs";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Profile } from "../services/auth/types";
 import { CustomerWithId } from "../services/customers/types";
 import { ShiftWithId } from "../services/shifts/types";
 import { StallWithId } from "../services/stalls/types";
 import { groupDates } from "../utils/dates";
 import { workerSheets } from "../utils/excel";
 import { getDiference } from "../utils/hours";
-import { useCustomers } from "./useCustomers";
-import { useStalls } from "./useStalls";
-
-export function useTracing(
-	profile: Profile,
-	customers: CustomerWithId[],
-	stalls: StallWithId[],
-	shifts: ShiftWithId[],
-) {
-	const { getCustomers } = useCustomers(customers);
-	const { getStallsByCustomers } = useStalls(stalls, shifts);
-	const month = new Date().getMonth().toString();
-	const year = new Date().getFullYear().toString();
-	const [selectedMonth, setSelectedMonth] = useState<string>(month);
-	const [selectedYear, setSelectedYear] = useState<string>(year);
-
-	useEffect(() => {
-		profile.company.id && getCustomers();
-	}, [profile]);
-
-	useEffect(() => {
-		getStallsByCustomers([selectedMonth], [selectedYear]);
-	}, [selectedMonth, selectedYear]);
-
-	const groupedShifts = shifts
-		.reduce((groups, shift) => {
-			const workerIndex = groups.findIndex(
-				(group) =>
-					group[0].worker === shift.worker &&
-					group[0].abbreviation === shift.abbreviation &&
-					group[0].stall === shift.stall &&
-					group[0].description === shift.description &&
-					getDiference(group[0].startTime, group[0].endTime).str ===
-						getDiference(shift.startTime, shift.endTime).str &&
-					group[0].position === shift.position &&
-					group[0].sequence === shift.sequence &&
-					group[0].type === shift.type,
-			);
-			if (workerIndex === -1) {
-				groups.push([shift]);
-			} else {
-				groups[workerIndex].push(shift);
-			}
-			return groups;
-		}, [] as ShiftWithId[][])
-		.sort((a, b) => {
-			if (a[0].worker > b[0].worker) return 1;
-			if (a[0].worker < b[0].worker) return -1;
-
-			return 0;
-		});
-
-	return {
-		selectedMonth,
-		setSelectedMonth,
-		selectedYear,
-		setSelectedYear,
-		groupedShifts,
-	};
-}
 
 export function useExcel(
 	groupedShifts: ShiftWithId[][],
@@ -84,13 +22,6 @@ export function useExcel(
 			const headerRow = worksheet.addRow(header);
 			headerRow.eachCell((cell) => {
 				cell.font = { bold: true };
-			});
-			// Freeze first row
-			worksheet.views = [{ state: "frozen", ySplit: 1 }];
-			header.forEach((_, i) => {
-				if (i) {
-					worksheet.getColumn(i + 1).width = 100;
-				}
 			});
 
 			shifts.forEach((shifts, i) => {
@@ -122,6 +53,19 @@ export function useExcel(
 				worksheet.addRow(row);
 			});
 		});
+		// fit columns
+		workbook.worksheets.forEach((worksheet) => {
+			worksheet.columns.forEach((column) => {
+				let maxLength = 0;
+				column.eachCell((cell) => {
+					const columnLength = cell.value ? cell.value.toString().length : 0;
+					if (columnLength > maxLength) {
+						maxLength = columnLength;
+					}
+				});
+				column.width = maxLength < 10 ? 10 : maxLength;
+			});
+		});
 		await workbook.xlsx.writeBuffer();
 		// Download the file
 		workbook.xlsx.writeBuffer().then((data) => {
@@ -140,11 +84,4 @@ export function useExcel(
 	}
 
 	return { generateExcel };
-}
-
-export interface TracingData {
-	selectedMonth: string;
-	setSelectedMonth: Dispatch<SetStateAction<string>>;
-	selectedYear: string;
-	setSelectedYear: Dispatch<SetStateAction<string>>;
 }

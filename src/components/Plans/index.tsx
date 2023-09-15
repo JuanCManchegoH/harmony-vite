@@ -113,7 +113,8 @@ export default function Plans() {
 				<header className="flex justify-end gap-2 border rounded-md p-1 sticky top-0 bg-gray-50 z-10">
 					<label
 						htmlFor="name"
-						className="absolute -bottom-2 left-1/2 -translate-x-1/2 inline-block rounded-full border px-2 bg-gray-50 text-xs font-medium text-gray-900"
+						title={plansData.actualCustomer?.name}
+						className="absolute -bottom-5 left-1/2 -translate-x-1/2 rounded-full px-2 text-sm text-gray-100 bg-sky-500 uppercase max-w-sm truncate"
 					>
 						{plansData.actualCustomer?.name}
 					</label>

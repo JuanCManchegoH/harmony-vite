@@ -77,7 +77,10 @@ export default function Worker({
 	const [openDelete, setOpenDelete] = useState(false);
 
 	const data: TrackerItem[] = monthDays.map((day) => {
-		const shift = [...workerShifts, ...workerEvents].find(
+		const shift = workerShifts.find(
+			(shift) => shift.day === DateToSring(day.date),
+		);
+		const events = workerEvents.filter(
 			(shift) => shift.day === DateToSring(day.date),
 		);
 		return {
@@ -87,11 +90,12 @@ export default function Worker({
 			content: shift?.abbreviation || "-",
 			startTime: shift?.startTime || "",
 			endTime: shift?.endTime || "",
+			events,
 		};
 	});
 
 	return (
-		<div className="flex relative pt-4 m-2 z-[1]">
+		<div className="flex relative pt-4 m-3">
 			<label className="absolute -top-3 flex items-center bg-gray-50 px-1 text-sm font-medium text-gray-900 uppercase gap-2">
 				<IdentificationIcon
 					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"

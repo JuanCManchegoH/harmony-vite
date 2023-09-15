@@ -105,7 +105,7 @@ export default function Stall({
 	];
 
 	return (
-		<Card className="p-2 flex flex-col gap-1 bg-transparent">
+		<Card className="p-2 flex flex-col gap-1 bg-transparent relative">
 			<header className="flex justify-between">
 				<div className="flex gap-2 items-center">
 					<Title color="sky">{stall.name}</Title>
@@ -158,7 +158,7 @@ export default function Stall({
 					);
 				})}
 			</section>
-			<main className="flex justify-between mx-2">
+			<section className="flex justify-between mx-2">
 				{monthDays.map((day) => (
 					<div
 						key={`${stall.id}-day-${getDay(day.date)}`}
@@ -169,52 +169,36 @@ export default function Stall({
 					>
 						{stallEvents.some(
 							(event) => event.day === DateToSring(day.date),
-						) && <Ping />}
+						) && <Ping color="sky" />}
 						<p>{day.day.substring(0, 2)}</p>
 						<p>{getDay(day.date)}</p>
 					</div>
 				))}
-			</main>
-			{stall.workers.length <= 0 && (
-				<EmptyState>
-					<IdentificationIcon className="w-10 h-10 text-sky-500" />
-					<Text className="text-gray-600">
-						Aquí aparecerá el personal asignado
-					</Text>
-					<Text className="text-gray-400">
-						Puedes asignar personas desde el botón de acciones
-					</Text>
-				</EmptyState>
-			)}
-			{stall.workers.map((worker) => (
-				<Worker
-					key={worker.id}
-					worker={worker}
-					monthDays={monthDays}
-					stall={stall}
-					schedules={schedules}
-					setHoverSchedule={setHoverSchedule}
-				/>
-			))}
-			{/* Backlines & Hours */}
-			{stall.workers.length > 0 && (
-				<>
-					<div className="flex justify-between mx-2 z-0">
-						{monthDays.map((day) => (
-							<div
-								key={`stall${stall.id}line${getDay(day.date)})}`}
-								className="flex flex-col items-center w-full"
-							>
-								<div
-									className={classNames(
-										"absolute top-32 mt-2.5 bottom-0 z-0 border-l-2",
-										day.isHoliday ? "border-red-200" : "border-neutral-200",
-									)}
-								/>
-							</div>
-						))}
-					</div>
-					<div className="flex justify-between mx-2 z-0">
+			</section>
+			<main className="flex flex-col gap-1 z-10">
+				{stall.workers.length <= 0 && (
+					<EmptyState>
+						<IdentificationIcon className="w-10 h-10 text-sky-500" />
+						<Text className="text-gray-600">
+							Aquí aparecerá el personal asignado
+						</Text>
+						<Text className="text-gray-400">
+							Puedes asignar personas desde el botón de acciones
+						</Text>
+					</EmptyState>
+				)}
+				{stall.workers.map((worker) => (
+					<Worker
+						key={worker.id}
+						worker={worker}
+						monthDays={monthDays}
+						stall={stall}
+						schedules={schedules}
+						setHoverSchedule={setHoverSchedule}
+					/>
+				))}
+				{stall.workers.length > 0 && (
+					<div className="flex justify-between mx-2">
 						{monthDays.map((day) => {
 							const minutes = stallShifts
 								.filter(
@@ -247,7 +231,25 @@ export default function Stall({
 							);
 						})}
 					</div>
-				</>
+				)}
+			</main>
+			{/* Backlines & Hours */}
+			{stall.workers.length > 0 && (
+				<div className="flex justify-between mx-2">
+					{monthDays.map((day) => (
+						<div
+							key={`stall${stall.id}line${getDay(day.date)})}`}
+							className="flex flex-col items-center w-full"
+						>
+							<div
+								className={classNames(
+									"absolute top-32 mt-2.5 bottom-0 border-l-2 z-0",
+									day.isHoliday ? "border-red-200" : "border-neutral-200",
+								)}
+							/>
+						</div>
+					))}
+				</div>
 			)}
 			<CenteredModal
 				open={openUpdate}
