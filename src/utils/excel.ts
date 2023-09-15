@@ -1,6 +1,7 @@
 const headers = [
 	"#",
 	"Nombre",
+	"Identificacion",
 	"Cargo",
 	"Fechas",
 	"Tipo",

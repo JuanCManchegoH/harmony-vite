@@ -38,6 +38,7 @@ export default function WorkerList({
 }: { groupedShifts: ShiftWithId[][] }) {
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { customers } = useAppSelector((state) => state.customers);
+	const { workers } = useAppSelector((state) => state.workers);
 	function getUniqueValues(arr: ShiftWithId[], property: string) {
 		const uniqueValues = new Set();
 		arr.forEach((item) => {
@@ -49,36 +50,40 @@ export default function WorkerList({
 	const names = getUniqueValues(
 		groupedShifts.map((shifts) => shifts[0]),
 		"workerName",
-	);
-	const positions = groupedShifts.reduce((acc, shifts) => {
-		const stall = stalls.find((stall) => stall.id === shifts[0].stall);
-		const worker = stall?.workers.find(
-			(worker) => worker.id === shifts[0].worker,
-		);
-		if (worker && !acc.includes(worker.position)) {
-			acc.push(worker.position);
-		}
-		return acc;
-	}, [] as string[]);
+	).map((name) => name.toUpperCase());
+	const positions = groupedShifts
+		.reduce((acc, shifts) => {
+			const stall = stalls.find((stall) => stall.id === shifts[0].stall);
+			const worker = stall?.workers.find(
+				(worker) => worker.id === shifts[0].worker,
+			);
+			if (worker && !acc.includes(worker.position)) {
+				acc.push(worker.position);
+			}
+			return acc;
+		}, [] as string[])
+		.map((position) => position.toUpperCase());
 
 	const types = getUniqueValues(
 		groupedShifts.map((shifts) => shifts[0]),
 		"abbreviation",
-	);
+	).map((type) => type.toUpperCase());
 
-	const customersNames = groupedShifts.reduce((acc, shifts) => {
-		const stall = stalls.find((stall) => stall.id === shifts[0].stall);
-		const customer = customers.find(
-			(customer) => customer.id === shifts[0].stall,
-		);
-		if (stall && !acc.includes(stall.customerName)) {
-			acc.push(stall.customerName);
-		}
-		if (customer && !acc.includes(customer.name)) {
-			acc.push(customer.name);
-		}
-		return acc;
-	}, [] as string[]);
+	const customersNames = groupedShifts
+		.reduce((acc, shifts) => {
+			const stall = stalls.find((stall) => stall.id === shifts[0].stall);
+			const customer = customers.find(
+				(customer) => customer.id === shifts[0].stall,
+			);
+			if (stall && !acc.includes(stall.customerName)) {
+				acc.push(stall.customerName);
+			}
+			if (customer && !acc.includes(customer.name)) {
+				acc.push(customer.name);
+			}
+			return acc;
+		}, [] as string[])
+		.map((customer) => customer.toUpperCase());
 
 	const [filters, setFilters] = useState<Filter>({
 		names,
@@ -110,19 +115,26 @@ export default function WorkerList({
 	];
 
 	function shouldIncludeShift(shift: ShiftWithId) {
-		const workerNameFilter = filters.names.includes(shift.workerName);
+		const workerNameFilter = filters.names.includes(
+			shift.workerName.toUpperCase(),
+		);
 		const positionFilter =
-			stalls
-				.find((stall) => stall.id === shift.stall)
-				?.workers.find((worker) => worker.id === shift.worker)?.position ===
-			filters.positions[0];
+			filters.positions.includes(shift.position?.toUpperCase() || "") ||
+			filters.positions.includes(
+				stalls
+					.find((stall) => stall.id === shift.stall)
+					?.workers.find((worker) => worker.id === shift.worker)
+					?.position?.toUpperCase() || "",
+			);
 
-		const typeFilter = filters.types.includes(shift.abbreviation);
+		const typeFilter = filters.types.includes(shift.abbreviation.toUpperCase());
 		const customerName =
 			stalls.find((stall) => stall.id === shift.stall)?.customerName ||
 			customers.find((customer) => customer.id === shift.stall)?.name ||
 			"";
-		const customerFilter = filters.customers.includes(customerName);
+		const customerFilter = filters.customers.includes(
+			customerName.toUpperCase(),
+		);
 
 		return workerNameFilter && positionFilter && typeFilter && customerFilter;
 	}
@@ -130,6 +142,7 @@ export default function WorkerList({
 	const { generateExcel } = useExcel(
 		groupedShifts.filter((shifts) => shouldIncludeShift(shifts[0])),
 		customers,
+		workers,
 		stalls,
 	);
 
@@ -194,17 +207,23 @@ export default function WorkerList({
 							const customer = customers.find(
 								(customer) => customer.id === shifts[0].stall,
 							);
+							const worker = workers.find(
+								(worker) => worker.id === shifts[0].worker,
+							);
 							const position =
 								shifts[0].position ||
 								stall?.workers.find((worker) => worker.id === shifts[0].worker)
 									?.position;
 							return (
 								<>
-									<TableRow key={`shifts-${index}`} className="font-medium">
+									<TableRow
+										key={`shifts-${index}`}
+										className="font-medium uppercase"
+									>
 										<TableCell>{index + 1}</TableCell>
 										<TableCell title="Nombre">
 											<Text>{shifts[0].workerName}</Text>
-											{position || "-"}
+											{worker?.identification} | {position || "-"}
 										</TableCell>
 										<TableCell className="flex text-xs" title="Fechas">
 											{groupDates(shifts.map((shift) => shift.day)).join(" | ")}

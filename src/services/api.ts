@@ -52,6 +52,7 @@ const api = {
 		create: `${API}/workers`,
 		search: (search: string, limit: number, offset: number) =>
 			`${API}/workers/${search}/${limit}/${offset}`,
+		getByIds: `${API}/workers/array`,
 		update: (workerId: string) => `${API}/workers/${workerId}`,
 		delete: (workerId: string) => `${API}/workers/${workerId}`,
 	},

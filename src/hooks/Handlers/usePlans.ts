@@ -1,10 +1,12 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { Profile } from "../../services/auth/types";
 import { Convention } from "../../services/company/types";
 import { CustomerWithId } from "../../services/customers/types";
 import { CreateShift, ShiftWithId } from "../../services/shifts/types";
 import { StallWithId } from "../../services/stalls/types";
+import { setWorkers } from "../../services/workers/slice";
 import { WorkerWithId } from "../../services/workers/types";
 import { calendarColors } from "../../utils/colors";
 import { MonthDay, getDays } from "../../utils/dates";
@@ -19,6 +21,7 @@ export function usePlans(
 	stalls: StallWithId[],
 	shits: ShiftWithId[],
 ) {
+	const dispatch = useDispatch();
 	const { getCustomers } = useCustomers(customers);
 	const { getStallsByCustomer } = useStalls(stalls, shits);
 	const month = new Date().getMonth().toString();
@@ -36,6 +39,10 @@ export function usePlans(
 	useEffect(() => {
 		selected && getStallsByCustomer([selectedMonth], [selectedYear], selected);
 	}, [selected, selectedMonth, selectedYear]);
+
+	useEffect(() => {
+		dispatch(setWorkers([]));
+	}, []);
 
 	return {
 		actualCustomer,

@@ -4,19 +4,23 @@ import { Profile } from "../services/auth/types";
 import { CustomerWithId } from "../services/customers/types";
 import { ShiftWithId } from "../services/shifts/types";
 import { StallWithId } from "../services/stalls/types";
+import { WorkerWithId } from "../services/workers/types";
 import { groupDates } from "../utils/dates";
 import { workerSheets } from "../utils/excel";
 import { getDiference } from "../utils/hours";
 import { useCustomers } from "./useCustomers";
 import { useStalls } from "./useStalls";
+import { useWorkers } from "./useWorkers";
 
 export function useTracing(
 	profile: Profile,
 	customers: CustomerWithId[],
+	workers: WorkerWithId[],
 	stalls: StallWithId[],
 	shifts: ShiftWithId[],
 ) {
 	const { getCustomers } = useCustomers(customers);
+	const { getWorkersByIds } = useWorkers(workers);
 	const { getStallsByCustomers } = useStalls(stalls, shifts);
 	const month = new Date().getMonth().toString();
 	const year = new Date().getFullYear().toString();
@@ -30,6 +34,18 @@ export function useTracing(
 	useEffect(() => {
 		getStallsByCustomers([selectedMonth], [selectedYear]);
 	}, [selectedMonth, selectedYear]);
+
+	useEffect(() => {
+		const workersIds = shifts
+			.reduce((acc, shift) => {
+				if (!acc.includes(shift.worker)) {
+					acc.push(shift.worker);
+				}
+				return acc;
+			}, [] as string[])
+			.filter((id) => id !== "");
+		getWorkersByIds(workersIds);
+	}, [shifts]);
 
 	const groupedShifts = shifts
 		.reduce((groups, shift) => {
@@ -71,6 +87,7 @@ export function useTracing(
 export function useExcel(
 	groupedShifts: ShiftWithId[][],
 	customers: CustomerWithId[],
+	workers: WorkerWithId[],
 	stalls: StallWithId[],
 ) {
 	async function generateExcel() {
@@ -88,10 +105,10 @@ export function useExcel(
 			// Freeze first row
 			worksheet.views = [{ state: "frozen", ySplit: 1 }];
 			header.forEach((_, i) => {
-				if (i > 0 && i < 4) {
+				if (i > 0 && i < 5) {
 					worksheet.getColumn(i + 1).width = 40;
 				}
-				if (i > 5) {
+				if (i > 6) {
 					worksheet.getColumn(i + 1).width = 40;
 				}
 			});
@@ -101,6 +118,7 @@ export function useExcel(
 				const customer = customers.find(
 					(customer) => customer.id === shifts[0].stall,
 				);
+				const worker = workers.find((worker) => worker.id === shifts[0].worker);
 				const position =
 					shifts[0].position ||
 					stall?.workers.find((worker) => worker.id === shifts[0].worker)
@@ -108,6 +126,7 @@ export function useExcel(
 				const row = [
 					i + 1,
 					shifts[0].workerName,
+					worker?.identification || "-",
 					position || "-",
 					groupDates(shifts.map((shift) => shift.day)).join(" | "),
 					shifts[0].abbreviation,

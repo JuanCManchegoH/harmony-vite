@@ -19,9 +19,10 @@ const sections = [
 export default function Tracing() {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { customers } = useAppSelector((state) => state.customers);
+	const { workers } = useAppSelector((state) => state.workers);
 	const { stalls, loading } = useAppSelector((state) => state.stalls);
 	const { shifts } = useAppSelector((state) => state.shifts);
-	const tracingData = useTracing(profile, customers, stalls, shifts);
+	const tracingData = useTracing(profile, customers, workers, stalls, shifts);
 	const [section, setSection] = useState(sections[0].title);
 
 	return (

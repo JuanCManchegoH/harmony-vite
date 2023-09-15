@@ -51,6 +51,21 @@ export const useWorkers = (workers: WorkerWithId[]) => {
 		}
 	}
 
+	async function getWorkersByIds(ids: string[]) {
+		dispatch(setLoading(true));
+		try {
+			const access_token = Cookie.get("access_token");
+			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+			const { data } = await axios.post<WorkerWithId[]>(api.workers.getByIds, {
+				ids,
+			});
+			dispatch(setWorkers(data));
+			return data;
+		} catch {
+			toast.error("Error al buscar personal");
+		}
+	}
+
 	async function updateWorker(worker: HandleWorker, workerId: string) {
 		dispatch(setLoading(true));
 		try {
@@ -84,6 +99,7 @@ export const useWorkers = (workers: WorkerWithId[]) => {
 	return {
 		createWorker,
 		searchWorkers,
+		getWorkersByIds,
 		updateWorker,
 		deleteWorker,
 	};
