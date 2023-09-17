@@ -20,19 +20,19 @@ export const roles = [
 	{
 		name: "Crear eventos",
 		level: 3,
-		roles: ["read_events", "handle_events"],
+		roles: ["create_shifts"],
 		dependencies: ["read_workers", "read_customers", "read_stalls"],
 	},
 	{
 		name: "Gestionar eventos",
 		level: 4,
-		roles: ["read_events", "handle_events"],
+		roles: ["handle_shifts"],
 		dependencies: ["read_workers", "read_customers", "read_stalls"],
 	},
 	{
 		name: "Programador",
 		level: 5,
-		roles: ["read_stalls", "read_stalls", "handle_shifts", "handle_events"],
+		roles: ["read_stalls", "handle_stalls", "handle_shifts"],
 		dependencies: ["read_customers", "read_customers"],
 	},
 	{

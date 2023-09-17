@@ -101,7 +101,7 @@ export default function Worker({
 					className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
 					onClick={() => setOpenInfo(true)}
 				/>
-				{validateRoles(profile.roles, [], ["handle_stalls", "admin"]) && (
+				{validateRoles(profile.roles, [], ["handle_stalls"]) && (
 					<>
 						<CalendarDaysIcon
 							className="w-5 h-5 text-sky-500 hover:text-sky-600 cursor-pointer"
@@ -125,7 +125,7 @@ export default function Worker({
 				</Badge>
 			</label>
 			<div className="bg-gray-50 absolute -top-2 right-0 flex">
-				{validateRoles(profile.roles, [], ["handle_stalls", "admin"]) && (
+				{validateRoles(profile.roles, [], ["handle_stalls"]) && (
 					<XMarkIcon
 						className="w-5 h-5 hover:text-rose-400 cursor-pointer"
 						onClick={() =>

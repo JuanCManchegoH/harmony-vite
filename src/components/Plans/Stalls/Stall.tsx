@@ -121,7 +121,7 @@ export default function Stall({
 					)}
 				</div>
 				<div className="flex items-center gap-2">
-					{validateRoles(profile.roles, [], ["handle_stalls", "admin"]) && (
+					{validateRoles(profile.roles, [], ["handle_stalls"]) && (
 						<Dropdown btnText="Acciones" position="right">
 							{options.map((option) => (
 								<DropdownItem

@@ -97,7 +97,7 @@ export default function Plans() {
 			show: validateRoles(
 				profile.roles,
 				[],
-				["handle_stalls", "handle_events", "admin"],
+				["create_shifts", "handle_shifts", "admin"],
 			),
 		},
 		// {
@@ -121,7 +121,7 @@ export default function Plans() {
 					{validateRoles(
 						profile.roles,
 						[],
-						["handle_stalls", "handle_events", "admin"],
+						["handle_stalls", "handle_shifts", "create_shifts", "admin"],
 					) &&
 						plansData.actualCustomer && (
 							<div className="flex absolute left-1 gap-2">

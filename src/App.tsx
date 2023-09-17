@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
+import Calendar from "./pages/Calendar";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Plans from "./pages/Plans";
-import Tracing from "./pages/Tracing";
+// import Tracing from "./pages/Tracing";
 
 function App() {
 	return (
@@ -15,8 +15,8 @@ function App() {
 					<Route path="/" element={<Home />} />
 					<Route path="/login" element={<Login />} />
 					<Route path="/dashboard" element={<Dashboard />} />
-					<Route path="/programaciones" element={<Plans />} />
-					<Route path="/seguimiento" element={<Tracing />} />
+					<Route path="/calendario" element={<Calendar />} />
+					{/* <Route path="/estadisticas" element={<Tracing />} /> */}
 				</Routes>
 			</div>
 		</>
