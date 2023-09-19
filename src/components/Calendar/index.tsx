@@ -56,7 +56,7 @@ export default function Calendar() {
 	const createEvent = useCreateEvent(
 		setSelectedEventTab,
 		calendarData.actualCustomer,
-		stalls,
+		branchStalls,
 		calendarData.selectedMonth,
 		calendarData.selectedYear,
 		shifts,
@@ -250,8 +250,15 @@ export default function Calendar() {
 									color="sky"
 									icon={UserGroupIcon}
 									className="font-bold"
+									tooltip={calendarData.actualCustomer?.name}
 								>
-									{calendarData.actualCustomer?.name}
+									{calendarData.actualCustomer &&
+									calendarData.actualCustomer.name.length > 30
+										? `${calendarData.actualCustomer?.name?.substring(
+												0,
+												30,
+										  )}...`
+										: calendarData.actualCustomer?.name}
 								</Badge>
 							</div>
 							<div className="flex items-center gap-2">

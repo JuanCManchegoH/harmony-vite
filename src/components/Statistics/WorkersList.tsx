@@ -164,10 +164,7 @@ export default function WorkersList({
 									key={`shifts-${index}-${shifts[0].id}`}
 									className="font-medium uppercase"
 								>
-									<TableCell>
-										{groupsToShow.findIndex((s) => s[0].id === shifts[0].id) +
-											1}
-									</TableCell>
+									<TableCell>{index + 1 + (page - 1) * 100}</TableCell>
 									<TableCell title="Nombre">
 										<Text>{shifts[0].workerName}</Text>
 										{position}

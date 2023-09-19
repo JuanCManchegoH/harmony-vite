@@ -115,7 +115,7 @@ export default function useStatistics(
 					dispatch(setGroupedShiftsLength(getGroupedShifts.length));
 					dispatch(
 						setGroupsToShow(
-							getGroupedShifts.slice((pages - 1) * 10, pages * 10),
+							getGroupedShifts.slice((pages - 1) * 100, pages * 100),
 						),
 					);
 					const getAbbsList = getGroupedShifts.reduce((acc, group) => {
@@ -200,8 +200,9 @@ export default function useStatistics(
 			return abbreviationMatch && positionMatch && customerMatch;
 		});
 
-		const groupsToShow = filteredGroups.slice((pages - 1) * 10, pages * 10);
+		const groupsToShow = filteredGroups.slice((pages - 1) * 100, pages * 100);
 		dispatch(setGroupsToShow(groupsToShow));
+		dispatch(setGroupedShiftsLength(filteredGroups.length));
 	}, [pages, selectedAbbreviations, selectedPositions, selectedCustomers]);
 
 	return {

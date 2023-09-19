@@ -21,17 +21,34 @@ export default function Customer({
 	const customerStalls = stalls.filter(
 		(stall) => stall.customer === customer.id,
 	);
-	const tracingShifts = shifts.filter(
-		(shift) =>
-			!eventTypes.includes(shift.type) &&
-			customerStalls.some((stall) => stall.id === shift.stall),
+
+	const { events, tracingShifts, customerEvents } = shifts.reduce(
+		(accumulator, shift) => {
+			const isEventTypeIncluded = eventTypes.includes(shift.type);
+			const isStallInCustomerStalls = customerStalls.some(
+				(stall) => stall.id === shift.stall,
+			);
+
+			if (isEventTypeIncluded && isStallInCustomerStalls) {
+				accumulator.events.push(shift);
+			}
+
+			if (!isEventTypeIncluded && isStallInCustomerStalls) {
+				accumulator.tracingShifts.push(shift);
+			}
+
+			if (shift.stall === customer.id) {
+				accumulator.customerEvents.push(shift);
+			}
+
+			return accumulator;
+		},
+		{
+			events: [] as ShiftWithId[],
+			tracingShifts: [] as ShiftWithId[],
+			customerEvents: [] as ShiftWithId[],
+		},
 	);
-	const events = shifts.filter(
-		(shift) =>
-			eventTypes.includes(shift.type) &&
-			customerStalls.some((stall) => stall.id === shift.stall),
-	);
-	const customerEvents = shifts.filter((shift) => shift.stall === customer.id);
 
 	const percentage = (data: ShiftWithId[]) => {
 		const total = tracingShifts.length + events.length + customerEvents.length;
@@ -66,14 +83,20 @@ export default function Customer({
 
 	return (
 		<Card className="flex flex-col gap-2 p-2 bg-gray-50">
-			<header className="flex justify-between items-center">
-				<h2 className="flex font-bold items-center">
-					<CalendarDaysIcon className="w-5 h-5 mr-2" />
-					{customer.name}
+			<header className="grid grid-cols-3">
+				<h2 className="flex font-bold items-center col-span-2">
+					<div>
+						<CalendarDaysIcon className="w-5 h-5 mr-2" />
+					</div>
+					<p title={customer.name} className="truncate text-sm">
+						{customer.name}
+					</p>
 				</h2>
-				<Badge className="font-bold" color="sky">
-					{actualMonthAndYear ? "En curso" : "Finalizado"}
-				</Badge>
+				<div className="flex justify-end">
+					<Badge className="font-bold" color="sky">
+						{actualMonthAndYear ? "En curso" : "Finalizado"}
+					</Badge>
+				</div>
 			</header>
 			<CategoryBar
 				values={[40, 30, 20, 10]}
