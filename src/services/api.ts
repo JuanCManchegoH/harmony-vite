@@ -59,7 +59,7 @@ const api = {
 	stalls: {
 		create: `${API}/stalls`,
 		getByCustomer: `${API}/stalls/getByCustomer`,
-		getByCustomers: `${API}/stalls/getByCustomers`,
+		getByMonthsAndYears: `${API}/stalls/getByMonthsAndYears`,
 		update: (stallId: string) => `${API}/stalls/${stallId}`,
 		delete: (stallId: string) => `${API}/stalls/${stallId}`,
 		// stall workers

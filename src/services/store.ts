@@ -5,6 +5,7 @@ import customersReducer from "./customers/slice";
 import eventsReducer from "./events/slice";
 import shiftsReducer from "./shifts/slice";
 import stallsReducer from "./stalls/slice";
+import statisticsReducer from "./statistics/slice";
 import usersReducer from "./users/slice";
 import workersReducer from "./workers/slice";
 
@@ -17,6 +18,7 @@ export const store = configureStore({
 		stalls: stallsReducer,
 		shifts: shiftsReducer,
 		events: eventsReducer,
+		statistics: statisticsReducer,
 		logs: logsReducer,
 	},
 });

@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ShiftWithId } from "../shifts/types";
 
-export interface ShiftsState {
+export interface EventsState {
 	loading: { state: boolean; message: string };
 	events: ShiftWithId[];
 }
 
-const initialState: ShiftsState = {
+const initialState: EventsState = {
 	loading: { state: false, message: "" },
 	events: [],
 };

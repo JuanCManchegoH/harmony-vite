@@ -1,17 +1,23 @@
 import { CalendarDaysIcon } from "@heroicons/react/24/solid";
-import { Badge, Card, Flex, ProgressBar, Text } from "@tremor/react";
+import {
+	Badge,
+	Card,
+	CategoryBar,
+	Flex,
+	ProgressBar,
+	Text,
+} from "@tremor/react";
 import { useAppSelector } from "../../hooks/store";
-import { TracingData } from "../../hooks/useTracing";
 import { CustomerWithId } from "../../services/customers/types";
-import { ShiftWithId } from "../../services/shifts/types";
-import { eventTypes } from "../Plans";
+import { ShiftWithId, eventTypes } from "../../services/shifts/types";
+import { getDiference } from "../../utils/hours";
 
 export default function Customer({
 	customer,
-	tracingData,
-}: { customer: CustomerWithId; tracingData: TracingData }) {
-	const { stalls } = useAppSelector((state) => state.stalls);
-	const { shifts } = useAppSelector((state) => state.shifts);
+	selectedMonth,
+	selectedYear,
+}: { customer: CustomerWithId; selectedMonth: string; selectedYear: string }) {
+	const { shifts, stalls } = useAppSelector((state) => state.statistics);
 	const customerStalls = stalls.filter(
 		(stall) => stall.customer === customer.id,
 	);
@@ -33,8 +39,23 @@ export default function Customer({
 		return (data.length / total) * 100;
 	};
 
+	const customerShifts = [...tracingShifts, ...events, ...customerEvents];
+	const totalHours = customerShifts
+		.filter((shift) => shift.color === "green" || shift.color === "yellow")
+		.reduce(
+			(acc, shift) => acc + getDiference(shift.startTime, shift.endTime).hours,
+			0,
+		);
+	const absenceHours = customerShifts
+		.filter((shift) => shift.color === "red" || shift.color === "sky")
+		.reduce(
+			(acc, shift) => acc + getDiference(shift.startTime, shift.endTime).hours,
+			0,
+		);
+	const absenceRate = totalHours === 0 ? 0 : (absenceHours / totalHours) * 100;
+
 	const actualMonthAndYear =
-		`${tracingData.selectedMonth}-${tracingData.selectedYear}` ===
+		`${selectedMonth}-${selectedYear}` ===
 		`${new Date().getMonth()}-${new Date().getFullYear()}`;
 	const branches = customerStalls.reduce((acc, stall) => {
 		if (!acc.includes(stall.branch)) {
@@ -45,7 +66,7 @@ export default function Customer({
 
 	return (
 		<Card className="flex flex-col gap-2 p-2 bg-gray-50">
-			<header className="flex justify-between items-center border-b pb-2">
+			<header className="flex justify-between items-center">
 				<h2 className="flex font-bold items-center">
 					<CalendarDaysIcon className="w-5 h-5 mr-2" />
 					{customer.name}
@@ -54,6 +75,12 @@ export default function Customer({
 					{actualMonthAndYear ? "En curso" : "Finalizado"}
 				</Badge>
 			</header>
+			<CategoryBar
+				values={[40, 30, 20, 10]}
+				colors={["rose", "orange", "yellow", "emerald"]}
+				markerValue={100 - absenceRate}
+				tooltip={`${(100 - absenceRate).toFixed(0)}% de asistencia`}
+			/>
 			<main className="grid grid-cols-2 gap-2">
 				<div className="border p-2 rounded-md">
 					<Flex>

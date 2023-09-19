@@ -4,7 +4,7 @@ import Calendar from "./pages/Calendar";
 import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-// import Tracing from "./pages/Tracing";
+import Statistics from "./pages/Statistics";
 
 function App() {
 	return (
@@ -16,7 +16,7 @@ function App() {
 					<Route path="/login" element={<Login />} />
 					<Route path="/dashboard" element={<Dashboard />} />
 					<Route path="/calendario" element={<Calendar />} />
-					{/* <Route path="/estadisticas" element={<Tracing />} /> */}
+					<Route path="/estadisticas" element={<Statistics />} />
 				</Routes>
 			</div>
 		</>

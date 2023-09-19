@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import Background from "../common/Background";
 import Navbar from "../components/Navbar";
-import Plans from "../components/Plans";
+import Statistics from "../components/Statistics";
 import { useAuth } from "../hooks/useAuth";
 
-export default function Harmony() {
+export default function StatisticsPage() {
 	const { getProfile } = useAuth();
 
 	useEffect(() => {
@@ -16,7 +16,7 @@ export default function Harmony() {
 			<section className="h-full font-rhd">
 				<Navbar />
 				<main className="h-full pt-12">
-					<Plans />
+					<Statistics />
 				</main>
 				<Background />
 			</section>

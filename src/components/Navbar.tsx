@@ -2,8 +2,8 @@ import { Menu, Transition } from "@headlessui/react";
 import { BellIcon } from "@heroicons/react/24/outline";
 import {
 	CalendarIcon,
-	ChartPieIcon,
 	HomeIcon,
+	PresentationChartLineIcon,
 } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
 import { Button, Icon } from "@tremor/react";
@@ -19,7 +19,7 @@ export const navigation = [
 	{ name: "Calendario", icon: CalendarIcon, href: "/calendario" },
 	{
 		name: "Estadísticas",
-		icon: ChartPieIcon,
+		icon: PresentationChartLineIcon,
 		href: "/estadisticas",
 	},
 ];
