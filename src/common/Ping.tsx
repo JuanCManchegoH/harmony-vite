@@ -2,7 +2,7 @@ import { Color } from "@tremor/react";
 
 export default function Ping({ color }: { color?: Color | undefined }) {
 	return (
-		<span className="absolute right-2">
+		<span className="absolute right-0 -top-1">
 			<span className="relative flex h-2 w-2">
 				<span
 					className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-${

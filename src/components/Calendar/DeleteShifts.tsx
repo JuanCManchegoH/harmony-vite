@@ -1,6 +1,6 @@
 import { Badge, MultiSelect, MultiSelectItem } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import { ShiftWithId } from "../../../services/shifts/types";
+import { ShiftWithId } from "../../services/shifts/types";
 
 export default function DeleteShifts({
 	shifts,

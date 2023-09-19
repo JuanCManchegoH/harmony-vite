@@ -47,6 +47,12 @@ export interface HandleStallWorker {
 	jump: number;
 }
 
+export interface UpdateStallWorker {
+	sequence: Step[];
+	index: number;
+	jump: number;
+}
+
 export interface StallsAndShifts {
 	stalls: StallWithId[];
 	shifts: ShiftWithId[];

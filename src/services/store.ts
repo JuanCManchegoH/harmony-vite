@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import logsReducer from "./appLogs/slice";
 import authReducer from "./auth/slice";
 import customersReducer from "./customers/slice";
+import eventsReducer from "./events/slice";
 import shiftsReducer from "./shifts/slice";
 import stallsReducer from "./stalls/slice";
 import usersReducer from "./users/slice";
@@ -15,6 +16,7 @@ export const store = configureStore({
 		workers: workersReducer,
 		stalls: stallsReducer,
 		shifts: shiftsReducer,
+		events: eventsReducer,
 		logs: logsReducer,
 	},
 });

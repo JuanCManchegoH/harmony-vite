@@ -18,6 +18,8 @@ export const DEFAULT_SHIFT: ShiftWithId = {
 	workerName: "",
 	stall: "",
 	stallName: "",
+	customer: "",
+	customerName: "",
 	createdBy: "",
 	updatedBy: "",
 	createdAt: "",
@@ -25,12 +27,12 @@ export const DEFAULT_SHIFT: ShiftWithId = {
 };
 
 export interface ShiftsState {
-	loading: { state: boolean; message: string };
+	solved: boolean;
 	shifts: ShiftWithId[];
 }
 
 const initialState: ShiftsState = {
-	loading: { state: false, message: "" },
+	solved: false,
 	shifts: [],
 };
 
@@ -38,11 +40,8 @@ export const shiftsSlice = createSlice({
 	name: "shifts",
 	initialState,
 	reducers: {
-		setLoading: (
-			state,
-			action: { payload: { state: boolean; message: string } },
-		) => {
-			state.loading = action.payload;
+		setSolved: (state, action) => {
+			state.solved = action.payload;
 		},
 		setShifts: (state, action) => {
 			state.shifts = action.payload;
@@ -50,5 +49,5 @@ export const shiftsSlice = createSlice({
 	},
 });
 
-export const { setLoading, setShifts } = shiftsSlice.actions;
+export const { setSolved, setShifts } = shiftsSlice.actions;
 export default shiftsSlice.reducer;

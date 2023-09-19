@@ -6,7 +6,7 @@ import api from "../services/api";
 import { CustomerWithId } from "../services/customers/types";
 import { setShifts } from "../services/shifts/slice";
 import { ShiftWithId } from "../services/shifts/types";
-import { setLoading, setStalls } from "../services/stalls/slice";
+import { setStalls } from "../services/stalls/slice";
 import {
 	HandleStallWorker,
 	StallWithId,
@@ -24,20 +24,25 @@ export interface GetStalls {
 export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 	const dispatch = useAppDispatch();
 
-	async function createStall(stall: StallData) {
-		dispatch(setLoading({ state: true, message: "Creando puesto" }));
-		toast.message("Creando puesto");
+	async function createStall(stall: StallData, onSuccess?: Function) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<StallWithId>(api.stalls.create, stall);
-			dispatch(setStalls([...stalls, data]));
-			return data;
+			const createStallPromise = axios.post<StallWithId>(
+				api.stalls.create,
+				stall,
+			);
+			await toast.promise(createStallPromise, {
+				loading: "Creando puesto",
+				success: ({ data }) => {
+					dispatch(setStalls([...stalls, data]));
+					onSuccess?.();
+					return "Puesto creado";
+				},
+				error: "Error creando puesto",
+			});
 		} catch (error) {
-			toast.error("Error Creando puesto");
-		} finally {
-			toast.success("Puesto creado");
-			dispatch(setLoading({ state: false, message: "" }));
+			console.log(error);
 		}
 	}
 
@@ -45,60 +50,81 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		months: string[],
 		years: string[],
 		customerId: string,
+		types: string[],
+		onSuccess?: Function,
 	) {
-		dispatch(setLoading({ state: true, message: "Obteniendo puestos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<StallsAndShifts>(
+			const getStallsByCustomerPromise = axios.post<StallsAndShifts>(
 				api.stalls.getByCustomer,
-				{ months, years, customerId },
+				{ months, years, customerId, types },
 			);
-			dispatch(setStalls(data.stalls));
-			dispatch(setShifts(data.shifts));
-			return data;
-		} catch {
-			toast.error("Error obteniendo puestos");
-		} finally {
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(getStallsByCustomerPromise, {
+				loading: "Obteniendo puestos",
+				success: ({ data }) => {
+					dispatch(setStalls(data.stalls));
+					dispatch(setShifts(data.shifts));
+					onSuccess?.();
+					return "Puestos obtenidos";
+				},
+				error: "Error obteniendo puestos",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
-	async function getStallsByCustomers(months: string[], years: string[]) {
-		dispatch(setLoading({ state: true, message: "Obteniendo puestos" }));
+	async function getStallsByCustomers(
+		months: string[],
+		years: string[],
+		onSuccess?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<StallsAndShifts>(
+			const getStallsByCustomersPromise = axios.post<StallsAndShifts>(
 				api.stalls.getByCustomers,
 				{ months, years },
 			);
-			dispatch(setStalls(data.stalls));
-			dispatch(setShifts(data.shifts));
-			return data;
-		} catch {
-			toast.error("Error obteniendo puestos");
-		} finally {
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(getStallsByCustomersPromise, {
+				loading: "Obteniendo puestos",
+				success: ({ data }) => {
+					dispatch(setStalls(data.stalls));
+					dispatch(setShifts(data.shifts));
+					onSuccess?.();
+					return "Puestos obtenidos";
+				},
+				error: "Error obteniendo puestos",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
-	async function updateStall(stall: StallData, stallId: string) {
-		dispatch(setLoading({ state: true, message: "Actualizando puesto" }));
+	async function updateStall(
+		stall: StallData,
+		stallId: string,
+		onSuccess?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<StallWithId>(
+			const updateStallPromise = axios.put<StallWithId>(
 				api.stalls.update(stallId),
 				stall,
 			);
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
-			return data;
-		} catch {
-			toast.error("Error actualizando puesto");
-		} finally {
-			toast.success("Puesto actualizado");
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(updateStallPromise, {
+				loading: "Actualizando puesto",
+				success: ({ data }) => {
+					dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+					onSuccess?.();
+					return "Puesto actualizado";
+				},
+				error: "Error actualizando puesto",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -106,42 +132,59 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		stallId: string,
 		stallShifts: string[],
 		stalls: StallWithId[],
+		onSuccess?: Function,
 	) {
-		dispatch(setLoading({ state: true, message: "Eliminando puesto" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			await axios.post(api.stalls.delete(stallId), { shifts: stallShifts });
-			dispatch(setStalls(stalls.filter((s) => s.id !== stallId)));
-			dispatch(
-				setShifts(
-					shifts.filter((shift) => !stallShifts.includes(shift.id as string)),
-				),
+			const deleteStallPromise = axios.post<StallWithId>(
+				api.stalls.delete(stallId),
+				{ shifts: stallShifts },
 			);
-		} catch {
-			toast.error("Error eliminando puesto");
-		} finally {
-			toast.success("Puesto eliminado");
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(deleteStallPromise, {
+				loading: "Eliminando puesto",
+				success: () => {
+					dispatch(setStalls(stalls.filter((s) => s.id !== stallId)));
+					dispatch(
+						setShifts(
+							shifts.filter(
+								(shift) => !stallShifts.includes(shift.id as string),
+							),
+						),
+					);
+					onSuccess?.();
+					return "Puesto eliminado";
+				},
+				error: "Error eliminando puesto",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
-	async function addWorker(stallId: string, worker: HandleStallWorker) {
-		dispatch(setLoading({ state: true, message: "Agregando persona" }));
+	async function addWorker(
+		stallId: string,
+		worker: HandleStallWorker,
+		onSuccess?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<StallWithId>(
+			const addWorkerPromise = axios.post<StallWithId>(
 				api.stalls.addWorker(stallId),
 				worker,
 			);
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
-			return data;
-		} catch {
-			toast.error("Error agregando persona");
-		} finally {
-			toast.success("Persona agregada");
-			dispatch(setLoading({ state: false, message: "" }));
+			toast.promise(addWorkerPromise, {
+				loading: "Agregando persona",
+				success: ({ data }) => {
+					dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+					onSuccess?.();
+					return "Persona agregada";
+				},
+				error: "Error agregando persona",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -149,27 +192,33 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		stallId: string,
 		workerId: string,
 		workerShifts: string[],
+		onSuccess?: Function,
 	) {
-		dispatch(setLoading({ state: true, message: "Eliminando persona" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<StallWithId>(
+			const removeWorkerPromise = axios.post<StallWithId>(
 				api.stalls.removeWorker(stallId, workerId),
 				{ shifts: workerShifts },
 			);
-			dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
-			dispatch(
-				setShifts(
-					shifts.filter((shift) => !workerShifts.includes(shift.id as string)),
-				),
-			);
-			return data;
-		} catch {
-			toast.error("Error eliminando persona");
-		} finally {
-			toast.success("Persona eliminada");
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(removeWorkerPromise, {
+				loading: "Eliminando persona",
+				success: ({ data }) => {
+					dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+					dispatch(
+						setShifts(
+							shifts.filter(
+								(shift) => !workerShifts.includes(shift.id as string),
+							),
+						),
+					);
+					onSuccess?.();
+					return "Persona eliminada";
+				},
+				error: "Error eliminando persona",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -210,7 +259,7 @@ export const useHandleStall = (
 	};
 
 	const handleCreateStall = (
-		createStall: (data: StallData) => Promise<StallWithId | undefined>,
+		createStall: (data: StallData, onSuccess?: Function) => Promise<void>,
 	) => {
 		if (!stallData.name || !stallData.description || !stallData.ays) {
 			return toast.message("Datos incompletos", {
@@ -226,18 +275,15 @@ export const useHandleStall = (
 			workers: [],
 			stage: 0,
 		};
-		createStall(data).then((res) => {
-			if (res) {
-				resetCreateStallData();
-			}
-		});
+		createStall(data, () => resetCreateStallData());
 	};
 
 	const handleUpdateStall = (
 		updateStall: (
 			data: StallData,
 			stallId: string,
-		) => Promise<StallWithId | undefined>,
+			onSuccess?: Function,
+		) => Promise<void>,
 		id: string,
 	) => {
 		if (!stallData.name || !stallData.description || !stallData.ays) {
@@ -265,8 +311,9 @@ export const useHandleStallWorker = () => {
 		addWorker: (
 			stallId: string,
 			worker: HandleStallWorker,
-		) => Promise<StallWithId | undefined>,
-		stallId: string,
+			onSuccess?: Function,
+		) => Promise<void>,
+		stall: StallWithId,
 	) => {
 		if (!position)
 			return toast.message("Datos incompletos", {
@@ -275,6 +322,10 @@ export const useHandleStallWorker = () => {
 		if (!selectedWorker)
 			return toast.message("Datos incompletos", {
 				description: "Seleccione una persona",
+			});
+		if (stall.workers.some((w) => w.id === selectedWorker.id))
+			return toast.message("Persona ya asignada", {
+				description: "La persona ya está asignada a este puesto",
 			});
 		const data = {
 			id: selectedWorker.id,
@@ -285,11 +336,7 @@ export const useHandleStallWorker = () => {
 			index: 0,
 			jump: 0,
 		};
-		addWorker(stallId, data).then((res) => {
-			if (res) {
-				setSelectedWorker(undefined);
-			}
-		});
+		addWorker(stall.id, data, () => setSelectedWorker(undefined));
 	};
 
 	return {

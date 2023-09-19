@@ -21,12 +21,12 @@ export const DEFAULT_STALL: StallWithId = {
 };
 
 export interface StallsState {
-	loading: { state: boolean; message: string };
+	solved: boolean;
 	stalls: StallWithId[];
 }
 
 const initialState: StallsState = {
-	loading: { state: false, message: "" },
+	solved: false,
 	stalls: [],
 };
 
@@ -34,11 +34,8 @@ export const stallsSlice = createSlice({
 	name: "stalls",
 	initialState,
 	reducers: {
-		setLoading: (
-			state,
-			action: { payload: { state: boolean; message: string } },
-		) => {
-			state.loading = action.payload;
+		setSolved: (state, action) => {
+			state.solved = action.payload;
 		},
 		setStalls: (state, action) => {
 			state.stalls = action.payload;
@@ -46,5 +43,5 @@ export const stallsSlice = createSlice({
 	},
 });
 
-export const { setLoading, setStalls } = stallsSlice.actions;
+export const { setSolved, setStalls } = stallsSlice.actions;
 export default stallsSlice.reducer;

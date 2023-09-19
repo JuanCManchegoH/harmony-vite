@@ -132,7 +132,7 @@ const InfoItem = ({
 				<Button
 					color={color}
 					variant="secondary"
-					className="w-full flex justify-start"
+					className="w-full flex justify-start font-bold"
 				>
 					{children}
 				</Button>

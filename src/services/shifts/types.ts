@@ -16,6 +16,8 @@ export interface Shift {
 	workerName: string;
 	stall: string;
 	stallName: string;
+	customer: string;
+	customerName: string;
 	createdBy: string;
 	updatedBy: string;
 	createdAt: string;
@@ -42,6 +44,10 @@ export interface CreateShift {
 	workerName: string;
 	stall: string;
 	stallName: string;
+	customer: string;
+	customerName: string;
+	month: string;
+	year: string;
 }
 
 export interface AppliedSequence {
@@ -61,3 +67,12 @@ export interface UpdateShift {
 	active: boolean;
 	keep: boolean;
 }
+
+export interface GetShifts {
+	months: string[];
+	years: string[];
+	types: string[];
+}
+
+export const eventTypes = ["event", "customer"];
+export const shiftTypes = ["shift", "rest"];

@@ -4,25 +4,23 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Convention, Sequence } from "../services/company/types";
-import { setLoading, setShifts } from "../services/shifts/slice";
+import { setEvents } from "../services/events/slice";
+import { setShifts } from "../services/shifts/slice";
 import {
-	AppliedSequence,
 	CreateShift,
 	ShiftWithId,
 	UpdateShift,
 } from "../services/shifts/types";
 import { setStalls } from "../services/stalls/slice";
-import { StallWithId, StallWorker } from "../services/stalls/types";
+import {
+	StallWithId,
+	StallWorker,
+	UpdateStallWorker,
+} from "../services/stalls/types";
 import { ColorGroup, calendarColors } from "../utils/colors";
 import { DateToSring, MonthDay } from "../utils/dates";
 import { getHour } from "../utils/hours";
 import { useAppDispatch } from "./store";
-
-interface Data {
-	created: ShiftWithId[];
-	updated: ShiftWithId[];
-	stall?: StallWithId;
-}
 
 export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 	const dispatch = useAppDispatch();
@@ -30,90 +28,144 @@ export const useShifts = (shifts: ShiftWithId[], stalls: StallWithId[]) => {
 	async function createAndUpdate(
 		create: CreateShift[],
 		update: UpdateShift[],
-		sequence?: AppliedSequence,
+		updateWorker?: UpdateStallWorker,
+		stallId?: string,
+		workerId?: string,
+		onSuccess?: Function,
 	) {
-		dispatch(setLoading({ state: true, message: "Creando turnos" }));
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const dto = sequence
-				? {
-						create,
-						update,
-						appliedSequence: sequence,
-				  }
-				: {
-						create,
-						update,
-				  };
-			const { data } = await axios.put<Data>(api.shifts.createAndUpdate, {
-				...dto,
-			});
-			toast.success("Turnos creados");
-			const updatedShifts = shifts.map((shift) => {
-				const updatedShift = data.updated.find(
-					(updatedShift) => updatedShift.id === shift.id,
-				);
-				if (updatedShift) return updatedShift;
-				return shift;
-			});
-			dispatch(setShifts([...updatedShifts, ...data.created]));
-			if (data.stall) {
-				const updatedStalls = stalls.map((stall) => {
-					if (stall.id === data.stall?.id) {
-						return data.stall;
-					}
-					return stall;
-				});
-				dispatch(setStalls(updatedStalls));
-			}
-			return data;
-		} catch {
-			toast.error("Error Creando turnos");
-		} finally {
-			dispatch(setLoading({ state: false, message: "" }));
+			const createShiftsPromise =
+				create.length > 0
+					? axios.post<ShiftWithId[]>(api.shifts.createMany, { shifts: create })
+					: Promise.resolve({ data: [] });
+			const updateShiftsPromise =
+				update.length > 0
+					? axios.put<ShiftWithId[]>(api.shifts.updateMany, { shifts: update })
+					: Promise.resolve({ data: [] });
+
+			const updateWorkerPromise =
+				updateWorker && stallId && workerId
+					? axios.put<StallWorker>(
+							api.stalls.updateWorker(stallId, workerId),
+							updateWorker,
+					  )
+					: Promise.resolve({ data: {} as StallWorker });
+			await toast.promise(
+				Promise.all([
+					createShiftsPromise,
+					updateShiftsPromise,
+					updateWorkerPromise,
+				]),
+				{
+					loading: "Creando y/o actualizando turnos",
+					success: (data) => {
+						const [createShifts, updateShifts, updatedWorkerPromise] = data;
+						const updatedShifts = shifts.map((shift) => {
+							const updatedShift = updateShifts.data.find(
+								(updatedShift) => updatedShift.id === shift.id,
+							);
+							return updatedShift || shift;
+						});
+						const updatedStall = updatedWorkerPromise.data;
+						dispatch(setShifts([...updatedShifts, ...createShifts.data]));
+						dispatch(
+							setStalls(
+								stalls.map((stall) =>
+									stall.id === stallId ? updatedStall : stall,
+								),
+							),
+						);
+						onSuccess?.();
+						return "Turnos creados y/o actualizados";
+					},
+					error: "Error creando y/o actualizando turnos",
+				},
+			);
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
-	async function deleteMany(shiftsIds: string[], stallId: string) {
-		dispatch(setLoading({ state: true, message: "Eliminando turnos" }));
+	async function getEvents(
+		months: string[],
+		years: string[],
+		types: string[],
+		onSucces?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			await axios.post(api.shifts.deleteMany(stallId), {
-				shifts: shiftsIds,
-			});
-			toast.success("Turnos eliminados");
-			dispatch(
-				setShifts(
-					shifts.filter((shift) => !shiftsIds.includes(shift.id as string)),
-				),
+			const getEventsPromise = axios.post<ShiftWithId[]>(
+				api.shifts.getByMonthsAndYears,
+				{ months, years, types },
 			);
-		} catch {
-			toast.error("Error eliminando turnos");
-		} finally {
-			dispatch(setLoading({ state: false, message: "" }));
+			await toast.promise(getEventsPromise, {
+				loading: "Cargando eventos",
+				success: ({ data }) => {
+					dispatch(setEvents(data));
+					onSucces?.();
+					return "Eventos cargados";
+				},
+				error: "Error cargando eventos",
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	async function deleteMany(
+		shiftsIds: string[],
+		stallId: string,
+		onSuccess?: Function,
+	) {
+		try {
+			const access_token = Cookie.get("access_token");
+			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+			const deleteShiftsPromise = axios.post<ShiftWithId[]>(
+				api.shifts.deleteMany(stallId),
+				{ shifts: shiftsIds },
+			);
+			await toast.promise(deleteShiftsPromise, {
+				loading: "Eliminando turnos",
+				success: () => {
+					dispatch(
+						setShifts(
+							shifts.filter((shift) => !shiftsIds.includes(shift.id as string)),
+						),
+					);
+					onSuccess?.();
+					return "Turnos eliminados";
+				},
+				error: "Error eliminando turnos",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
 	return {
 		createAndUpdate,
+		getEvents,
 		deleteMany,
 	};
 };
 
-export const useHandleShifts = (
+export const useHandleCreateAndUpdate = (
+	stalls: StallWithId[],
 	shifts: ShiftWithId[],
 	worker: StallWorker,
 	stall: StallWithId,
-	monthDays: MonthDay[],
+	month: string,
+	year: string,
 ) => {
-	// Calendar data
+	const { createAndUpdate } = useShifts(shifts, stalls);
 	const [selectedConvention, setSelectedConvention] = useState<
 		Convention | undefined
 	>(undefined);
 	const [selectedDays, setSelectedDays] = useState<string[]>([]);
-	const [shiftsData, setShiftsData] = useState<HandleShiftsData>({
+	const [shiftsData, setShiftsData] = useState({
 		selectedStartHour: "6",
 		selectedStartMinute: "0",
 		selectedEndHour: "18",
@@ -121,21 +173,8 @@ export const useHandleShifts = (
 		selectedColor: calendarColors[0],
 		description: "",
 	});
-	// Sequence data
-	const [selectedSequence, setSelectedSequence] = useState<Sequence>();
-	const [selectedIndex, setSelectedIndex] = useState<number>(1);
-	const [jump, setJump] = useState<number>(0);
 
-	// Delete data
-	const [selectedDelete, setSelectedDelete] = useState<string[]>([]);
-
-	const handleCreateAndUpdate = (
-		createAndUpdate: (
-			create: CreateShift[],
-			update: UpdateShift[],
-			sequence?: AppliedSequence,
-		) => Promise<Data | undefined>,
-	) => {
+	const handleCreateAndUpdate = () => {
 		if (selectedDays.length === 0) {
 			return toast.message("Datos incompletos", {
 				description: "Seleccione al menos un día",
@@ -180,8 +219,12 @@ export const useHandleShifts = (
 				workerName: worker.name,
 				stall: stall.id,
 				stallName: stall.name,
+				customer: stall.customer,
+				customerName: stall.customerName,
 				position: "",
 				sequence: "",
+				month,
+				year,
 			}));
 		const update = selectedDays
 			.filter((day) =>
@@ -201,24 +244,49 @@ export const useHandleShifts = (
 				)?.id as string,
 				...commonData,
 			}));
-		createAndUpdate(create, update).then((res) => {
-			if (res) {
-				setSelectedDays([]);
-			}
-		});
+		createAndUpdate(create, update, undefined, undefined, undefined, () =>
+			setSelectedDays([]),
+		);
 	};
-	const handleSequence = (
-		createAndUpdate: (
-			create: CreateShift[],
-			update: UpdateShift[],
-			sequence?: AppliedSequence,
-		) => Promise<Data | undefined>,
-	) => {
-		if (!selectedSequence) {
-			return toast.message("Datos incompletos", {
-				description: "Seleccione una secuencia",
-			});
-		}
+	return {
+		shiftsData,
+		setShiftsData,
+		selectedDays,
+		setSelectedDays,
+		handleCreateAndUpdate,
+		selectedConvention,
+		setSelectedConvention,
+	};
+};
+
+export const useHandleSequence = (
+	stalls: StallWithId[],
+	shifts: ShiftWithId[],
+	worker: StallWorker,
+	stall: StallWithId,
+	monthDays: MonthDay[],
+	month: string,
+	year: string,
+) => {
+	const { createAndUpdate } = useShifts(shifts, stalls);
+	const [selectedConvention, setSelectedConvention] = useState<
+		Convention | undefined
+	>(undefined);
+	const [selectedDays, setSelectedDays] = useState<string[]>([]);
+	const [shiftsData, setShiftsData] = useState({
+		selectedStartHour: "6",
+		selectedStartMinute: "0",
+		selectedEndHour: "18",
+		selectedEndMinute: "0",
+		selectedColor: calendarColors[0],
+		description: "",
+	});
+
+	const [selectedSequence, setSelectedSequence] = useState<Sequence>();
+	const [selectedIndex, setSelectedIndex] = useState<number>(1);
+	const [jump, setJump] = useState<number>(0);
+
+	const handleSequence = () => {
 		const monthDaysToUse = monthDays.slice(jump);
 		const sequenceShifts = monthDaysToUse.map((day, i) => {
 			const step =
@@ -232,6 +300,7 @@ export const useHandleShifts = (
 				color: step?.color || "gray",
 			};
 		});
+
 		const create = sequenceShifts
 			.filter(
 				(shift) =>
@@ -248,7 +317,8 @@ export const useHandleShifts = (
 				workerName: worker.name,
 				stall: stall.id,
 				stallName: stall.name,
-				mode: "proyeccion",
+				customer: stall.customer,
+				customerName: stall.customerName,
 				type: shift.color === "green" ? "shift" : "rest",
 				abbreviation: shift.color === "green" ? "T" : "X",
 				description: shift.color === "green" ? "Turno" : "Descanso",
@@ -256,6 +326,8 @@ export const useHandleShifts = (
 				keep: true,
 				position: "",
 				sequence: "",
+				month,
+				year,
 			}));
 
 		const update = sequenceShifts
@@ -279,34 +351,47 @@ export const useHandleShifts = (
 				color: shift.color,
 				abbreviation: shift.color === "green" ? "T" : "X",
 				description: shift.color === "green" ? "Turno" : "Descanso",
-				mode: "proyeccion",
 				type: shift.color === "green" ? "shift" : "rest",
 				active: true,
 				keep: true,
 			}));
 
-		const sequence = {
-			stall: stall.id,
-			worker: worker.id,
+		const updateWorker = {
 			sequence: selectedSequence?.steps || [],
 			index: selectedIndex,
 			jump,
 		};
-		createAndUpdate(create, update, sequence).then((res) => {
-			if (res) {
-				setSelectedSequence(undefined);
-				setJump(0);
-			}
+
+		createAndUpdate(create, update, updateWorker, stall.id, worker.id, () => {
+			setSelectedSequence(undefined);
+			setJump(0);
 		});
 	};
 
-	const handleDeleteShifts = (
-		deleteMany: (
-			shiftsIds: string[],
-			stallId: string,
-		) => Promise<void | undefined>,
-		stallId: string,
-	) => {
+	return {
+		shiftsData,
+		setShiftsData,
+		selectedDays,
+		setSelectedDays,
+		handleSequence,
+		selectedConvention,
+		setSelectedConvention,
+		selectedSequence,
+		setSelectedSequence,
+		selectedIndex,
+		setSelectedIndex,
+		jump,
+		setJump,
+	};
+};
+
+export const useHandleDeleteShifts = (
+	stalls: StallWithId[],
+	shifts: ShiftWithId[],
+) => {
+	const { deleteMany } = useShifts(shifts, stalls);
+	const [selectedDelete, setSelectedDelete] = useState<string[]>([]);
+	const handleDeleteShifts = (stallId: string) => {
 		if (selectedDelete.length === 0) {
 			return toast.message("Datos incompletos", {
 				description: "Seleccione al menos un turno",
@@ -316,25 +401,10 @@ export const useHandleShifts = (
 			setSelectedDelete([]);
 		});
 	};
-
 	return {
-		shiftsData,
-		setShiftsData,
-		selectedDays,
-		setSelectedDays,
-		handleCreateAndUpdate,
-		selectedSequence,
-		setSelectedSequence,
-		selectedIndex,
-		setSelectedIndex,
-		jump,
-		setJump,
-		handleSequence,
 		selectedDelete,
 		setSelectedDelete,
 		handleDeleteShifts,
-		selectedConvention,
-		setSelectedConvention,
 	};
 };
 
