@@ -3,6 +3,7 @@ const headers = [
 	"Nombre",
 	"Identificacion",
 	"Cargo",
+	"Cantidad",
 	"Fechas",
 	"Tipo",
 	"Horas",

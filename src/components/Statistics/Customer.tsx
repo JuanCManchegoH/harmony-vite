@@ -1,15 +1,9 @@
-import { CalendarDaysIcon } from "@heroicons/react/24/solid";
-import {
-	Badge,
-	Card,
-	CategoryBar,
-	Flex,
-	ProgressBar,
-	Text,
-} from "@tremor/react";
+import { SignalIcon } from "@heroicons/react/24/solid";
+import { Card, Flex, Icon, ProgressBar, Subtitle, Title } from "@tremor/react";
 import { useAppSelector } from "../../hooks/store";
 import { CustomerWithId } from "../../services/customers/types";
 import { ShiftWithId, eventTypes } from "../../services/shifts/types";
+import classNames from "../../utils/classNames";
 import { getDiference } from "../../utils/hours";
 
 export default function Customer({
@@ -70,6 +64,7 @@ export default function Customer({
 			0,
 		);
 	const absenceRate = totalHours === 0 ? 0 : (absenceHours / totalHours) * 100;
+	const attendanceRate = 100 - absenceRate;
 
 	const actualMonthAndYear =
 		`${selectedMonth}-${selectedYear}` ===
@@ -82,90 +77,95 @@ export default function Customer({
 	}, [] as string[]);
 
 	return (
-		<Card className="flex flex-col gap-2 p-2 bg-gray-50">
-			<header className="grid grid-cols-3">
-				<h2 className="flex font-bold items-center col-span-2">
-					<div>
-						<CalendarDaysIcon className="w-5 h-5 mr-2" />
-					</div>
-					<p title={customer.name} className="truncate text-sm">
-						{customer.name}
-					</p>
-				</h2>
+		<Card className="flex flex-col gap-1 p-2 bg-gray-50">
+			<header className="grid grid-cols-5">
+				<Title
+					title={customer.name}
+					className="truncate text-sm col-span-4 uppercase"
+				>
+					{customer.name}
+				</Title>
 				<div className="flex justify-end">
-					<Badge className="font-bold" color="sky">
-						{actualMonthAndYear ? "En curso" : "Finalizado"}
-					</Badge>
+					<Icon
+						icon={SignalIcon}
+						variant="solid"
+						color={actualMonthAndYear ? "emerald" : "gray"}
+						className={classNames(actualMonthAndYear ? "animate-pulse" : "")}
+					/>
 				</div>
 			</header>
-			<CategoryBar
-				values={[40, 30, 20, 10]}
-				colors={["rose", "orange", "yellow", "emerald"]}
-				markerValue={100 - absenceRate}
-				tooltip={`${(100 - absenceRate).toFixed(0)}% de asistencia`}
-			/>
+			<section className="-mt-1 leading-4">
+				<Subtitle>Asistencia</Subtitle>
+				<ProgressBar
+					value={attendanceRate}
+					color={
+						absenceRate < 10 ? "emerald" : absenceRate < 20 ? "amber" : "rose"
+					}
+					tooltip={`Asistencia: ${attendanceRate.toFixed(0)}%`}
+				/>
+			</section>
 			<main className="grid grid-cols-2 gap-2">
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Sedes</Text>
-						<Text>{branches.length}</Text>
+						<Title>Sedes</Title>
+						<Subtitle>{branches.length}</Subtitle>
 					</Flex>
 				</div>
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Puestos</Text>
-						<Text>{customerStalls.length}</Text>
+						<Title>Puestos</Title>
+						<Subtitle>{customerStalls.length}</Subtitle>
 					</Flex>
 				</div>
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Turnos</Text>
-						<Text>
+						<Title>Turnos</Title>
+						<Subtitle>
 							{tracingShifts.filter((shift) => shift.color === "green").length}
-						</Text>
+						</Subtitle>
 					</Flex>
 					<ProgressBar
 						value={percentage(
 							tracingShifts.filter((shift) => shift.color === "green"),
 						)}
-						color="green"
+						color="sky"
 						className="mt-1"
 					/>
 				</div>
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Descansos</Text>
-						<Text>
+						<Title>Descansos</Title>
+						<Subtitle>
 							{tracingShifts.filter((shift) => shift.color === "gray").length}
-						</Text>
+						</Subtitle>
 					</Flex>
 					<ProgressBar
 						value={percentage(
 							tracingShifts.filter((shift) => shift.color === "gray"),
 						)}
-						color="gray"
+						color="sky"
 						className="mt-1"
 					/>
 				</div>
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Eventos</Text>
-						<Text>{events.length}</Text>
+						<Title>Eventos</Title>
+						<Subtitle>{events.length}</Subtitle>
 					</Flex>
 					<ProgressBar
+						color="sky"
 						value={percentage(events)}
-						color="amber"
 						className="mt-1"
 					/>
 				</div>
 				<div className="border p-2 rounded-md">
 					<Flex>
-						<Text>Ocasionales</Text>
-						<Text>{customerEvents.length}</Text>
+						<Title>Ocasionales</Title>
+						<Subtitle>{customerEvents.length}</Subtitle>
 					</Flex>
 					<ProgressBar
+						color="sky"
 						value={percentage(customerEvents)}
-						color="blue"
 						className="mt-1"
 					/>
 				</div>

@@ -142,6 +142,7 @@ export default function WorkersList({
 						<TableHeaderCell>#</TableHeaderCell>
 						<TableHeaderCell className="flex gap-2">Nombre</TableHeaderCell>
 						<TableHeaderCell>Tipo</TableHeaderCell>
+						<TableHeaderCell>Cantidad</TableHeaderCell>
 						<TableHeaderCell>Horas</TableHeaderCell>
 						<TableHeaderCell>Cliente</TableHeaderCell>
 						<TableHeaderCell>Puesto</TableHeaderCell>
@@ -174,6 +175,7 @@ export default function WorkersList({
 											{shifts[0].abbreviation}
 										</Text>
 									</TableCell>
+									<TableCell title="Horas">{shifts.length}</TableCell>
 									<TableCell title="Horas">
 										{shifts.reduce(
 											(acc, shift) =>
@@ -210,7 +212,7 @@ export default function WorkersList({
 											<Badge
 												icon={InformationCircleIcon}
 												color="gray"
-												tooltip={shifts[0].description}
+												title={shifts[0].description}
 											>
 												Info
 											</Badge>

@@ -6,10 +6,20 @@ export default function WorkerInfo({
 	worker,
 	shifts,
 }: { worker: StallWorker; shifts: ShiftWithId[] }) {
-	const wokedHours = shifts.reduce((acc, shift) => {
-		const { minutes } = getDiference(shift.startTime, shift.endTime);
-		return acc + minutes;
-	}, 0);
+	const { wokedHours, absence } = shifts.reduce(
+		(acc, shift) => {
+			const { minutes } = getDiference(shift.startTime, shift.endTime);
+
+			if (shift.color === "green" || shift.color === "yellow") {
+				acc.wokedHours += minutes;
+			} else if (shift.color === "red" || shift.color === "sky") {
+				acc.absence += minutes;
+			}
+
+			return acc;
+		},
+		{ wokedHours: 0, absence: 0 },
+	);
 
 	return (
 		<section className="grid grid-cols-2 gap-4 mt-4">
@@ -50,7 +60,7 @@ export default function WorkerInfo({
 					Horas trabajadas en todos los puestos
 				</label>
 				<p className="text-sm font-medium text-gray-900 border text-left p-2 rounded-md truncate">
-					{minutesToString(wokedHours)}
+					{minutesToString(wokedHours - absence)}
 				</p>
 			</div>
 			<div className="relative">

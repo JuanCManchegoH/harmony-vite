@@ -63,9 +63,7 @@ export default function useStatistics(
 						group[0].worker === shift.worker &&
 						group[0].abbreviation === shift.abbreviation &&
 						group[0].stall === shift.stall &&
-						group[0].description === shift.description &&
-						getDiference(group[0].startTime, group[0].endTime).str ===
-							getDiference(shift.startTime, shift.endTime).str &&
+						group[0].description.trim() === shift.description.trim() &&
 						group[0].position === shift.position &&
 						group[0].sequence === shift.sequence &&
 						group[0].type === shift.type,
@@ -300,6 +298,7 @@ export function useExcel(
 					shifts[0].workerName,
 					worker?.identification || "-",
 					position || "-",
+					shifts.length,
 					groupDates(shifts.map((shift) => shift.day)).join(" | "),
 					shifts[0].abbreviation,
 					shifts.reduce(
