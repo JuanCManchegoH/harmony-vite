@@ -115,11 +115,23 @@ function groupDates(dates: string[]) {
 	return groupedDates;
 }
 
+const getSelectedDays = (startDate: Date, endDate: Date) => {
+	const days: string[] = [];
+	const dateA = new Date(startDate);
+	const dateB = new Date(endDate);
+	while (dateA <= dateB) {
+		days.push(DateToSring(dateA));
+		dateA.setDate(dateA.getDate() + 1);
+	}
+	return days;
+};
+
 export {
 	DateToSring,
 	StringToDate,
 	getDay,
 	getDays,
+	getSelectedDays,
 	groupDates,
 	months,
 	years,

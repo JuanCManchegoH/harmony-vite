@@ -24,6 +24,7 @@ import {
 import { Dispatch, SetStateAction } from "react";
 import { useAppSelector } from "../../hooks/store";
 import { groupDates } from "../../utils/dates";
+import formatCurrency from "../../utils/formatCurrency";
 import { getDiference } from "../../utils/hours";
 
 export interface WorkerListFilters {
@@ -42,19 +43,21 @@ export default function WorkersList({
 	setPage,
 	filters,
 	generateExcel,
+	year,
 }: {
 	page: number;
 	setPage: Dispatch<SetStateAction<number>>;
 	filters: WorkerListFilters;
 	generateExcel: () => void;
+	year: string;
 }) {
 	const { groupsToShow, stalls, groupedShiftsLength } = useAppSelector(
 		(state) => state.statistics,
 	);
 	const { customers } = useAppSelector((state) => state.customers);
+	const { positions } = useAppSelector((state) => state.auth.profile.company);
 
 	const totalPages = Math.ceil(groupedShiftsLength / 100);
-
 	const filtersArray = [
 		{
 			name: "Abreviatura",
@@ -146,6 +149,7 @@ export default function WorkersList({
 						<TableHeaderCell>Horas</TableHeaderCell>
 						<TableHeaderCell>Cliente</TableHeaderCell>
 						<TableHeaderCell>Puesto</TableHeaderCell>
+						<TableHeaderCell>Valor</TableHeaderCell>
 						<TableHeaderCell />
 					</TableRow>
 				</TableHead>
@@ -155,10 +159,22 @@ export default function WorkersList({
 						const customer = customers.find(
 							(customer) => customer.id === shifts[0].stall,
 						);
+						const hours = shifts.reduce(
+							(acc, shift) =>
+								acc + getDiference(shift.startTime, shift.endTime).hours,
+							0,
+						);
 						const position =
 							shifts[0].position ||
 							stall?.workers.find((worker) => worker.id === shifts[0].worker)
 								?.position;
+
+						const positionValue =
+							position &&
+							positions.find(
+								(p) => p.name === position && String(p.year) === year,
+							)?.value;
+
 						return (
 							<>
 								<TableRow
@@ -176,14 +192,7 @@ export default function WorkersList({
 										</Text>
 									</TableCell>
 									<TableCell title="Horas">{shifts.length}</TableCell>
-									<TableCell title="Horas">
-										{shifts.reduce(
-											(acc, shift) =>
-												acc +
-												getDiference(shift.startTime, shift.endTime).hours,
-											0,
-										) || "-"}
-									</TableCell>
+									<TableCell title="Horas">{hours || "-"}</TableCell>
 									<TableCell title="Cliente" className="max-w-[200px] truncate">
 										<Text className="truncate">
 											{stall?.customerName || customer?.name}
@@ -197,6 +206,13 @@ export default function WorkersList({
 												: shifts[0].stallName}
 										</Text>
 										<Text className="truncate">{stall?.branch}</Text>
+									</TableCell>
+									<TableCell>
+										<Text>
+											{positionValue && shifts[0].color === "yellow"
+												? `${formatCurrency(positionValue * hours)}`
+												: "-"}
+										</Text>
 									</TableCell>
 									<TableCell className="flex flex-col items-end gap-1">
 										<Badge

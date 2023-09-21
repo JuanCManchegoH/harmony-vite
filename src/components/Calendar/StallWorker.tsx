@@ -213,6 +213,8 @@ export default function StallWorker({
 					shifts={[...workerShifts]}
 					selectedDelete={handleDeleteShifts.selectedDelete}
 					setSelectedDelete={handleDeleteShifts.setSelectedDelete}
+					month={month}
+					year={year}
 				/>
 			</CenteredModal>
 		</Card>

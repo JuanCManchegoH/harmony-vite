@@ -22,19 +22,15 @@ export default function Customer({
 			const isStallInCustomerStalls = customerStalls.some(
 				(stall) => stall.id === shift.stall,
 			);
-
 			if (isEventTypeIncluded && isStallInCustomerStalls) {
 				accumulator.events.push(shift);
 			}
-
 			if (!isEventTypeIncluded && isStallInCustomerStalls) {
 				accumulator.tracingShifts.push(shift);
 			}
-
-			if (shift.stall === customer.id) {
+			if (shift.stall === customer.id && shift.color !== "gray") {
 				accumulator.customerEvents.push(shift);
 			}
-
 			return accumulator;
 		},
 		{

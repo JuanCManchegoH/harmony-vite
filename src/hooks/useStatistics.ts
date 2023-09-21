@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Profile } from "../services/auth/types";
+import { Position } from "../services/company/types";
 import { CustomerWithId } from "../services/customers/types";
 import { ShiftWithId } from "../services/shifts/types";
 import { StallWithId } from "../services/stalls/types";
@@ -20,8 +21,9 @@ import {
 	setStatisticsStalls,
 } from "../services/statistics/slice";
 import { WorkerWithId } from "../services/workers/types";
-import { groupDates } from "../utils/dates";
+import { DateToSring, MonthDay, groupDates } from "../utils/dates";
 import { workerSheets } from "../utils/excel";
+import formatCurrency from "../utils/formatCurrency";
 import { getDiference } from "../utils/hours";
 import { useAppDispatch } from "./store";
 import { useCustomers } from "./useCustomers";
@@ -243,9 +245,11 @@ export default function useStatistics(
 }
 
 export function useExcel(
+	positions: Position[],
 	groupedShifts: ShiftWithId[][],
 	customers: CustomerWithId[],
 	stalls: StallWithId[],
+	year: string,
 ) {
 	async function generateExcel() {
 		const workbook = new ExcelJS.Workbook();
@@ -288,29 +292,38 @@ export function useExcel(
 				const customer = customers.find(
 					(customer) => customer.id === shifts[0].stall,
 				);
+				const hours = shifts.reduce(
+					(acc, shift) =>
+						acc + getDiference(shift.startTime, shift.endTime).hours,
+					0,
+				);
 				const worker = data.find((worker) => worker.id === shifts[0].worker);
 				const position =
 					shifts[0].position ||
 					stall?.workers.find((worker) => worker.id === shifts[0].worker)
 						?.position;
+
+				const positionValue =
+					position &&
+					positions.find((p) => p.name === position && String(p.year) === year)
+						?.value;
 				const row = [
-					i + 1,
-					shifts[0].workerName,
-					worker?.identification || "-",
-					position || "-",
-					shifts.length,
-					groupDates(shifts.map((shift) => shift.day)).join(" | "),
-					shifts[0].abbreviation,
-					shifts.reduce(
-						(acc, shift) =>
-							acc + getDiference(shift.startTime, shift.endTime).hours,
-						0,
-					) || "-",
-					stall?.customerName || customer?.name,
-					stall?.branch || "-",
+					i + 1, // index
+					shifts[0].workerName, // name
+					worker?.identification || "-", // identification
+					position || "-", // position
+					shifts.length, // quantity
+					groupDates(shifts.map((shift) => shift.day)).join(" | "), // dates
+					shifts[0].abbreviation, // type
+					hours || "-", // hours
+					stall?.customerName || customer?.name, // customer
+					stall?.branch || "-", // branch
 					shifts[0].stallName !== stall?.name ? "-" : shifts[0].stallName,
-					shifts[0].sequence || "-",
-					shifts[0].description || "-",
+					shifts[0].sequence || "-", // sequence
+					positionValue && shifts[0].color === "yellow"
+						? `${formatCurrency(positionValue * hours)}`
+						: "-", // value
+					shifts[0].description || "-", // description
 				];
 				worksheet.addRow(row);
 			});
@@ -333,4 +346,168 @@ export function useExcel(
 	}
 
 	return { generateExcel };
+}
+
+export function useCalendarExcel(
+	customers: CustomerWithId[],
+	stalls: StallWithId[],
+	shifts: ShiftWithId[],
+	monthDays: MonthDay[],
+) {
+	async function generateCalendarExcel() {
+		const workerSheets = [
+			...customers.map((customer) => ({
+				name: customer.name,
+				id: customer.id,
+			})),
+		];
+		const headers = [
+			"Sede",
+			"Puesto",
+			"Nombre",
+			"Identificacion",
+			"Cargo",
+			...monthDays.map((day) => DateToSring(day.date).slice(0, 5)),
+		];
+		const workbook = new ExcelJS.Workbook();
+		const access_token = Cookie.get("access_token");
+		axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+		const workersIds = shifts
+			.reduce((acc, shift) => {
+				if (!acc.includes(shift.worker)) {
+					acc.push(shift.worker);
+				}
+				return acc;
+			}, [] as string[])
+			.filter((id) => id !== "");
+		const { data } = await axios.post<WorkerWithId[]>(api.workers.getByIds, {
+			ids: workersIds,
+		});
+
+		workerSheets.forEach((sheet) => {
+			const worksheet = workbook.addWorksheet(sheet.name);
+			const header = headers;
+			const customerStalls = stalls.filter(
+				(stall) => stall.customer === sheet.id,
+			);
+			const headerRow = worksheet.addRow(header);
+			headerRow.eachCell((cell) => {
+				cell.font = { bold: true };
+			});
+			// Freeze first row
+			worksheet.views = [{ state: "frozen", ySplit: 1 }];
+			header.forEach((_, i) => {
+				if (i < 5) {
+					worksheet.getColumn(i + 1).width = 40;
+				}
+				if (i >= 5) {
+					worksheet.getColumn(i + 1).width = 15;
+				}
+			});
+
+			customerStalls.forEach((s) => {
+				const stallShifts = shifts.filter(
+					(shift) => shift.customer === sheet.id && shift.stall === s.id,
+				);
+				const insideWorkers = s.workers;
+
+				// get workers outside the stall but
+				const outsideWorkers = stallShifts
+					.filter((s) => s.color === "green" || s.color === "gray")
+					.reduce(
+						(acc, shift) => {
+							const isInside = insideWorkers.some(
+								(worker) => worker.id === shift.worker,
+							);
+							const existingWorker = acc.find(
+								(worker) => worker.id === shift.worker,
+							);
+							if (!isInside && !existingWorker) {
+								const worker = data.find(
+									(worker) => worker.id === shift.worker,
+								);
+								acc.push({
+									id: shift.worker,
+									name: shift.workerName,
+									identification: worker?.identification || "-",
+									position: shift.position || "-",
+									shifts: [shift],
+								});
+							}
+							if (!isInside && existingWorker) {
+								existingWorker.shifts.push(shift);
+							}
+							return acc;
+						},
+						[] as {
+							id: string;
+							name: string;
+							identification: string;
+							position: string;
+							shifts: ShiftWithId[];
+						}[],
+					);
+
+				// for each worker add a row, and add the shifts of the worker, then add an empty row
+				insideWorkers.forEach((worker) => {
+					const workerShifts = stallShifts.filter(
+						(shift) => shift.worker === worker.id,
+					);
+					const row = [
+						s.branch || "-",
+						s.name,
+						worker.name,
+						worker.identification,
+						worker.position,
+						...monthDays.map((day) => {
+							const shift = workerShifts.find(
+								(shift) => shift.day === DateToSring(day.date),
+							);
+							return shift ? `${shift.startTime} - ${shift.endTime}` : "-";
+						}),
+					];
+					worksheet.addRow(row);
+				});
+
+				outsideWorkers.forEach((worker) => {
+					const row = [
+						s.branch || "-",
+						s.name,
+						worker.name,
+						worker.identification,
+						worker.position,
+						...monthDays.map((day) => {
+							const shift = worker.shifts.filter(
+								(shift) => shift.day === DateToSring(day.date),
+							);
+							//  return start - end for each shift separated by a comma
+							return shift.length
+								? shift.map((s) => `${s.startTime} - ${s.endTime}`).join(", ")
+								: "-";
+						}),
+					];
+					worksheet.addRow(row);
+				});
+
+				worksheet.addRow([]);
+			});
+		});
+		await workbook.xlsx.writeBuffer();
+		// Download the file
+		workbook.xlsx.writeBuffer().then((data) => {
+			const blob = new Blob([data], {
+				type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			});
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.setAttribute("hidden", "");
+			a.setAttribute("href", url);
+			a.setAttribute("download", "Listado programaciones.xlsx");
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		});
+	}
+
+	return { generateCalendarExcel };
 }

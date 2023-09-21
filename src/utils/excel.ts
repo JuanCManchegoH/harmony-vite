@@ -11,6 +11,7 @@ const headers = [
 	"Sede",
 	"Puesto",
 	"Secuencia",
+	"valor",
 	"Descripcion",
 ];
 

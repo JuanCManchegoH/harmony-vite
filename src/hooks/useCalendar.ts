@@ -45,10 +45,6 @@ export function useCalendar(
 		customers.length > 0 && setSelectedCustomer(customers[0].id);
 	}, [customers]);
 	useEffect(() => {
-		stalls.length > 0 && setSelectedStall(stalls[0].id);
-		stalls.length > 0 && setSelectedBranch(stalls[0].branch);
-	}, [stalls]);
-	useEffect(() => {
 		stalls.length > 0 &&
 			setSelectedStall(
 				stalls.find((stall) => stall.branch === selectedBranch)?.id || "",
@@ -132,9 +128,9 @@ export function useCreateEvent(
 				description: "Seleccione al menos un día",
 			});
 		if (
-			!selectedStall &&
-			!shiftsData.description &&
-			!selectedWorker &&
+			!selectedStall ||
+			!shiftsData.description ||
+			!selectedWorker ||
 			!position
 		) {
 			return toast.message("Datos incompletos", {
