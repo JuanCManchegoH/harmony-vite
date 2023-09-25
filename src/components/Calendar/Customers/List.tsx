@@ -1,13 +1,7 @@
 import { StarIcon, UserGroupIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import {
-	Card,
-	Subtitle,
-	Table,
-	TableCell,
-	TableRow,
-	Text,
-} from "@tremor/react";
+import { Card, Subtitle, Text } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
 import { CustomerData, useCustomers } from "../../../hooks/useCustomers";
@@ -78,7 +72,7 @@ export default function List({
 	);
 
 	return (
-		<Card className="p-2">
+		<Card className="px-2 py-0">
 			{displayCustomers.length <= 0 && (
 				<EmptyState>
 					<UserGroupIcon className="w-10 h-10 text-sky-500" />
@@ -90,19 +84,12 @@ export default function List({
 					</Text>
 				</EmptyState>
 			)}
-			<Table>
+			<ul className="divide-y divide-gray-200 select-none">
 				{displayCustomers.map((customer) => (
-					<TableRow key={customer.id} className="border-b">
-						{openDelete && (
-							<TableCell className="p-2">
-								<XMarkIcon
-									className="w-5 h-5 cursor-pointer hover:text-red-500"
-									onClick={() => deleteCustomer(customer.id)}
-								/>
-							</TableCell>
-						)}
-						<TableCell
-							className="p-2 cursor-pointer group"
+					<li key={customer.id} className="grid grid-cols-4">
+						<button
+							type="button"
+							className="p-2 cursor-pointer group col-span-2 text-left"
 							onClick={() => {
 								handleSelect(customer);
 								setSelectedCustomer(customer);
@@ -111,25 +98,42 @@ export default function List({
 							<Text className="group-hover:text-sky-500 truncate max-w-[220px]">
 								{customer.name}
 							</Text>
-							<Subtitle className="group-hover:text-sky-900">
+							<Subtitle className="group-hover:text-sky-900 text-sm">
 								{customer.identification}
 							</Subtitle>
-						</TableCell>
-						<TableCell className="p-2">{customer.city}</TableCell>
-						<TableCell className="p-2">
-							<StarIcon
-								className={classNames(
-									"w-5 h-5 cursor-pointer",
-									selected === customer.id
-										? "text-yellow-400"
-										: "text-gray-500",
-								)}
-								onClick={() => setSelected(customer.id)}
-							/>
-						</TableCell>
-					</TableRow>
+						</button>
+						<Subtitle className="p-2 flex justify-end items-center text-sm">
+							{customer.city}
+						</Subtitle>
+						<div className="p-2 flex justify-end items-center">
+							{openDelete && (
+								<XMarkIcon
+									className="w-5 h-5 cursor-pointer hover:text-red-500"
+									onClick={() =>
+										toast("Confirmar acción", {
+											action: {
+												label: "Eliminar",
+												onClick: () => deleteCustomer(customer.id),
+											},
+										})
+									}
+								/>
+							)}
+							{!openDelete && (
+								<StarIcon
+									className={classNames(
+										"w-5 h-5 cursor-pointer",
+										selected === customer.id
+											? "text-rose-400"
+											: "text-gray-400",
+									)}
+									onClick={() => setSelected(customer.id)}
+								/>
+							)}
+						</div>
+					</li>
 				))}
-			</Table>
+			</ul>
 		</Card>
 	);
 }

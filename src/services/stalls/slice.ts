@@ -23,11 +23,13 @@ export const DEFAULT_STALL: StallWithId = {
 export interface StallsState {
 	solved: boolean;
 	stalls: StallWithId[];
+	createdStallId: string;
 }
 
 const initialState: StallsState = {
 	solved: false,
 	stalls: [],
+	createdStallId: "",
 };
 
 export const stallsSlice = createSlice({
@@ -40,8 +42,11 @@ export const stallsSlice = createSlice({
 		setStalls: (state, action) => {
 			state.stalls = action.payload;
 		},
+		setCreatedStallId: (state, action) => {
+			state.createdStallId = action.payload;
+		},
 	},
 });
 
-export const { setSolved, setStalls } = stallsSlice.actions;
+export const { setSolved, setStalls, setCreatedStallId } = stallsSlice.actions;
 export default stallsSlice.reducer;

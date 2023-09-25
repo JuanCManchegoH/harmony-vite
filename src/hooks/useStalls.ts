@@ -32,6 +32,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 				api.stalls.create,
 				stall,
 			);
+
 			await toast.promise(createStallPromise, {
 				loading: "Creando puesto",
 				success: ({ data }) => {

@@ -17,19 +17,28 @@ interface ConventionDto {
 export const useConventions = () => {
 	const dispatch = useAppDispatch();
 
-	async function createConvention(convention: ConventionDto) {
+	async function createConvention(
+		convention: ConventionDto,
+		onSuccess?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<Company>(
+			const createConventionPromise = axios.post<Company>(
 				api.company.createConvention,
 				convention,
 			);
-			toast.success("Convención creada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al crear convención");
+			await toast.promise(createConventionPromise, {
+				loading: "Creando convención",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					onSuccess?.();
+					return "Convención creada";
+				},
+				error: "Error creando convención",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -40,15 +49,20 @@ export const useConventions = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<Company>(
+			const updateConventionPromise = axios.put<Company>(
 				api.company.updateConvention(conventionId),
 				convention,
 			);
-			toast.success("Convención actualizada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al actualizar convención");
+			await toast.promise(updateConventionPromise, {
+				loading: "Actualizando convención",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Convención actualizada";
+				},
+				error: "Error actualizando convención",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -56,14 +70,19 @@ export const useConventions = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<Company>(
+			const deleteConventionPromise = axios.delete<Company>(
 				api.company.deleteConvention(conventionId),
 			);
-			toast.success("Convención eliminada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al eliminar convención");
+			await toast.promise(deleteConventionPromise, {
+				loading: "Eliminando convención",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Convención eliminada";
+				},
+				error: "Error eliminando convención",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -90,7 +109,8 @@ export const useHandleConventions = (convention?: Convention) => {
 	const handleCreateConvention = async (
 		createConvention: (
 			convention: ConventionDto,
-		) => Promise<Company | undefined>,
+			onSuccess?: Function,
+		) => Promise<void>,
 	) => {
 		if (!data.name || !data.abbreviation || !data.color) {
 			return toast.message("Datos incompletos", {
@@ -102,18 +122,14 @@ export const useHandleConventions = (convention?: Convention) => {
 				description: "La abreviatura debe tener máximo 2 caracteres",
 			});
 		}
-		await createConvention(data).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
+		await createConvention(data, resetForm);
 	};
 
 	const handleUpdateConvention = (
 		updateConvention: (
 			convention: ConventionDto,
 			conventionId: string,
-		) => Promise<Company | undefined>,
+		) => Promise<void>,
 		id: string,
 	) => {
 		if (!data.name || !data.abbreviation || !data.color) {

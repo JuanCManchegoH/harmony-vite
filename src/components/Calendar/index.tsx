@@ -4,6 +4,7 @@ import {
 	FlagIcon,
 	IdentificationIcon,
 	MapPinIcon,
+	RocketLaunchIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import {
@@ -22,7 +23,11 @@ import CustomToggle from "../../common/CustomToggle";
 import { Dropdown, DropdownItem } from "../../common/DropDown";
 import EmptyState from "../../common/EmptyState";
 import { useAppSelector } from "../../hooks/store";
-import { useCalendar, useCreateEvent } from "../../hooks/useCalendar";
+import {
+	useCalendar,
+	useCreateEvent,
+	usePropose,
+} from "../../hooks/useCalendar";
 import { useHandleStall, useStalls } from "../../hooks/useStalls";
 import { getDays, months, years } from "../../utils/dates";
 import { validateRoles } from "../../utils/roles";
@@ -31,6 +36,7 @@ import Customers from "./Customers";
 import Events from "./Events";
 import EventsTimeLine from "./EventsTimeLine";
 import HandleStall from "./HandleStall";
+import Propose from "./Propose";
 import StallCalendar from "./StallCalendar";
 import StallInfo from "./StallInfo";
 import TimeLineInfo from "./TimeLineInfo";
@@ -61,10 +67,12 @@ export default function Calendar() {
 		calendarData.selectedYear,
 		shifts,
 	);
+	const propose = usePropose(stalls, shifts);
 
 	const [openCreateStall, setOpenCreateStall] = useState(false);
 	const [openCreateEvent, setOpenCreateEvent] = useState(false);
 	const [openEvents, setOpenEvents] = useState(false);
+	const [openPropose, setOpenPropose] = useState(false);
 	const [openCustomers, setOpenCustomers] = useState(false);
 	const [openWorkers, setOpenWorkers] = useState(false);
 
@@ -107,7 +115,7 @@ export default function Calendar() {
 			icon: MapPinIcon,
 			name: "Crear puesto",
 			action: () => setOpenCreateStall(true),
-			show: validateRoles(profile.roles, [], ["handle_stalls", "admin"]),
+			show: validateRoles(profile.roles, [], ["handle_stalls"]),
 		},
 		{
 			icon: FlagIcon,
@@ -116,8 +124,14 @@ export default function Calendar() {
 			show: validateRoles(
 				profile.roles,
 				[],
-				["create_shifts", "handle_shifts", "admin"],
+				["create_shifts", "handle_shifts"],
 			),
+		},
+		{
+			icon: RocketLaunchIcon,
+			name: "Programar nuevo mes",
+			action: () => setOpenPropose(true),
+			show: validateRoles(profile.roles, [], ["handle_stalls"]),
 		},
 	];
 	return (
@@ -184,23 +198,28 @@ export default function Calendar() {
 								</SelectItem>
 							))}
 						</Select>
-						{calendarData.view === "stalls" && (
-							<>
-								<Dropdown btnText="Opciones" position="right">
-									{options
-										.filter((option) => option.show)
-										.map((option) => (
-											<DropdownItem
-												key={option.name}
-												icon={option.icon}
-												onClick={option.action}
-											>
-												{option.name}
-											</DropdownItem>
-										))}
-								</Dropdown>
-							</>
-						)}
+						{calendarData.view === "stalls" &&
+							validateRoles(
+								profile.roles,
+								[],
+								["handle_stalls", "create_shifts", "handle_shifts"],
+							) && (
+								<>
+									<Dropdown btnText="Opciones" position="right">
+										{options
+											.filter((option) => option.show)
+											.map((option) => (
+												<DropdownItem
+													key={option.name}
+													icon={option.icon}
+													onClick={option.action}
+												>
+													{option.name}
+												</DropdownItem>
+											))}
+									</Dropdown>
+								</>
+							)}
 					</div>
 				</header>
 				{calendarData.view === "stalls" && !calendarData.actualStall && (
@@ -386,6 +405,21 @@ export default function Calendar() {
 					createEvent={createEvent}
 					selectedTab={selectedEventTab}
 					setSelectedTab={setSelectedEventTab}
+				/>
+			</CenteredModal>
+			<CenteredModal
+				open={openPropose}
+				setOpen={setOpenPropose}
+				title="Programar nuevo mes"
+				btnText="Programar"
+				icon={RocketLaunchIcon}
+				action={() => propose.handlePropose()}
+			>
+				<Propose
+					targetMonth={propose.targetMonth}
+					setTargetMonth={propose.setTargetMonth}
+					targetYear={propose.targetYear}
+					setTargetYear={propose.setTargetYear}
 				/>
 			</CenteredModal>
 		</Grid>

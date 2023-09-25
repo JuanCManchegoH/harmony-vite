@@ -1,14 +1,21 @@
 import {
 	ArrowSmallRightIcon,
+	ArrowUpTrayIcon,
 	MagnifyingGlassIcon,
 	TrashIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
-import { Button, Card, Text, TextInput } from "@tremor/react";
+import { Button, Card, Icon, Text, TextInput } from "@tremor/react";
 import { Dispatch, SetStateAction, useState } from "react";
+import CenteredModal from "../../../common/CenteredModal";
 import Modal from "../../../common/RightModal";
+import Uploader from "../../../common/Uploader";
 import { useAppSelector } from "../../../hooks/store";
-import { useCustomers, useHandleCustomer } from "../../../hooks/useCustomers";
+import {
+	useCustomers,
+	useHandleCustomer,
+	useUploadFile,
+} from "../../../hooks/useCustomers";
 import { CustomerWithId } from "../../../services/customers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
@@ -26,9 +33,12 @@ export default function Customers({
 	selected: string;
 	setSelected: Dispatch<SetStateAction<string>>;
 }) {
-	const profile = useAppSelector((state) => state.auth.profile);
+	const { profile } = useAppSelector((state) => state.auth);
 	const customers = useAppSelector((state) => state.customers.customers);
 	const { createCustomer, updateCustomer } = useCustomers(customers);
+	const { file, setFile, handleUpload, downloadTemplate } = useUploadFile(
+		profile.company.customerFields,
+	);
 	const {
 		data,
 		setData,
@@ -42,6 +52,8 @@ export default function Customers({
 	} = useHandleCustomer(profile.company.customerFields);
 	const [selectedCustomer, setSelectedCustomer] =
 		useState<CustomerWithId | null>(null);
+
+	const [openUpload, setOpenUpload] = useState(false);
 	const [openCustomer, setOpenCustomer] = useState(false);
 	const [openDelete, setOpenDelete] = useState(false);
 	const [search, setSearch] = useState("");
@@ -129,6 +141,17 @@ export default function Customers({
 							{openCustomer || selectedCustomer ? "Volver" : "Crear Cliente"}
 						</Button>
 					)}
+					{validateRoles(profile.roles, ["handle_customers"], []) &&
+						!openCustomer &&
+						!selectedCustomer && (
+							<Icon
+								className="cursor-pointer"
+								icon={ArrowUpTrayIcon}
+								variant="solid"
+								color="gray"
+								onClick={() => setOpenUpload(!openUpload)}
+							/>
+						)}
 				</header>
 				{!openCustomer && !selectedCustomer && (
 					<div className="flex items-center">
@@ -175,6 +198,20 @@ export default function Customers({
 					/>
 				)}
 			</section>
+			<CenteredModal
+				icon={UserGroupIcon}
+				open={openUpload}
+				setOpen={setOpenUpload}
+				title="Subir Clientes"
+				btnText="Subir"
+				action={handleUpload}
+			>
+				<Uploader
+					selected={file}
+					setSelected={setFile}
+					downloadTemplate={downloadTemplate}
+				/>
+			</CenteredModal>
 		</Modal>
 	);
 }

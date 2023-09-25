@@ -6,8 +6,10 @@ import { useAppSelector } from "../../../hooks/store";
 import { useHandleEvents } from "../../../hooks/useCalendar";
 import { useShifts } from "../../../hooks/useShifts";
 import classNames from "../../../utils/classNames";
+import { validateRoles } from "../../../utils/roles";
 
 export default function Group(group: EventGroup) {
+	const { roles } = useAppSelector((state) => state.auth.profile);
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { shifts } = useAppSelector((state) => state.shifts);
 	const { deleteMany } = useShifts(shifts, stalls);
@@ -30,13 +32,15 @@ export default function Group(group: EventGroup) {
 					<p className="col-span-2 text-sm font-semibold text-right">
 						{group.workerName}
 					</p>
-					<Cog6ToothIcon
-						className={classNames(
-							"h-5 w-5 cursor-pointer hover:text-sky-400",
-							edit ? "text-sky-500" : "text-gray-500",
-						)}
-						onClick={() => setEdit(!edit)}
-					/>
+					{validateRoles(roles, ["handle_shifts"], []) && (
+						<Cog6ToothIcon
+							className={classNames(
+								"h-5 w-5 cursor-pointer hover:text-sky-400",
+								edit ? "text-sky-500" : "text-gray-500",
+							)}
+							onClick={() => setEdit(!edit)}
+						/>
+					)}
 				</div>
 				<div className="truncate mt-2">
 					<p className="text-sm font-semibold">{group.stallName}</p>
@@ -83,7 +87,7 @@ export default function Group(group: EventGroup) {
 						</div>
 					</section>
 					<div className="flex justify-end">
-						{edit && (
+						{validateRoles(roles, ["handle_shifts"], []) && edit && (
 							<Button
 								variant="primary"
 								color="rose"

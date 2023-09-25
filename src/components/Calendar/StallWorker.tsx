@@ -131,24 +131,25 @@ export default function StallWorker({
 								/>
 							</>
 						)}
-						{deleteVisible && (
-							<XMarkIcon
-								className="w-5 h-5 text-gray-500 hover:text-sky-400 cursor-pointer"
-								onClick={() =>
-									toast("Confirmar eliminacion", {
-										action: {
-											label: "Eliminar",
-											onClick: () =>
-												removeWorker(
-													stall.id,
-													worker.id,
-													workerStallShifts.map((shift) => shift.id),
-												),
-										},
-									})
-								}
-							/>
-						)}
+						{validateRoles(profile.roles, [], ["handle_stalls"]) &&
+							deleteVisible && (
+								<XMarkIcon
+									className="w-5 h-5 text-gray-500 hover:text-sky-400 cursor-pointer"
+									onClick={() =>
+										toast("Confirmar eliminacion", {
+											action: {
+												label: "Eliminar",
+												onClick: () =>
+													removeWorker(
+														stall.id,
+														worker.id,
+														workerStallShifts.map((shift) => shift.id),
+													),
+											},
+										})
+									}
+								/>
+							)}
 					</>
 				)}
 			</p>

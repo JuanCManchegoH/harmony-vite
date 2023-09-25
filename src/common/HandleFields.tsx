@@ -16,7 +16,7 @@ export default function HandleFields({
 					{field.type === "text" && (
 						<TextInput
 							key={field.id}
-							placeholder={`${field.name}${field.required && "*"}`}
+							placeholder={`${field.name}${field.required ? "*" : ""}`}
 							value={field.value}
 							onChange={(e) => {
 								const newFields = [...fields];

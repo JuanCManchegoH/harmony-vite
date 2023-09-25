@@ -16,16 +16,22 @@ interface TagDto {
 export const useTags = () => {
 	const dispatch = useAppDispatch();
 
-	async function createTag(tag: TagDto) {
+	async function createTag(tag: TagDto, onSuccess?: Function) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<Company>(api.company.createTag, tag);
-			toast.success("Etiqueta creada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al crear etiqueta");
+			const createTagPromise = axios.post<Company>(api.company.createTag, tag);
+			await toast.promise(createTagPromise, {
+				loading: "Creando etiqueta",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					onSuccess?.();
+					return "Etiqueta creada";
+				},
+				error: "Error creando etiqueta",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -33,15 +39,20 @@ export const useTags = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<Company>(
+			const updateTagPromise = axios.put<Company>(
 				api.company.updateTag(tagId),
 				tag,
 			);
-			toast.success("Etiqueta actualizada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al actualizar etiqueta");
+			await toast.promise(updateTagPromise, {
+				loading: "Actualizando etiqueta",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Etiqueta actualizada";
+				},
+				error: "Error actualizando etiqueta",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -49,14 +60,19 @@ export const useTags = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<Company>(
+			const deleteTagPromise = axios.delete<Company>(
 				api.company.deleteTag(tagId),
 			);
-			toast.success("Etiqueta eliminada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al eliminar etiqueta");
+			await toast.promise(deleteTagPromise, {
+				loading: "Eliminando etiqueta",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Etiqueta eliminada";
+				},
+				error: "Error eliminando etiqueta",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -84,22 +100,18 @@ export const useHandleTags = (tag?: Tag) => {
 	};
 
 	const handleCreate = async (
-		createTag: (tag: TagDto) => Promise<Company | undefined>,
+		createTag: (tag: TagDto, onSuccess?: Function) => Promise<void>,
 	) => {
 		if (!data.name) {
 			return toast.message("Datos incompletos", {
 				description: "Todos los campos con * son obligatorios",
 			});
 		}
-		await createTag(data).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
+		await createTag(data, resetForm);
 	};
 
 	const handleUpdateTag = (
-		updateTag: (tag: TagDto, tagId: string) => Promise<Company | undefined>,
+		updateTag: (tag: TagDto, tagId: string) => Promise<void>,
 		id: string,
 	) => {
 		if (!data.name) {

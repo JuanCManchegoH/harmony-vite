@@ -4,6 +4,7 @@ interface InsetLabelProps {
 	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	label: string;
 	placeholder: string;
+	autoComplete?: string;
 	type: string;
 }
 
@@ -12,6 +13,7 @@ function InsetLabel({
 	label,
 	type,
 	placeholder,
+	autoComplete,
 	value,
 	onChange,
 }: InsetLabelProps) {
@@ -23,6 +25,7 @@ function InsetLabel({
 			<input
 				type={type}
 				value={value}
+				autoComplete={autoComplete}
 				onChange={onChange}
 				className="block w-full border-0 p-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
 				placeholder={placeholder}

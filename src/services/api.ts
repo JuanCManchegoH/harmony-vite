@@ -44,12 +44,14 @@ const api = {
 	},
 	customers: {
 		create: `${API}/customers`,
+		createAndUpdate: `${API}/customers/createAndUpdate`,
 		getByCompany: `${API}/customers/`,
 		update: (customerId: string) => `${API}/customers/${customerId}`,
 		delete: (customerId: string) => `${API}/customers/${customerId}`,
 	},
 	workers: {
 		create: `${API}/workers`,
+		createAndUpdate: `${API}/workers/createAndUpdate`,
 		search: (search: string, limit: number, offset: number) =>
 			`${API}/workers/${search}/${limit}/${offset}`,
 		getByIds: `${API}/workers/array`,

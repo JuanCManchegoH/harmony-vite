@@ -146,15 +146,16 @@ export default function StallInfo({
 				<section className="grid gap-2 my-2 pt-2 border-t">
 					<div className="flex justify-between items-center">
 						<Title>Personal</Title>
-						{workers.length > 0 && (
-							<Cog6ToothIcon
-								className={classNames(
-									deleteVisible ? "text-sky-500" : "text-gray-500",
-									"w-5 h-5 hover:text-sky-600 cursor-pointer",
-								)}
-								onClick={() => setDeleteVisible(!deleteVisible)}
-							/>
-						)}
+						{validateRoles(profile.roles, [], ["handle_stalls"]) &&
+							workers.length > 0 && (
+								<Cog6ToothIcon
+									className={classNames(
+										deleteVisible ? "text-sky-500" : "text-gray-500",
+										"w-5 h-5 hover:text-sky-600 cursor-pointer",
+									)}
+									onClick={() => setDeleteVisible(!deleteVisible)}
+								/>
+							)}
 					</div>
 					{workers.length === 0 && (
 						<div className="col-span-2">

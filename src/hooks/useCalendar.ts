@@ -1,3 +1,9 @@
+import axios from "axios";
+import { differenceInDays, isAfter } from "date-fns";
+import Cookie from "js-cookie";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { toast } from "sonner";
+import api from "../services/api";
 import { Profile } from "../services/auth/types";
 import { Convention } from "../services/company/types";
 import { CustomerWithId } from "../services/customers/types";
@@ -5,14 +11,11 @@ import { CreateShift, ShiftWithId } from "../services/shifts/types";
 import { StallWithId } from "../services/stalls/types";
 import { WorkerWithId } from "../services/workers/types";
 import { calendarColors } from "../utils/colors";
-import { MonthDay, getDays } from "../utils/dates";
+import { DateToSring, MonthDay, getDays } from "../utils/dates";
 import { getHour } from "../utils/hours";
 import { useCustomers } from "./useCustomers";
 import { HandleShiftsData, useShifts } from "./useShifts";
 import { useStalls } from "./useStalls";
-// import { useAppDispatch } from "./store";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export function useCalendar(
 	customers: CustomerWithId[],
@@ -20,7 +23,6 @@ export function useCalendar(
 	stalls: StallWithId[],
 	shifts: ShiftWithId[],
 ) {
-	// const dispatch = useAppDispatch();
 	const { getCustomers } = useCustomers(customers);
 	const { getStallsByCustomer } = useStalls(stalls, shifts);
 	const { getEvents } = useShifts(shifts, stalls);
@@ -61,7 +63,6 @@ export function useCalendar(
 				types,
 			);
 	}, [selectedCustomer, selectedMonth, selectedYear]);
-
 	useEffect(() => {
 		const types = ["event", "customer"];
 		view === "events" && getEvents([selectedMonth], [selectedYear], types);
@@ -158,7 +159,7 @@ export function useCreateEvent(
 			sequence: selectedSequence,
 			type: selectedStall?.id === actualCustomer?.id ? "customer" : "event",
 			active: true,
-			keep: selectedConvention?.keep || true,
+			keep: selectedConvention ? selectedConvention.keep : true,
 			worker: selectedWorker?.id || "",
 			workerName: selectedWorker?.name || "",
 			stall: selectedStall?.id || "",
@@ -240,6 +241,156 @@ export const useHandleEvents = () => {
 		handleDeleteEvents,
 		selectedDelete,
 		setSelectedDelete,
+	};
+};
+
+export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
+	const [selectedStalls, setSelectedStalls] = useState<StallWithId[]>([]);
+	const month = new Date().getMonth().toString();
+	const year = new Date().getFullYear().toString();
+	const [targetMonth, setTargetMonth] = useState<string>(month);
+	const [targetYear, setTargetYear] = useState<string>(year);
+	const targetMonthDays = getDays(targetMonth, targetYear);
+	const actualMonthDays = getDays(month, year);
+
+	useEffect(() => {
+		setSelectedStalls(stalls);
+	}, [stalls]);
+
+	const access_token = Cookie.get("access_token");
+	axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+
+	async function handlePropose() {
+		const isSame = targetMonth === month && targetYear === year;
+		if (isAfter(actualMonthDays[0].date, targetMonthDays[0].date)) {
+			return toast.message("Datos incorrectos", {
+				description: "El mes de destino no puede ser anterior al actual",
+			});
+		}
+		if (isSame) {
+			return toast.message("Datos incorrectos", {
+				description: "El mes de destino no puede ser el mismo que el actual",
+			});
+		}
+
+		for (let i = 0; i < selectedStalls.length; i++) {
+			const shiftsToPropose: CreateShift[] = [];
+			const stall = selectedStalls[i];
+			const { workers } = stall;
+			const daysBetween = differenceInDays(
+				targetMonthDays[0].date,
+				actualMonthDays[0].date,
+			);
+
+			const newWorkers = workers
+				.filter(
+					(worker) =>
+						!events.some(
+							(event) =>
+								event.worker === worker.id &&
+								event.keep === false &&
+								event.stall === stall.id,
+						),
+				)
+				.map((worker) => {
+					const { sequence, index, jump } = worker;
+					const newJump = 0;
+					const newIndex = (index + daysBetween - jump - 1) % sequence.length;
+					const newWorkerData = {
+						...worker,
+						index: newIndex,
+						jump: newJump,
+					};
+					return newWorkerData;
+				});
+
+			const newStallData = {
+				...stall,
+				workers: newWorkers,
+				month: targetMonth,
+				year: targetYear,
+			};
+
+			newWorkers.forEach((worker) => {
+				if (worker.sequence.length === 0) return;
+				const { sequence, index } = worker;
+				const shifts = targetMonthDays.map((day, i) => {
+					const step = sequence[(index + i) % sequence.length];
+					return {
+						worker: worker.id,
+						workerName: worker.name,
+						stall: "",
+						stallName: stall.name,
+						customer: stall.customer,
+						customerName: stall.customerName,
+						type: step.color === "green" ? "shift" : "rest",
+						abbreviation: step.color === "green" ? "T" : "X",
+						description: step.color === "green" ? "Turno" : "Descanso",
+						active: true,
+						keep: true,
+						position: "",
+						sequence: "",
+						day: DateToSring(day.date),
+						startTime: step.startTime || "",
+						endTime: step.endTime || "",
+						color: step.color || "gray",
+						month: targetMonth,
+						year: targetYear,
+					};
+				});
+				shiftsToPropose.push(...shifts);
+			});
+
+			console.log(shiftsToPropose);
+
+			async function createSequence(shifts: CreateShift[]) {
+				if (shifts.length > 0) {
+					const createShiftPromise = axios.post<ShiftWithId[]>(
+						api.shifts.createMany,
+						{ shifts: shifts },
+					);
+					await toast.promise(createShiftPromise, {
+						loading: `Creando turnos del puesto ${i + 1} de ${
+							selectedStalls.length
+						}}`,
+						success: () => {
+							return "Turnos y descansos creados";
+						},
+						error: "Error creando turnos",
+					});
+				}
+			}
+
+			const createStallPromise = axios.post<StallWithId>(
+				api.stalls.create,
+				newStallData,
+			);
+			try {
+				toast.promise(createStallPromise, {
+					loading: `Creando puesto ${i + 1} de ${selectedStalls.length}}`,
+					success: ({ data }) => {
+						shiftsToPropose.forEach((shift) => {
+							shift.stall = data.id;
+							shift.stallName = data.name;
+						});
+						createSequence(shiftsToPropose);
+						return "Puesto creado";
+					},
+					error: "Error creando puesto",
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
+	}
+	return {
+		selectedStalls,
+		setSelectedStalls,
+		targetMonth,
+		setTargetMonth,
+		targetYear,
+		setTargetYear,
+		handlePropose,
 	};
 };
 

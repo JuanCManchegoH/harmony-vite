@@ -17,19 +17,25 @@ interface SequenceDto {
 export const useSequences = () => {
 	const dispatch = useAppDispatch();
 
-	async function createSequence(sequence: SequenceDto) {
+	async function createSequence(sequence: SequenceDto, onSuccess?: Function) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<Company>(
+			const createSequencePromise = axios.post<Company>(
 				api.company.createSequence,
 				sequence,
 			);
-			toast.success("Secuencia creada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al crear secuencia");
+			await toast.promise(createSequencePromise, {
+				loading: "Creando secuencia",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					onSuccess?.();
+					return "Secuencia creada";
+				},
+				error: "Error creando secuencia",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -37,15 +43,20 @@ export const useSequences = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<Company>(
+			const updateSequencePromise = axios.put<Company>(
 				api.company.updateSequence(sequenceId),
 				sequence,
 			);
-			toast.success("Secuencia actualizada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al actualizar secuencia");
+			await toast.promise(updateSequencePromise, {
+				loading: "Actualizando secuencia",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Secuencia actualizada";
+				},
+				error: "Error actualizando secuencia",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -53,14 +64,19 @@ export const useSequences = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<Company>(
+			const deleteSequencePromise = axios.delete<Company>(
 				api.company.deleteSequence(sequenceId),
 			);
-			toast.success("Secuencia eliminada");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al eliminar secuencia");
+			await toast.promise(deleteSequencePromise, {
+				loading: "Eliminando secuencia",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Secuencia eliminada";
+				},
+				error: "Error eliminando secuencia",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -96,7 +112,10 @@ export const useHandleSequences = (sequence?: Sequence) => {
 		setSelectedColor(sequenceGroups[0]);
 	};
 	const handleCreateSequence = (
-		createSequence: (sequence: SequenceDto) => Promise<Company | undefined>,
+		createSequence: (
+			sequence: SequenceDto,
+			onSuccess?: Function,
+		) => Promise<void>,
 	) => {
 		if (!times.name) {
 			return toast.message("Datos incompletos", {
@@ -112,18 +131,14 @@ export const useHandleSequences = (sequence?: Sequence) => {
 			name: times.name,
 			steps,
 		};
-		createSequence(sequenceData).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
+		createSequence(sequenceData, resetForm);
 	};
 
 	const handleUpdateSequence = (
 		updateSequence: (
 			sequence: SequenceDto,
 			sequenceId: string,
-		) => Promise<Company | undefined>,
+		) => Promise<void>,
 		id: string,
 	) => {
 		if (!times.name) {

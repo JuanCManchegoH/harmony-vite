@@ -2,32 +2,42 @@ export const roles = [
 	{
 		name: "Solo lectura",
 		level: 0,
-		roles: ["read_workers", "read_customers", "read_stalls", "read_events"],
+		roles: ["read_workers", "read_customers", "read_stalls", "read_shifts"],
 		dependencies: [],
 	},
 	{
 		name: "Personal",
 		level: 1,
 		roles: ["read_workers", "handle_workers"],
-		dependencies: ["read_stalls", "read_events", "read_customers"],
+		dependencies: ["read_stalls", "read_customers", "read_shifts"],
 	},
 	{
 		name: "Clientes",
 		level: 2,
 		roles: ["read_customers", "handle_customers"],
-		dependencies: ["read_stalls", "read_events", "read_workers"],
+		dependencies: ["read_stalls", "read_workers", "read_shifts"],
 	},
 	{
 		name: "Crear eventos",
 		level: 3,
 		roles: ["create_shifts"],
-		dependencies: ["read_workers", "read_customers", "read_stalls"],
+		dependencies: [
+			"read_workers",
+			"read_customers",
+			"read_stalls",
+			"read_shifts",
+		],
 	},
 	{
 		name: "Gestionar eventos",
 		level: 4,
 		roles: ["handle_shifts"],
-		dependencies: ["read_workers", "read_customers", "read_stalls"],
+		dependencies: [
+			"read_workers",
+			"read_customers",
+			"read_stalls",
+			"read_shifts",
+		],
 	},
 	{
 		name: "Programador",

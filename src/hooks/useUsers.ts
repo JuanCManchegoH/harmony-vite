@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Profile } from "../services/auth/types";
-import { setLoading, setUsers } from "../services/users/slice";
+import { setUsers } from "../services/users/slice";
 import { CreateUser, UpdateUser, UsersWithId } from "../services/users/types";
 import { roles } from "../utils/roles";
 import { useAppDispatch } from "./store";
@@ -14,67 +14,81 @@ export const useUsers = (profile: Profile, users: UsersWithId[]) => {
 	const companyId = profile.company.id;
 
 	const getUsers = async () => {
-		dispatch(setLoading(true));
-		const access_token = Cookie.get("access_token");
 		try {
+			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 			const { data } = await axios.get<UsersWithId[]>(
 				api.users.getByCompany(companyId),
 			);
 			dispatch(setUsers(data));
-		} catch {
-		} finally {
-			dispatch(setLoading(false));
+		} catch (error) {
+			console.log(error);
 		}
 	};
 
-	async function createUser(user: CreateUser) {
+	async function createUser(user: CreateUser, onSuccess?: Function) {
 		try {
-			dispatch(setLoading(true));
 			user.company = companyId;
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<UsersWithId>(api.users.create, user);
-			dispatch(setUsers([...users, data]));
-			toast.success("Usuario creado correctamente");
-			return data;
+			const createUserPromise = axios.post<UsersWithId>(api.users.create, user);
+			await toast.promise(createUserPromise, {
+				loading: "Creando usuario",
+				success: ({ data }) => {
+					dispatch(setUsers([...users, data]));
+					onSuccess?.();
+					return "Usuario creado";
+				},
+				error: "Error creando usuario",
+			});
 		} catch (error) {
-			toast.error("Error al crear el usuario");
-		} finally {
-			dispatch(setLoading(false));
+			console.log(error);
 		}
 	}
 
-	async function updateUser(user: UpdateUser, id: string) {
+	async function updateUser(
+		user: UpdateUser,
+		id: string,
+		onSuccess?: Function,
+	) {
 		try {
-			dispatch(setLoading(true));
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<UsersWithId>(api.users.update(id), user);
-			const newUsers = users.map((u) => (u.id === id ? data : u));
-			dispatch(setUsers(newUsers));
-			toast.success("Usuario actualizado correctamente");
-			return data;
+			const updateUserPromise = axios.put<UsersWithId>(
+				api.users.update(id),
+				user,
+			);
+			await toast.promise(updateUserPromise, {
+				loading: "Actualizando usuario",
+				success: ({ data }) => {
+					const newUsers = users.map((u) => (u.id === id ? data : u));
+					dispatch(setUsers(newUsers));
+					onSuccess?.();
+					return "Usuario actualizado";
+				},
+				error: "Error actualizando usuario",
+			});
 		} catch (error) {
-			toast.error("Error al actualizar el usuario");
-		} finally {
-			dispatch(setLoading(false));
+			console.log(error);
 		}
 	}
 
 	async function deleteUser(id: string) {
 		try {
-			dispatch(setLoading(true));
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			await axios.delete(api.users.delete(id));
-			const newUsers = users.filter((u) => u.id !== id);
-			dispatch(setUsers(newUsers));
-			return toast.success("Usuario eliminado correctamente");
+			const deleteUserPromise = axios.delete(api.users.delete(id));
+			await toast.promise(deleteUserPromise, {
+				loading: "Eliminando usuario",
+				success: () => {
+					const newUsers = users.filter((u) => u.id !== id);
+					dispatch(setUsers(newUsers));
+					return "Usuario eliminado";
+				},
+				error: "Error eliminando usuario",
+			});
 		} catch (error) {
-			toast.error("Error al eliminar el usuario");
-		} finally {
-			dispatch(setLoading(false));
+			console.log(error);
 		}
 	}
 
@@ -130,7 +144,7 @@ export const useHandleUser = (user?: UsersWithId) => {
 		return newUserRoles;
 	};
 	const handleCreateUser = (
-		createUser: (user: CreateUser) => Promise<UsersWithId | undefined>,
+		createUser: (user: CreateUser, onSuccess?: Function) => Promise<void>,
 	) => {
 		// Validations
 		const isEmpty = !data.userName || !data.email || !data.password;
@@ -153,23 +167,27 @@ export const useHandleUser = (user?: UsersWithId) => {
 		//Action
 		const newUserRoles = getNewUserRoles(data.selectedRoles);
 		const { repPassword, ...user } = data;
-		createUser({
-			...user,
-			roles: newUserRoles,
-			customers:
-				data.selectedCustomers.length === 0 ? ["all"] : data.selectedCustomers,
-			workers:
-				data.selectedWorkers.length === 0 ? ["all"] : data.selectedWorkers,
-		}).then((res) => {
-			if (res) resetData();
-		});
+		createUser(
+			{
+				...user,
+				roles: newUserRoles,
+				customers:
+					data.selectedCustomers.length === 0
+						? ["all"]
+						: data.selectedCustomers,
+				workers:
+					data.selectedWorkers.length === 0 ? ["all"] : data.selectedWorkers,
+			},
+			resetData,
+		);
 	};
 
 	const handleUpdateUser = (
 		updateUser: (
 			user: UpdateUser,
 			id: string,
-		) => Promise<UsersWithId | undefined>,
+			onSuccess?: Function,
+		) => Promise<void>,
 		id: string,
 	) => {
 		// Validations

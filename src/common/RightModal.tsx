@@ -1,6 +1,6 @@
-import { Dialog, Transition } from "@headlessui/react";
-import { ListBulletIcon } from "@heroicons/react/24/solid";
-import { Button } from "@tremor/react";
+import { Transition } from "@headlessui/react";
+import { ListBulletIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { Button, Title } from "@tremor/react";
 import React, { Dispatch, Fragment, SetStateAction, useState } from "react";
 import { IconType } from "./CustomToggle";
 import Toggle from "./Toggle";
@@ -27,7 +27,7 @@ export default function RightModal({
 	const [enabled, setEnabled] = useState(disabled || false);
 	return (
 		<Transition.Root show={open} as={Fragment}>
-			<Dialog as="div" className="relative z-20" onClose={setOpen}>
+			<section className="relative z-20">
 				<div className="fixed inset-0" />
 
 				<div className="fixed inset-0 overflow-hidden">
@@ -42,7 +42,7 @@ export default function RightModal({
 								leaveFrom="translate-x-0"
 								leaveTo="translate-x-full"
 							>
-								<Dialog.Panel className="pointer-events-auto w-screen max-w-xl">
+								<div className="pointer-events-auto w-screen max-w-xl">
 									<div className="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl">
 										<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
 											<div className="flex items-center px-4 border-b py-4 bg-gray-50 gap-2">
@@ -52,10 +52,14 @@ export default function RightModal({
 												) : (
 													<ListBulletIcon className="h-6 w-6 text-sky-600" />
 												)}
-												<Dialog.Title className="text-base font-semibold leading-6 text-sky-700 uppercase">
+												<Title className="text-base font-semibold leading-6 text-sky-700 uppercase">
 													{title}
-												</Dialog.Title>
+												</Title>
 											</div>
+											<XMarkIcon
+												className="absolute top-4 right-4 h-6 w-6 text-gray-400 cursor-pointer"
+												onClick={() => setOpen(false)}
+											/>
 											<div className="relative flex-1 p-4 bg-gray-50">
 												{children}
 											</div>
@@ -94,12 +98,12 @@ export default function RightModal({
 											</div>
 										)}
 									</div>
-								</Dialog.Panel>
+								</div>
 							</Transition.Child>
 						</div>
 					</div>
 				</div>
-			</Dialog>
+			</section>
 		</Transition.Root>
 	);
 }

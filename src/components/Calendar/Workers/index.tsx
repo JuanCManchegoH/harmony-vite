@@ -2,16 +2,23 @@ import {
 	ArrowLongLeftIcon,
 	ArrowLongRightIcon,
 	ArrowSmallRightIcon,
+	ArrowUpTrayIcon,
 	IdentificationIcon,
 	MagnifyingGlassIcon,
 	TrashIcon,
 } from "@heroicons/react/24/solid";
-import { Button, Card, Text, TextInput } from "@tremor/react";
+import { Button, Card, Icon, Text, TextInput } from "@tremor/react";
 import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import CenteredModal from "../../../common/CenteredModal";
 import Modal from "../../../common/RightModal";
+import Uploader from "../../../common/Uploader";
 import { useAppSelector } from "../../../hooks/store";
-import { useHandleWorker, useWorkers } from "../../../hooks/useWorkers";
+import {
+	useHandleWorker,
+	useUploadFile,
+	useWorkers,
+} from "../../../hooks/useWorkers";
 import { WorkerWithId } from "../../../services/workers/types";
 import classNames from "../../../utils/classNames";
 import { validateRoles } from "../../../utils/roles";
@@ -28,6 +35,9 @@ export default function Workers({
 	const profile = useAppSelector((state) => state.auth.profile);
 	const workers = useAppSelector((state) => state.workers.workers);
 	const { createWorker, updateWorker, searchWorkers } = useWorkers(workers);
+	const { file, setFile, handleUpload, downloadTemplate } = useUploadFile(
+		profile.company.workerFields,
+	);
 	const {
 		resetForm,
 		data,
@@ -37,6 +47,8 @@ export default function Workers({
 		handleCreate,
 		handleUpdate,
 	} = useHandleWorker(profile.company.workerFields);
+
+	const [openUpload, setOpenUpload] = useState(false);
 	const [openWorker, setOpenWorker] = useState(false);
 	const [openDelete, setOpenDelete] = useState(false);
 	const [search, setSearch] = useState("");
@@ -146,6 +158,17 @@ export default function Workers({
 							{openWorker || selectedWorker ? "Volver" : "Crear Persona"}
 						</Button>
 					)}
+					{validateRoles(profile.roles, ["handle_workers"], []) &&
+						!openWorker &&
+						!selectedWorker && (
+							<Icon
+								className="cursor-pointer"
+								icon={ArrowUpTrayIcon}
+								variant="solid"
+								color="gray"
+								onClick={() => setOpenUpload(!openUpload)}
+							/>
+						)}
 				</header>
 				{!openWorker && !selectedWorker && (
 					<form
@@ -212,6 +235,20 @@ export default function Workers({
 					</>
 				)}
 			</section>
+			<CenteredModal
+				icon={IdentificationIcon}
+				open={openUpload}
+				setOpen={setOpenUpload}
+				title="Subir Personal"
+				btnText="Subir"
+				action={handleUpload}
+			>
+				<Uploader
+					selected={file}
+					setSelected={setFile}
+					downloadTemplate={downloadTemplate}
+				/>
+			</CenteredModal>
 		</Modal>
 	);
 }

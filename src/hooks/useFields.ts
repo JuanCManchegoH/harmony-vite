@@ -19,21 +19,31 @@ interface FieldDto {
 export const useFields = () => {
 	const dispatch = useAppDispatch();
 
-	async function createField(field: FieldDto, type: string) {
+	async function createField(
+		field: FieldDto,
+		type: string,
+		onSuccess?: Function,
+	) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<Company>(
+			const createFieldPromise = axios.post<Company>(
 				type === "customers"
 					? api.company.createCustomerField
 					: api.company.createWorkerField,
 				field,
 			);
-			toast.success("Campo creado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al crear campo");
+			await toast.promise(createFieldPromise, {
+				loading: "Creando campo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					onSuccess?.();
+					return "Campo creado";
+				},
+				error: "Error creando campo",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -41,17 +51,22 @@ export const useFields = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<Company>(
+			const updateFieldPromise = axios.put<Company>(
 				type === "customers"
 					? api.company.updateCustomerField(fieldId)
 					: api.company.updateWorkerField(fieldId),
 				field,
 			);
-			toast.success("Campo actualizado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al actualizar campo");
+			await toast.promise(updateFieldPromise, {
+				loading: "Actualizando campo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Campo actualizado";
+				},
+				error: "Error actualizando campo",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -59,16 +74,21 @@ export const useFields = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<Company>(
+			const deleteFieldPromise = axios.delete<Company>(
 				type === "customers"
 					? api.company.deleteCustomerField(fieldId)
 					: api.company.deleteWorkerField(fieldId),
 			);
-			toast.success("Campo eliminado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al eliminar campo");
+			await toast.promise(deleteFieldPromise, {
+				loading: "Eliminando campo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Campo eliminado";
+				},
+				error: "Error eliminando campo",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -104,7 +124,8 @@ export const useHandleField = (field?: FieldDto) => {
 		createField: (
 			field: FieldDto,
 			type: string,
-		) => Promise<Company | undefined>,
+			onSuccess?: Function,
+		) => Promise<void>,
 		type: string,
 	) => {
 		if (!data.name || !data.size || !data.type) {
@@ -118,24 +139,11 @@ export const useHandleField = (field?: FieldDto) => {
 			});
 		}
 		const { option, ...rest } = data;
-		createField(
-			{
-				...rest,
-			},
-			type,
-		).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
+		createField({ ...rest }, type, resetForm);
 	};
 
 	const handleUpdateField = (
-		updateField: (
-			field: FieldDto,
-			id: string,
-			type: string,
-		) => Promise<Company | undefined>,
+		updateField: (field: FieldDto, id: string, type: string) => Promise<void>,
 		type: string,
 		id: string,
 	) => {

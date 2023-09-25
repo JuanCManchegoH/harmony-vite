@@ -31,6 +31,7 @@ export default function HandleUser({
 			<InsetLabel
 				label="Nombre de usuario"
 				type="text"
+				autoComplete="username"
 				placeholder="Nombre de usuario*"
 				value={data.userName}
 				onChange={(e) => setData({ ...data, userName: e.target.value })}
@@ -38,6 +39,7 @@ export default function HandleUser({
 			<InsetLabel
 				label="Correo"
 				type="email"
+				autoComplete="email"
 				placeholder="Correo electrónico*"
 				value={data.email}
 				onChange={(e) => setData({ ...data, email: e.target.value })}
@@ -47,6 +49,7 @@ export default function HandleUser({
 					<InsetLabel
 						label="Contraseña"
 						type="password"
+						autoComplete="new-password"
 						placeholder="Contraseña*"
 						value={data.password}
 						onChange={(e) => setData({ ...data, password: e.target.value })}
@@ -54,6 +57,7 @@ export default function HandleUser({
 					<InsetLabel
 						label="Repetir contraseña"
 						type="password"
+						autoComplete="new-password"
 						placeholder="Repetir contraseña*"
 						value={data.repPassword}
 						onChange={(e) => setData({ ...data, repPassword: e.target.value })}

@@ -1,13 +1,7 @@
 import { IdentificationIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import {
-	Card,
-	Subtitle,
-	Table,
-	TableCell,
-	TableRow,
-	Text,
-} from "@tremor/react";
+import { Card, Subtitle, Text } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
+import { toast } from "sonner";
 import EmptyState from "../../../common/EmptyState";
 import { useAppSelector } from "../../../hooks/store";
 import { WorkerData, useWorkers } from "../../../hooks/useWorkers";
@@ -65,45 +59,59 @@ export default function List({
 	};
 
 	return (
-		<Card className="p-2">
+		<Card className="px-2 py-0">
 			{workers.length <= 0 && (
-				<EmptyState>
-					<IdentificationIcon className="w-10 h-10 text-sky-500" />
-					<Text className="text-gray-600">
-						Aquí aparecerá el personal que coincida con tu búsqueda
-					</Text>
-					<Text className="text-gray-400">
-						La búsqueda debe tener al menos 4 caracteres
-					</Text>
-				</EmptyState>
+				<div className="py-2">
+					<EmptyState>
+						<IdentificationIcon className="w-10 h-10 text-sky-500" />
+						<Text className="text-gray-600">
+							Aquí aparecerá el personal que coincida con tu búsqueda
+						</Text>
+						<Text className="text-gray-400">
+							La búsqueda debe tener al menos 4 caracteres
+						</Text>
+					</EmptyState>
+				</div>
 			)}
-			<Table className="overflow-visible">
+			<ul className="divide-y divide-gray-200 select-none">
 				{workers.map((worker) => (
-					<TableRow key={worker.id} className="border-b">
-						{openDelete && (
-							<TableCell className="p-2">
-								<XMarkIcon
-									className="w-5 h-5 cursor-pointer hover:text-red-500"
-									onClick={() => deleteWorker(worker.id, workers)}
-								/>
-							</TableCell>
-						)}
-						<TableCell
-							className="p-2 cursor-pointer group"
+					<li key={worker.id} className="grid grid-cols-4">
+						<button
+							type="button"
+							className="p-2 cursor-pointer group col-span-2 text-left"
 							onClick={() => {
 								handleSelect(worker);
 								setSelectedWorker(worker);
 							}}
 						>
-							<Text className="group-hover:text-sky-500">{worker.name}</Text>
-							<Subtitle className="group-hover:text-sky-900">
+							<Text className="group-hover:text-sky-500 truncate max-w-[220px]">
+								{worker.name}
+							</Text>
+							<Subtitle className="group-hover:text-sky-900 text-sm">
 								{worker.identification}
 							</Subtitle>
-						</TableCell>
-						<TableCell className="p-2">{worker.city}</TableCell>
-					</TableRow>
+						</button>
+						<Subtitle className="p-2 flex justify-end items-center text-sm">
+							{worker.city}
+						</Subtitle>
+						{openDelete && (
+							<div className="p-2 flex justify-end items-center">
+								<XMarkIcon
+									className="w-5 h-5 cursor-pointer hover:text-red-500"
+									onClick={() =>
+										toast("Confirmar acción", {
+											action: {
+												label: "Eliminar",
+												onClick: () => deleteWorker(worker.id),
+											},
+										})
+									}
+								/>
+							</div>
+						)}
+					</li>
 				))}
-			</Table>
+			</ul>
 		</Card>
 	);
 }

@@ -9,7 +9,12 @@ import Statistics from "./pages/Statistics";
 function App() {
 	return (
 		<>
-			<Toaster richColors closeButton position="bottom-center" />
+			<Toaster
+				richColors
+				closeButton
+				position="bottom-center"
+				className="z-50"
+			/>
 			<div className="h-full">
 				<Routes>
 					<Route path="/" element={<Home />} />

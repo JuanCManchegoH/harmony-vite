@@ -16,18 +16,24 @@ interface PositionDto {
 export const usePositions = () => {
 	const dispatch = useAppDispatch();
 
-	async function createPosition(position: PositionDto) {
+	async function createPosition(position: PositionDto, onSuccess?: Function) {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.post<Company>(
+			const createPositionPromise = axios.post<Company>(
 				api.company.createPosition,
 				position,
 			);
-			toast.success("Cargo creado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
+			await toast.promise(createPositionPromise, {
+				loading: "Creando cargo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					onSuccess?.();
+					return "Cargo creado";
+				},
+				error: "Error creando cargo",
+			});
+		} catch (error) {
 			toast.error("Error al crear cargo");
 		}
 	}
@@ -36,15 +42,20 @@ export const usePositions = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.put<Company>(
+			const updatePositionPromise = axios.put<Company>(
 				api.company.updatePosition(positionId),
 				position,
 			);
-			toast.success("Cargo actualizado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al actualizar cargo");
+			await toast.promise(updatePositionPromise, {
+				loading: "Actualizando cargo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Cargo actualizado";
+				},
+				error: "Error actualizando cargo",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -52,14 +63,19 @@ export const usePositions = () => {
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-			const { data } = await axios.delete<Company>(
+			const deletePositionPromise = axios.delete<Company>(
 				api.company.deletePosition(positionId),
 			);
-			toast.success("Cargo eliminado");
-			dispatch(setCompany(data));
-			return data;
-		} catch {
-			toast.error("Error al eliminar cargo");
+			await toast.promise(deletePositionPromise, {
+				loading: "Eliminando cargo",
+				success: ({ data }) => {
+					dispatch(setCompany(data));
+					return "Cargo eliminado";
+				},
+				error: "Error eliminando cargo",
+			});
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -83,7 +99,10 @@ export const useHandlePosition = (position?: Position) => {
 	};
 
 	const handleCreatePosition = (
-		createPosition: (position: PositionDto) => Promise<Company | undefined>,
+		createPosition: (
+			position: PositionDto,
+			onSuccess?: Function,
+		) => Promise<void>,
 	) => {
 		if (!data.name || !data.year) {
 			return toast.message("Datos incompletos", {
@@ -95,18 +114,14 @@ export const useHandlePosition = (position?: Position) => {
 			year: parseInt(data.year),
 			value: data.value || 0,
 		};
-		createPosition(positionData).then((res) => {
-			if (res) {
-				resetForm();
-			}
-		});
+		createPosition(positionData, resetForm);
 	};
 
 	const handleUpdatePosition = (
 		updatePosition: (
 			position: PositionDto,
 			positionId: string,
-		) => Promise<Company | undefined>,
+		) => Promise<void>,
 		id: string,
 	) => {
 		if (!data.name || !data.year) {
