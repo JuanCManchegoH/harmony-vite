@@ -260,27 +260,18 @@ export default function Calendar() {
 				)}
 			</Card>
 			<Card className="bg-gray-50 p-2 overflow-y-auto">
-				<header className="flex justify-between border-b h-12">
+				<header className="grid grid-cols-3 border-b h-12 gap-2">
 					{calendarData.view === "stalls" && (
 						<>
-							<div className="flex items-start gap-2">
-								<Badge
-									size="xl"
-									color="sky"
-									icon={UserGroupIcon}
-									className="font-bold"
-									tooltip={calendarData.actualCustomer?.name}
+							<div className="col-span-2 flex items-start gap-2">
+								<Title
+									className="truncate underline"
+									title={calendarData.actualCustomer?.name}
 								>
-									{calendarData.actualCustomer &&
-									calendarData.actualCustomer.name.length > 30
-										? `${calendarData.actualCustomer?.name?.substring(
-												0,
-												30,
-										  )}...`
-										: calendarData.actualCustomer?.name}
-								</Badge>
+									{calendarData.actualCustomer?.name}
+								</Title>
 							</div>
-							<div className="flex items-center gap-2">
+							<div className="flex items-start gap-2 justify-end">
 								<>
 									<Icon
 										icon={UserGroupIcon}

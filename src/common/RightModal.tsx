@@ -1,7 +1,13 @@
 import { Transition } from "@headlessui/react";
 import { ListBulletIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Button, Title } from "@tremor/react";
-import React, { Dispatch, Fragment, SetStateAction, useState } from "react";
+import React, {
+	Dispatch,
+	Fragment,
+	SetStateAction,
+	useEffect,
+	useState,
+} from "react";
 import { IconType } from "./CustomToggle";
 import Toggle from "./Toggle";
 
@@ -25,11 +31,21 @@ export default function RightModal({
 	action?: Function;
 }) {
 	const [enabled, setEnabled] = useState(disabled || false);
+
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setOpen(false);
+		};
+		window.addEventListener("keydown", handleEscape);
+		return () => {
+			window.removeEventListener("keydown", handleEscape);
+		};
+	}, [setOpen]);
+
 	return (
 		<Transition.Root show={open} as={Fragment}>
 			<section className="relative z-20">
 				<div className="fixed inset-0" />
-
 				<div className="fixed inset-0 overflow-hidden">
 					<div className="absolute inset-0 overflow-hidden bg-gray-800 bg-opacity-20">
 						<div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
@@ -42,10 +58,10 @@ export default function RightModal({
 								leaveFrom="translate-x-0"
 								leaveTo="translate-x-full"
 							>
-								<div className="pointer-events-auto w-screen max-w-xl">
+								<div className="pointer-events-auto w-screen max-w-2xl">
 									<div className="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl">
-										<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-											<div className="flex items-center px-4 border-b py-4 bg-gray-50 gap-2">
+										<div className="flex min-h-0 flex-1 flex-col">
+											<div className="flex items-center px-4 border-b py-4 bg-gray-50 gap-2 sticky top-0 z-10">
 												{/* icon or default icon */}
 												{Icon ? (
 													<Icon className="h-6 w-6 text-sky-600" />
@@ -55,14 +71,16 @@ export default function RightModal({
 												<Title className="text-base font-semibold leading-6 text-sky-700 uppercase">
 													{title}
 												</Title>
+												<XMarkIcon
+													className="absolute top-4 right-4 h-6 w-6 text-gray-400 cursor-pointer"
+													onClick={() => setOpen(false)}
+												/>
 											</div>
-											<XMarkIcon
-												className="absolute top-4 right-4 h-6 w-6 text-gray-400 cursor-pointer"
-												onClick={() => setOpen(false)}
-											/>
-											<div className="relative flex-1 p-4 bg-gray-50">
+											<div className="h-4 bg-gray-50" />
+											<div className="relative flex-1 px-4 bg-gray-50 overflow-y-auto">
 												{children}
 											</div>
+											<div className="h-4 bg-gray-50" />
 										</div>
 										{action && (
 											<div className="px-4 py-4 bg-gray-50">

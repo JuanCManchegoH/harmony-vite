@@ -74,15 +74,17 @@ export default function List({
 	return (
 		<Card className="px-2 py-0">
 			{displayCustomers.length <= 0 && (
-				<EmptyState>
-					<UserGroupIcon className="w-10 h-10 text-sky-500" />
-					<Text className="text-gray-600">
-						Aquí aparecerán los clientes que coincida con tu búsqueda
-					</Text>
-					<Text className="text-gray-400">
-						Para ver todos los clientes, solo deja el campo de búsqueda vacío
-					</Text>
-				</EmptyState>
+				<div className="py-2">
+					<EmptyState>
+						<UserGroupIcon className="w-10 h-10 text-sky-500" />
+						<Text className="text-gray-600">
+							Aquí aparecerán los clientes que coincida con tu búsqueda
+						</Text>
+						<Text className="text-gray-400">
+							Para ver todos los clientes, solo deja el campo de búsqueda vacío
+						</Text>
+					</EmptyState>
+				</div>
 			)}
 			<ul className="divide-y divide-gray-200 select-none">
 				{displayCustomers.map((customer) => (

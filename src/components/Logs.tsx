@@ -1,7 +1,16 @@
 import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
-import { Button, Select, SelectItem } from "@tremor/react";
+import {
+	Badge,
+	Button,
+	MultiSelect,
+	MultiSelectItem,
+	Select,
+	SelectItem,
+	Subtitle,
+	Text,
+} from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
-import Label from "../common/Label";
+import Avatar from "../common/Avatar";
 import RightModal from "../common/RightModal";
 import { useAppSelector } from "../hooks/store";
 import { useLogs } from "../hooks/useLogs";
@@ -21,10 +30,13 @@ export default function Logs({
 		selectedYear,
 		setSelectedYear,
 		getLogs,
-	} = useLogs();
+		selectedTypes,
+		setSelectedTypes,
+		uniqueTypes,
+	} = useLogs(logs);
 	return (
 		<RightModal open={open} setOpen={setOpen} icon={BellIcon} title="Registro">
-			<header className="flex justify-between items-center gap-2 sticky top-0 z-10">
+			<header className="flex justify-between items-center gap-2 sticky top-0 z-10 bg-gray-50 pb-2">
 				<div className="flex gap-2">
 					<Select
 						value={selectedMonth}
@@ -46,6 +58,16 @@ export default function Logs({
 							</SelectItem>
 						))}
 					</Select>
+					<MultiSelect
+						value={selectedTypes}
+						onValueChange={(value) => setSelectedTypes(value)}
+					>
+						{uniqueTypes.map((type) => (
+							<MultiSelectItem key={`type-${type}`} value={type}>
+								{type}
+							</MultiSelectItem>
+						))}
+					</MultiSelect>
 				</div>
 				<Button
 					icon={MagnifyingGlassIcon}
@@ -56,31 +78,36 @@ export default function Logs({
 					Buscar
 				</Button>
 			</header>
-			<ul className="flex flex-col gap-2 mt-2">
-				{logs.map((log) => (
-					<li key={log.id} className="p-2 border rounded-md">
-						<header className="flex justify-between border-b pb-2">
-							<div className="flex gap-2">
-								<div className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500">
-									<span className="leading-none text-xs text-white font-pacifico">
-										{log.userName[0]}
-									</span>
-								</div>
-								<p className="flex text-sm items-center">{log.userName}</p>
-							</div>
-							<div className="flex items-center gap-2">
-								<p className="flex text-xs items-center">{log.createdAt}</p>
-							</div>
-						</header>
-						<main className="mt-4">
-							<Label text="Descripción">
+			<ul className="flex flex-col gap-2">
+				{logs
+					.filter((log) => selectedTypes.includes(log.type))
+					.map((log) => (
+						<li className="p-2 border rounded-md">
+							<header className="flex justify-between items-center border-b pb-2">
+								<Text>Nuevo registro</Text>
+								<Badge color="sky">{log.type}</Badge>
+							</header>
+							<main className="mt-2">
 								<div className="p-2 text-sm border rounded-md">
-									{log.message}
+									<Subtitle>Descripción</Subtitle>
+									<Text>{log.message}</Text>
 								</div>
-							</Label>
-						</main>
-					</li>
-				))}
+							</main>
+							<footer className="mt-2 flex justify-between border-t pt-2">
+								<span className="col-span-2 flex items-center gap-2">
+									<Avatar
+										size="xs"
+										title={log.userName}
+										letter={log.userName[0]}
+									/>
+									<Text>{log.userName}</Text>
+								</span>
+								<Subtitle className="flex text-xs items-center">
+									{log.createdAt}
+								</Subtitle>
+							</footer>
+						</li>
+					))}
 			</ul>
 		</RightModal>
 	);

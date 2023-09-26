@@ -42,7 +42,7 @@ export function useCalendar(
 	const [view, setView] = useState<"stalls" | "events">("stalls");
 	useEffect(() => {
 		profile.company.id && getCustomers();
-	}, [profile]);
+	}, [profile.company.id]);
 	useEffect(() => {
 		customers.length > 0 && setSelectedCustomer(customers[0].id);
 	}, [customers]);
@@ -340,8 +340,6 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 				});
 				shiftsToPropose.push(...shifts);
 			});
-
-			console.log(shiftsToPropose);
 
 			async function createSequence(shifts: CreateShift[]) {
 				if (shifts.length > 0) {

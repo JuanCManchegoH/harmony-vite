@@ -166,11 +166,7 @@ export default function useStatistics(
 
 	useEffect(() => {
 		profile.company.id && getCustomers();
-	}, [profile]);
-
-	useEffect(() => {
-		console.log(positionsList);
-	}, [positionsList]);
+	}, [profile.company.id]);
 
 	useEffect(() => {
 		getStadistics();

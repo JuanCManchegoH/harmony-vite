@@ -284,6 +284,26 @@ export const useUploadFile = (fields: CompanyField[]) => {
 		const workSheet = workBook.worksheets[0];
 		const customers: CustomerExcelData[] = [];
 
+		// validate headers
+		const headers = workSheet.getRow(1).values as string[];
+		const headersToValidate = [
+			"Nombre",
+			"Identificación",
+			"Ciudad",
+			"Contacto",
+			"Teléfono",
+			"Dirección",
+			"Etiquetas",
+			"Sedes",
+			...fields.map((field) => field.name),
+		];
+		headers.forEach((header, index) => {
+			if (header !== headersToValidate[index - 1]) {
+				toast.error("Plantilla inválida");
+				throw new Error("Plantilla inválida");
+			}
+		});
+
 		workSheet.eachRow((row, index) => {
 			if (index === 1) return;
 			const customerFields: Field[] = [];
@@ -304,6 +324,11 @@ export const useUploadFile = (fields: CompanyField[]) => {
 			const tags = tagCell ? tagCell.toString().split(",") : [];
 			const branchCell = row.getCell(8).value?.toString();
 			const branches = branchCell ? branchCell.toString().split(",") : [];
+			const city = row.getCell(3).value?.toString() as string;
+			if (!cities.some((c) => c.name === city)) {
+				toast.error(`Ciudad ${city} no existe`);
+				throw new Error(`Ciudad ${city} no existe`);
+			}
 
 			const customer = {
 				name: row.getCell(1).value?.toString() as string,

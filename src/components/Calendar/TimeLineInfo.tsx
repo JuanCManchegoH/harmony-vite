@@ -1,4 +1,4 @@
-import { FlagIcon, IdentificationIcon } from "@heroicons/react/24/solid";
+import { FlagIcon } from "@heroicons/react/24/solid";
 import { Card, MultiSelect, MultiSelectItem, Text, Title } from "@tremor/react";
 import { Dispatch, SetStateAction } from "react";
 import EmptyState from "../../common/EmptyState";
@@ -140,33 +140,33 @@ export default function TimeLineInfo({
 									key={event.id}
 									className={`grid grid-cols-1 gap-1 p-2 border-2 border-${event.color}-500 bg-${event.color}-100 text-${event.color}-700`}
 								>
-									<div className="grid grid-cols-3 gap-2">
-										<p className="col-span-2 flex items-center text-sm font-medium text-left">
-											<div>
-												<IdentificationIcon className="w-5 h-5 mr-1" />
-											</div>
-											<p className="truncate">{event.workerName}</p>
-										</p>
-										<span className="flex text-sm justify-end font-bold">
+									<div
+										className="grid grid-cols-3 gap-2"
+										title={event.workerName}
+									>
+										<span className="col-span-2 flex items-center text-sm font-medium text-left truncate">
+											{event.workerName}
+										</span>
+										<span className="flex text-xs justify-end font-bold">
 											{event.day.substring(0, 5)}
 										</span>
 									</div>
-									<div className="grid grid-cols-2 gap-2">
-										<p className="text-sm text-left truncate font-bold">
+									<div className="grid grid-cols-2 gap-2 text-xs">
+										<span className="text-left truncate font-bold">
 											{event.abbreviation} | {event.startTime} - {event.endTime}
-										</p>
-										<span className="flex text-sm justify-end font-bold">
+										</span>
+										<span className="flex justify-end font-bold">
 											{minutesToString(minutes)}H
 										</span>
 									</div>
 									{event.customer !== event.stall && (
-										<span className="text-sm text-left truncate font-bold">
+										<span className="text-xs text-left truncate font-bold">
 											{event.stallName}
 										</span>
 									)}
-									<p className="text-sm text-left truncate font-bold">
+									<span className="text-xs text-left truncate font-bold">
 										{event.customerName}
-									</p>
+									</span>
 								</Card>
 							);
 						})}

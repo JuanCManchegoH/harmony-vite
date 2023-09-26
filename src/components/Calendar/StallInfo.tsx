@@ -227,19 +227,21 @@ export default function StallInfo({
 									className={`grid grid-cols-1 gap-1 p-2 border-2 border-${shift.color}-500 bg-${shift.color}-100 text-${shift.color}-700`}
 								>
 									<div className="grid grid-cols-3 gap-2">
-										<p className="col-span-2 flex items-center text-sm font-medium text-left truncate">
-											<IdentificationIcon className="w-5 h-5 mr-2" />
+										<span
+											className="col-span-2 truncate text-sm"
+											title={shift.workerName}
+										>
 											{shift.workerName}
-										</p>
-										<span className="flex text-sm justify-end font-bold">
+										</span>
+										<span className="flex text-xs justify-end font-bold">
 											{shift.day.substring(0, 5)}
 										</span>
 									</div>
-									<div className="grid grid-cols-2 gap-2">
-										<p className="text-sm text-left truncate font-bold">
+									<div className="grid grid-cols-2 gap-2 text-xs">
+										<span className="text-left truncate font-bold">
 											{shift.abbreviation} | {shift.startTime} - {shift.endTime}
-										</p>
-										<span className="flex text-sm justify-end font-bold">
+										</span>
+										<span className="flex justify-end font-bold">
 											{minutesToString(minutes)}H
 										</span>
 									</div>

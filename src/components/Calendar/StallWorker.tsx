@@ -24,7 +24,7 @@ import {
 	IdentificationIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { Badge, Button, Card } from "@tremor/react";
+import { Card, Text } from "@tremor/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
@@ -96,17 +96,22 @@ export default function StallWorker({
 			decorationColor="sky"
 			className="grid grid-cols-2 gap-1 p-2"
 		>
-			<p className="text-sm font-medium text-left truncate">
-				<Button
-					icon={selectedWorkerId === worker.id ? XMarkIcon : undefined}
-					color="sky"
-					size="xs"
-					onClick={() => handleSelectWorker(worker.id)}
-				>
-					{worker.name}
-				</Button>
-			</p>
-			<p className="flex justify-end gap-2 text-sm font-medium text-left truncate">
+			<span className="col-span-2 flex items-center gap-2">
+				<input
+					id="selectedWorker"
+					aria-describedby="selectedWorker"
+					name="selectedWorker"
+					type="checkbox"
+					checked={selectedWorkerId === worker.id}
+					onChange={() => handleSelectWorker(worker.id)}
+					className="h-4 w-4 rounded-full border-gray-300 text-sky-600 cursor-pointer"
+				/>
+				<Text className="truncate">{worker.name}</Text>
+			</span>
+			<span className="text-sm font-medium truncate">
+				{worker.position} | {worker.identification}
+			</span>
+			<span className="flex justify-end gap-2 text-sm font-medium text-left truncate">
 				{!deleteVisible && (
 					<IdentificationIcon
 						className="w-5 h-5 text-gray-500 hover:text-sky-400 cursor-pointer"
@@ -152,10 +157,7 @@ export default function StallWorker({
 							)}
 					</>
 				)}
-			</p>
-			<Badge color="sky" className="text-sm font-medium truncate">
-				{worker.position} | {worker.identification}
-			</Badge>
+			</span>
 			<CenteredModal
 				open={openWorkerInfo}
 				setOpen={setOpenWorkerInfo}
@@ -211,7 +213,12 @@ export default function StallWorker({
 				action={() => handleDeleteShifts.handleDeleteShifts(stall.id)}
 			>
 				<DeleteShifts
-					shifts={[...workerShifts]}
+					shifts={[
+						...workerShifts.filter(
+							(shift) =>
+								shiftTypes.includes(shift.type) && shift.stall === stall.id,
+						),
+					]}
 					selectedDelete={handleDeleteShifts.selectedDelete}
 					setSelectedDelete={handleDeleteShifts.setSelectedDelete}
 					month={month}
