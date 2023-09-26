@@ -35,11 +35,12 @@ export default function Navbar() {
 		<header className="fixed bg-gray-50 inset-x-0 px-2 top-0 z-20 flex justify-end items-center h-14 font-rhd border-b">
 			<div className="flex absolute left-2 items-center gap-1">
 				<Menu as="div" className="relative inline-block text-left">
-					<Menu.Button
-						className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-500"
-						title={profile.userName}
-					>
-						<Avatar title={profile.userName} letter={profile.userName[0]} />
+					<Menu.Button title={profile.userName}>
+						<Avatar
+							size="lg"
+							title={profile.userName}
+							letter={profile.userName[0]}
+						/>
 					</Menu.Button>
 					<Transition
 						as={Fragment}
