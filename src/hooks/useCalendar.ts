@@ -246,10 +246,13 @@ export const useHandleEvents = () => {
 
 export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 	const [selectedStalls, setSelectedStalls] = useState<StallWithId[]>([]);
-	const month = new Date().getMonth().toString();
-	const year = new Date().getFullYear().toString();
-	const [targetMonth, setTargetMonth] = useState<string>(month);
-	const [targetYear, setTargetYear] = useState<string>(year);
+	const { month, year } = stalls[0];
+	const [targetMonth, setTargetMonth] = useState<string>(
+		(Number(month) + 1).toString(),
+	);
+	const [targetYear, setTargetYear] = useState<string>(
+		Number(month) === 11 ? (Number(year) + 1).toString() : year,
+	);
 	const targetMonthDays = getDays(targetMonth, targetYear);
 	const actualMonthDays = getDays(month, year);
 
