@@ -1,5 +1,5 @@
 import axios from "axios";
-import { differenceInDays, isAfter } from "date-fns";
+import { differenceInDays } from "date-fns";
 import Cookie from "js-cookie";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -261,17 +261,17 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 	axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 
 	async function handlePropose() {
-		const isSame = targetMonth === month && targetYear === year;
-		if (isAfter(actualMonthDays[0].date, targetMonthDays[0].date)) {
-			return toast.message("Datos incorrectos", {
-				description: "El mes de destino no puede ser anterior al actual",
-			});
-		}
-		if (isSame) {
-			return toast.message("Datos incorrectos", {
-				description: "El mes de destino no puede ser el mismo que el actual",
-			});
-		}
+		// const isSame = targetMonth === month && targetYear === year;
+		// if (isAfter(actualMonthDays[0].date, targetMonthDays[0].date)) {
+		// 	return toast.message("Datos incorrectos", {
+		// 		description: "El mes de destino no puede ser anterior al actual",
+		// 	});
+		// }
+		// if (isSame) {
+		// 	return toast.message("Datos incorrectos", {
+		// 		description: "El mes de destino no puede ser el mismo que el actual",
+		// 	});
+		// }
 
 		for (let i = 0; i < selectedStalls.length; i++) {
 			const shiftsToPropose: CreateShift[] = [];
