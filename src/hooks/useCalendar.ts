@@ -302,7 +302,10 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 				.map((worker) => {
 					const { sequence, index, jump } = worker;
 					const newJump = 0;
-					const newIndex = (index + daysBetween - jump - 1) % sequence.length;
+					const newIndex =
+						index === 0
+							? 0
+							: (index + daysBetween - jump - 1) % sequence.length;
 					const newWorkerData = {
 						...worker,
 						index: newIndex,
@@ -347,6 +350,7 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 				});
 				shiftsToPropose.push(...shifts);
 			});
+			console.log(newStallData);
 
 			async function createSequence(shifts: CreateShift[]) {
 				if (shifts.length > 0) {
