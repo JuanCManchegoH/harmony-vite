@@ -246,7 +246,9 @@ export const useHandleEvents = () => {
 
 export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 	const [selectedStalls, setSelectedStalls] = useState<StallWithId[]>([]);
-	const { month, year } = stalls[0];
+	const defMonth = new Date().getMonth().toString();
+	const defYear = new Date().getFullYear().toString();
+	const { month, year } = stalls[0] || { month: defMonth, year: defYear };
 	const [targetMonth, setTargetMonth] = useState<string>(
 		(Number(month) + 1).toString(),
 	);
@@ -258,6 +260,8 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 
 	useEffect(() => {
 		setSelectedStalls(stalls);
+		setTargetMonth((Number(month) + 1).toString());
+		setTargetYear(Number(month) === 11 ? (Number(year) + 1).toString() : year);
 	}, [stalls]);
 
 	const access_token = Cookie.get("access_token");
