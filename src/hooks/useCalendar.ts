@@ -93,6 +93,7 @@ export function useCalendar(
 export function useCreateEvent(
 	setSelectedEventTab: Dispatch<SetStateAction<number>>,
 	actualCustomer: CustomerWithId | undefined,
+	branchStalls: StallWithId[],
 	stalls: StallWithId[],
 	selectedMonth: string,
 	selectedYear: string,
@@ -100,7 +101,7 @@ export function useCreateEvent(
 ) {
 	const { createAndUpdate } = useShifts(shifts, stalls);
 	// FirstStep
-	const list = [...stalls, actualCustomer];
+	const list = [...branchStalls, actualCustomer];
 	const [selectedStall, setSelectedStall] = useState(list[0]);
 	const [selectedWorker, setSelectedWorker] = useState<
 		WorkerWithId | undefined

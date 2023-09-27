@@ -63,6 +63,7 @@ export default function Calendar() {
 		setSelectedEventTab,
 		calendarData.actualCustomer,
 		branchStalls,
+		stalls,
 		calendarData.selectedMonth,
 		calendarData.selectedYear,
 		shifts,
