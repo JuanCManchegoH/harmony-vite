@@ -304,9 +304,7 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 					const { sequence, index, jump } = worker;
 					const newJump = 0;
 					const newIndex =
-						index === 0
-							? 0
-							: (index + daysBetween - jump - 1) % sequence.length;
+						index === 0 ? 0 : (index + daysBetween - jump) % sequence.length;
 					const newWorkerData = {
 						...worker,
 						index: newIndex,
@@ -325,8 +323,9 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 			newWorkers.forEach((worker) => {
 				if (worker.sequence.length === 0) return;
 				const { sequence, index } = worker;
+				const sequenceIndex = index === 0 ? sequence.length - 1 : index - 1;
 				const shifts = targetMonthDays.map((day, i) => {
-					const step = sequence[(index + i) % sequence.length];
+					const step = sequence[(sequenceIndex + i) % sequence.length];
 					return {
 						worker: worker.id,
 						workerName: worker.name,
@@ -351,7 +350,6 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 				});
 				shiftsToPropose.push(...shifts);
 			});
-			console.log(newStallData);
 
 			async function createSequence(shifts: CreateShift[]) {
 				if (shifts.length > 0) {
@@ -362,7 +360,7 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 					await toast.promise(createShiftPromise, {
 						loading: `Creando turnos del puesto ${i + 1} de ${
 							selectedStalls.length
-						}}`,
+						}`,
 						success: () => {
 							return "Turnos y descansos creados";
 						},
@@ -377,7 +375,7 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 			);
 			try {
 				toast.promise(createStallPromise, {
-					loading: `Creando puesto ${i + 1} de ${selectedStalls.length}}`,
+					loading: `Creando puesto ${i + 1} de ${selectedStalls.length}`,
 					success: ({ data }) => {
 						shiftsToPropose.forEach((shift) => {
 							shift.stall = data.id;
