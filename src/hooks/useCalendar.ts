@@ -62,6 +62,7 @@ export function useCalendar(
 				selectedCustomer,
 				types,
 			);
+		selectedCustomer && setSelectedBranch("");
 	}, [selectedCustomer, selectedMonth, selectedYear]);
 	useEffect(() => {
 		const types = ["event", "customer"];
