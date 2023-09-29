@@ -9,6 +9,7 @@ import { es } from "date-fns/locale";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import CustomToggle from "../../common/CustomToggle";
 import { ShiftWithId } from "../../services/shifts/types";
+import classNames from "../../utils/classNames";
 import { getDays, getSelectedDays } from "../../utils/dates";
 
 export default function DeleteShifts({
@@ -44,7 +45,12 @@ export default function DeleteShifts({
 
 	return (
 		<form className="grid grid-cols-2 gap-2">
-			<div className="col-start-2 flex justify-end gap-2">
+			<div
+				className={classNames(
+					"col-span-2 flex gap-2",
+					isRange ? "justify-end" : "justify-between",
+				)}
+			>
 				{!isRange && (
 					<Badge
 						color="sky"

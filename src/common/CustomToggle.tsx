@@ -38,7 +38,7 @@ export default function CustomToggle({
 						enabled
 							? "opacity-0 duration-100 ease-out"
 							: "opacity-100 duration-200 ease-in",
-						"absolute inset-0 flex h-full w-full items-center justify-center transition-opacity font-rhd font-bold text-xs text-gray-600",
+						"absolute inset-0 flex h-full w-full items-center justify-center transition-opacity font-rhd font-bold text-sm text-sky-600",
 					)}
 					aria-hidden="true"
 				>
@@ -53,7 +53,7 @@ export default function CustomToggle({
 						enabled
 							? "opacity-100 duration-200 ease-in"
 							: "opacity-0 duration-100 ease-out",
-						"absolute inset-0 flex h-full w-full items-center justify-center transition-opacity font-rhd font-bold text-xs text-gray-600",
+						"absolute inset-0 flex h-full w-full items-center justify-center transition-opacity font-rhd font-bold text-sm text-sky-600",
 					)}
 					aria-hidden="true"
 				>

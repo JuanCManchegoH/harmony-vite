@@ -17,6 +17,7 @@ export interface DropDownItemProps {
 	icon?: React.ElementType;
 	onClick: Function;
 	position?: "left" | "right";
+	shortcut?: string;
 }
 
 const Dropdown = ({
@@ -104,7 +105,12 @@ const InfoDropdownItem = ({
 	);
 };
 
-const DropdownItem = ({ children, onClick, icon }: DropDownItemProps) => {
+const DropdownItem = ({
+	children,
+	onClick,
+	icon,
+	shortcut,
+}: DropDownItemProps) => {
 	return (
 		<Menu.Item>
 			{() => (
@@ -113,9 +119,10 @@ const DropdownItem = ({ children, onClick, icon }: DropDownItemProps) => {
 					color="sky"
 					variant="secondary"
 					onClick={() => onClick()}
-					className="w-full flex justify-start"
+					className="w-full flex justify-start font-bold"
 				>
-					{children}
+					<span>{children}</span>
+					{shortcut && <span className="ml-2">({shortcut})</span>}
 				</Button>
 			)}
 		</Menu.Item>

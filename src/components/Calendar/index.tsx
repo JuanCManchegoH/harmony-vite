@@ -117,6 +117,7 @@ export default function Calendar() {
 			name: "Crear puesto",
 			action: () => setOpenCreateStall(true),
 			show: validateRoles(profile.roles, [], ["handle_stalls"]),
+			shortcut: "P",
 		},
 		{
 			icon: FlagIcon,
@@ -127,14 +128,47 @@ export default function Calendar() {
 				[],
 				["create_shifts", "handle_shifts"],
 			),
+			shortcut: "E",
 		},
 		{
 			icon: RocketLaunchIcon,
 			name: "Programar nuevo mes",
 			action: () => setOpenPropose(true),
-			show: validateRoles(profile.roles, [], ["handle_stalls"]),
+			show:
+				validateRoles(profile.roles, [], ["handle_stalls"]) && stalls.length,
 		},
 	];
+
+	// shortcuts => if p is pressed, open create stall modal, if e is pressed, open create event modal
+
+	useEffect(() => {
+		const isInInput = (event: KeyboardEvent) => {
+			const element = event.target as HTMLElement;
+			return (
+				element.tagName === "INPUT" ||
+				element.tagName === "SELECT" ||
+				element.tagName === "TEXTAREA"
+			);
+		};
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (
+				event.key === "p" &&
+				validateRoles(profile.roles, [], ["handle_stalls"]) &&
+				!isInInput(event)
+			)
+				setOpenCreateStall(true);
+			if (
+				event.key === "e" &&
+				validateRoles(profile.roles, [], ["create_shifts", "handle_shifts"]) &&
+				!isInInput(event)
+			)
+				setOpenCreateEvent(true);
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, []);
+
 	return (
 		<Grid numItems={3} className="gap-2 h-full p-2 pt-4 grid-rows-1">
 			<Card className=" col-span-2 bg-gray-50 p-2 overflow-y-auto">
@@ -214,6 +248,7 @@ export default function Calendar() {
 													key={option.name}
 													icon={option.icon}
 													onClick={option.action}
+													shortcut={option.shortcut}
 												>
 													{option.name}
 												</DropdownItem>

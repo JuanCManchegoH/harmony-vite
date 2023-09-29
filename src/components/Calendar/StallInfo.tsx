@@ -224,11 +224,11 @@ export default function StallInfo({
 							return (
 								<Card
 									key={shift.id}
-									className={`grid grid-cols-1 gap-1 p-2 border-2 border-${shift.color}-500 bg-${shift.color}-100 text-${shift.color}-700`}
+									className={`grid grid-cols-1 gap-1 p-2 border-2 border-${shift.color}-500 bg-${shift.color}-100 text-${shift.color}-800`}
 								>
-									<div className="grid grid-cols-3 gap-2">
+									<div className="flex justify-between gap-2">
 										<span
-											className="col-span-2 truncate text-sm"
+											className="col-span-2 truncate text-sm font-semibold"
 											title={shift.workerName}
 										>
 											{shift.workerName}
@@ -238,7 +238,10 @@ export default function StallInfo({
 										</span>
 									</div>
 									<div className="grid grid-cols-2 gap-2 text-xs">
-										<span className="text-left truncate font-bold">
+										<span
+											className="text-left truncate font-bold"
+											title={`${shift.startTime} - ${shift.endTime}`}
+										>
 											{shift.abbreviation} | {shift.startTime} - {shift.endTime}
 										</span>
 										<span className="flex justify-end font-bold">
