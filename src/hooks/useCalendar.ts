@@ -103,7 +103,9 @@ export function useCreateEvent(
 	const { createAndUpdate } = useShifts(shifts, stalls);
 	// FirstStep
 	const list = [...branchStalls, actualCustomer];
-	const [selectedStall, setSelectedStall] = useState(list[0]);
+	const [selectedStall, setSelectedStall] = useState<
+		CustomerWithId | StallWithId | undefined
+	>(undefined);
 	const [selectedWorker, setSelectedWorker] = useState<
 		WorkerWithId | undefined
 	>(undefined);
@@ -134,12 +136,14 @@ export function useCreateEvent(
 			!selectedStall ||
 			!shiftsData.description ||
 			!selectedWorker ||
-			!position
+			!position ||
+			!selectedConvention
 		) {
 			return toast.message("Datos incompletos", {
 				description: "Todos los campos con * son obligatorios",
 			});
 		}
+
 		const data: CreateShift = {
 			day: "",
 			startTime:
@@ -155,7 +159,7 @@ export function useCreateEvent(
 					  )}`
 					: "00:00",
 			color: shiftsData.selectedColor.color,
-			abbreviation: selectedConvention?.abbreviation || "",
+			abbreviation: selectedConvention.abbreviation,
 			description: shiftsData.description,
 			position,
 			sequence: selectedSequence,
@@ -177,6 +181,7 @@ export function useCreateEvent(
 			setPosition("");
 			setSelectedConvention(undefined);
 			setSelectedDays([]);
+			setSelectedStall(undefined);
 			setShiftsData({
 				selectedStartHour: "6",
 				selectedStartMinute: "0",

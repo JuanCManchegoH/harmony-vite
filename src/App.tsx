@@ -14,6 +14,7 @@ function App() {
 				closeButton
 				position="bottom-center"
 				className="z-50"
+				duration={2000}
 			/>
 			<div className="h-full">
 				<Routes>

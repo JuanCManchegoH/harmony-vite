@@ -11,6 +11,7 @@ import {
 	StallWorker as StallWorkerType,
 } from "../../services/stalls/types";
 import { MonthDay } from "../../utils/dates";
+import { copyToClipboard } from "../../utils/others";
 import { validateRoles } from "../../utils/roles";
 import CalendarUpdate from "./CalendarUpdate";
 import DeleteShifts from "./DeleteShifts";
@@ -22,9 +23,10 @@ import {
 	BoltIcon,
 	CalendarDaysIcon,
 	IdentificationIcon,
+	Square2StackIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { Card, Text } from "@tremor/react";
+import { Card } from "@tremor/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
@@ -106,18 +108,27 @@ export default function StallWorker({
 					onChange={() => handleSelectWorker(worker.id)}
 					className="h-4 w-4 rounded-full border-gray-300 text-sky-600 cursor-pointer"
 				/>
-				<Text className="truncate">{worker.name}</Text>
+				<span
+					role="presentation"
+					className="truncate text-sm underline cursor-pointer font-bold"
+					onClick={() => setOpenWorkerInfo(true)}
+					onKeyDown={() => setOpenWorkerInfo(true)}
+				>
+					{worker.name}
+				</span>
 			</span>
 			<span className="text-sm font-medium truncate">
-				{worker.position} | {worker.identification}
+				{worker.position} {">"}
+				<button
+					type="button"
+					className="text-sky-400 hover:text-sky-300 ml-1"
+					onClick={() => copyToClipboard(worker.identification)}
+				>
+					{worker.identification}
+					<Square2StackIcon className="w-4 h-4 inline-block" />
+				</button>
 			</span>
 			<span className="flex justify-end gap-2 text-sm font-medium text-left truncate">
-				{!deleteVisible && (
-					<IdentificationIcon
-						className="w-5 h-5 text-gray-500 hover:text-sky-400 cursor-pointer"
-						onClick={() => setOpenWorkerInfo(true)}
-					/>
-				)}
 				{validateRoles(profile.roles, [], ["handle_stalls"]) && (
 					<>
 						{!deleteVisible && (

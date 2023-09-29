@@ -42,16 +42,17 @@ export default function StallCalendar({
 	});
 	return (
 		<div className="my-2">
-			<section className="flex my-2 jgap-2">
+			<section className="flex flex-wrap my-2 gap-2">
 				{schedules.map((schedule, i) => {
 					const content =
 						schedule.startTime === schedule.endTime
-							? `${i + 1} - Sin horario`
-							: `${i + 1} - ${schedule.startTime} - ${schedule.endTime}`;
+							? `${i + 1} > Sin horario`
+							: `${i + 1} > ${schedule.startTime}-${schedule.endTime}`;
 					return (
 						<Badge
 							icon={ClockIcon}
 							key={`${schedule.startTime}-${schedule.endTime}`}
+							className="font-bold"
 							color={
 								hoverSchedule === `${schedule.startTime}-${schedule.endTime}`
 									? "sky"
@@ -101,13 +102,17 @@ export default function StallCalendar({
 								onClick={() => setSelectedDay(getDay(day.date))}
 								className="flex items-center justify-between border-b pb-2 w-full"
 							>
-								<p>{getDay(day.date)} </p>
-								<Badge
-									size="xs"
-									color={selectedDay === getDay(day.date) ? "sky" : "gray"}
+								<p className="text-base underline">{getDay(day.date)} </p>
+								<span
+									className={classNames(
+										selectedDay === getDay(day.date)
+											? "bg-sky-500"
+											: "bg-gray-800",
+										"text-sm text-gray-100 rounded-full px-2",
+									)}
 								>
 									{minutesToString(minutes)}
-								</Badge>
+								</span>
 							</button>
 							<div className="grid grid-cols-3 gap-1 py-2">
 								{shifts.length === 0 && (
@@ -147,9 +152,13 @@ export default function StallCalendar({
 													key={id}
 													size="xs"
 													color={color}
-													className={`w-full ${
-														isStallWorker && "border-2"
-													} border-${color}-500 p-0 relative`}
+													className={classNames(
+														isStallWorker ? "border-2" : "",
+														!isWorker && selectedWorker !== ""
+															? "opacity-20"
+															: "",
+														`w-full border-${color}-500 p-0 relative`,
+													)}
 													onMouseEnter={() => setHoverSchedule(hover)}
 													onMouseLeave={() => setHoverSchedule("")}
 												>
