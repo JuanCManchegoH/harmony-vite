@@ -10,6 +10,7 @@ import { setStalls } from "../services/stalls/slice";
 import {
 	HandleStallWorker,
 	StallWithId,
+	StallWorker,
 	StallsAndShifts,
 } from "../services/stalls/types";
 import { WorkerWithId } from "../services/workers/types";
@@ -223,6 +224,32 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		}
 	}
 
+	async function resetStallWorker(stallId: string, workerId: string) {
+		try {
+			const access_token = Cookie.get("access_token");
+			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+			const updateWorker = {
+				sequence: [],
+				index: 0,
+				jump: 0,
+			};
+			const updateWorkerPromise = axios.put<StallWorker>(
+				api.stalls.updateWorker(stallId, workerId),
+				updateWorker,
+			);
+			await toast.promise(updateWorkerPromise, {
+				loading: "Desasignando secuencia",
+				success: ({ data }) => {
+					dispatch(setStalls(stalls.map((s) => (s.id === stallId ? data : s))));
+					return "Secuencia desasignada";
+				},
+				error: "Error desasignando secuencia",
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	return {
 		createStall,
 		// getStallsByCustomers,
@@ -231,6 +258,7 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		deleteStall,
 		addWorker,
 		removeWorker,
+		resetStallWorker,
 	};
 };
 

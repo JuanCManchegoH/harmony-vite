@@ -46,8 +46,8 @@ export default function StallCalendar({
 				{schedules.map((schedule, i) => {
 					const content =
 						schedule.startTime === schedule.endTime
-							? `${i + 1} > Sin horario`
-							: `${i + 1} > ${schedule.startTime}-${schedule.endTime}`;
+							? "X > Sin horario"
+							: `H${i} > ${schedule.startTime}-${schedule.endTime}`;
 					return (
 						<Badge
 							icon={ClockIcon}
@@ -132,12 +132,11 @@ export default function StallCalendar({
 									})
 									.map(
 										({ id, color, startTime, endTime, workerName, worker }) => {
-											const schedule =
-												schedules.findIndex(
-													(schedule) =>
-														schedule.startTime === startTime &&
-														schedule.endTime === endTime,
-												) + 1;
+											const schedule = schedules.findIndex(
+												(schedule) =>
+													schedule.startTime === startTime &&
+													schedule.endTime === endTime,
+											);
 											const hover = startTime
 												? `${startTime}-${endTime}`
 												: "00:00-00:00";
@@ -146,6 +145,8 @@ export default function StallCalendar({
 											const isStallWorker = stall?.workers?.some(
 												(stallWorker) => stallWorker.id === worker,
 											);
+
+											const content = !schedule ? "X" : `H${schedule}`;
 											return (
 												<Badge
 													tooltip={tooltip}
@@ -163,7 +164,7 @@ export default function StallCalendar({
 													onMouseLeave={() => setHoverSchedule("")}
 												>
 													{isWorker && <Ping color={color} />}
-													H{String(schedule)}
+													{content}
 												</Badge>
 											);
 										},

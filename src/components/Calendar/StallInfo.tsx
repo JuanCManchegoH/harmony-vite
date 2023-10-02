@@ -51,10 +51,13 @@ export default function StallInfo({
 	const { profile } = useAppSelector((state) => state.auth);
 	const { stalls } = useAppSelector((state) => state.stalls);
 	const { shifts } = useAppSelector((state) => state.shifts);
-	const { updateStall, addWorker, deleteStall, removeWorker } = useStalls(
-		stalls,
-		shifts,
-	);
+	const {
+		updateStall,
+		addWorker,
+		deleteStall,
+		removeWorker,
+		resetStallWorker,
+	} = useStalls(stalls, shifts);
 	const { stallData, setStallData, handleUpdateStall } = useHandleStall(
 		selectedMonth,
 		selectedYear,
@@ -188,6 +191,7 @@ export default function StallInfo({
 									year={selectedYear}
 									deleteVisible={deleteVisible}
 									removeWorker={removeWorker}
+									resetWorker={resetStallWorker}
 								/>
 							);
 						})}

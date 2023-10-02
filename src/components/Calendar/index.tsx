@@ -139,316 +139,316 @@ export default function Calendar() {
 		},
 	];
 
-	// shortcuts => if p is pressed, open create stall modal, if e is pressed, open create event modal
-
 	useEffect(() => {
-		const isInInput = (event: KeyboardEvent) => {
-			const element = event.target as HTMLElement;
-			return (
-				element.tagName === "INPUT" ||
-				element.tagName === "SELECT" ||
-				element.tagName === "TEXTAREA"
+		const handleKeyDown = (event: KeyboardEvent) => {
+			const isInInput = ["INPUT", "SELECT", "TEXTAREA"].includes(
+				(event.target as HTMLElement).tagName,
 			);
+			const key = event.key.toUpperCase();
+
+			if (
+				key === "P" &&
+				!isInInput &&
+				validateRoles(profile.roles, [], ["handle_stalls"])
+			) {
+				setOpenCreateStall(true);
+			} else if (
+				key === "E" &&
+				!isInInput &&
+				validateRoles(profile.roles, [], ["create_shifts", "handle_shifts"])
+			) {
+				setOpenCreateEvent(true);
+			}
 		};
 
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (
-				event.key === "p" &&
-				validateRoles(profile.roles, [], ["handle_stalls"]) &&
-				!isInInput(event)
-			)
-				setOpenCreateStall(true);
-			if (
-				event.key === "e" &&
-				validateRoles(profile.roles, [], ["create_shifts", "handle_shifts"]) &&
-				!isInInput(event)
-			)
-				setOpenCreateEvent(true);
-		};
 		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, []);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [profile.roles]);
 
 	return (
-		<Grid numItems={3} className="gap-2 h-full p-2 pt-4 grid-rows-1">
-			<Card className=" col-span-2 bg-gray-50 p-2 overflow-y-auto">
-				<header className="flex justify-between border-b pb-2">
-					<div className="flex items-center gap-2">
-						<CustomToggle
-							enabled={calendarData.view === "events"}
-							setEnabled={(value) =>
-								calendarData.setView(value ? "events" : "stalls")
-							}
-							values={{ enabled: FlagIcon, disabled: MapPinIcon }}
-						/>
-						{calendarData.view === "stalls" && (
-							<>
-								<Select
-									placeholder="Sede"
-									value={calendarData.selectedBranch}
-									onValueChange={(value) =>
-										calendarData.setSelectedBranch(value)
-									}
-								>
-									{branches.map((branch) => (
-										<SelectItem key={`branch-${branch}`} value={branch}>
-											{branch}
-										</SelectItem>
-									))}
-								</Select>
-								<Select
-									placeholder="Puesto"
-									value={calendarData.selectedStall}
-									onValueChange={(value) =>
-										calendarData.setSelectedStall(value)
-									}
-								>
-									{branchStalls.map((stall) => (
-										<SelectItem key={`stall-${stall.id}`} value={stall.id}>
-											{stall.name}
-										</SelectItem>
-									))}
-								</Select>
-							</>
-						)}
-					</div>
-					<div className="flex items-center gap-2">
-						<Select
-							value={calendarData.selectedMonth}
-							onValueChange={(value) => calendarData.setSelectedMonth(value)}
-						>
-							{months.map((month) => (
-								<SelectItem key={`month-${month.value}`} value={month.value}>
-									{month.name}
-								</SelectItem>
-							))}
-						</Select>
-						<Select
-							value={calendarData.selectedYear}
-							onValueChange={(value) => calendarData.setSelectedYear(value)}
-						>
-							{years.map((year) => (
-								<SelectItem key={`year-${year}`} value={year.value}>
-									{year.name}
-								</SelectItem>
-							))}
-						</Select>
-						{calendarData.view === "stalls" &&
-							validateRoles(
-								profile.roles,
-								[],
-								["handle_stalls", "create_shifts", "handle_shifts"],
-							) && (
+		<>
+			<Grid numItems={3} className="gap-2 h-full p-2 pt-4 grid-rows-1">
+				<Card className=" col-span-2 bg-gray-50 p-2 overflow-y-auto">
+					<header className="flex justify-between border-b pb-2">
+						<div className="flex items-center gap-2">
+							<CustomToggle
+								enabled={calendarData.view === "events"}
+								setEnabled={(value) =>
+									calendarData.setView(value ? "events" : "stalls")
+								}
+								values={{ enabled: FlagIcon, disabled: MapPinIcon }}
+							/>
+							{calendarData.view === "stalls" && (
 								<>
-									<Dropdown btnText="Opciones" position="right">
-										{options
-											.filter((option) => option.show)
-											.map((option) => (
-												<DropdownItem
-													key={option.name}
-													icon={option.icon}
-													onClick={option.action}
-													shortcut={option.shortcut}
-												>
-													{option.name}
-												</DropdownItem>
-											))}
-									</Dropdown>
+									<Select
+										placeholder="Sede"
+										value={calendarData.selectedBranch}
+										onValueChange={(value) =>
+											calendarData.setSelectedBranch(value)
+										}
+									>
+										{branches.map((branch) => (
+											<SelectItem key={`branch-${branch}`} value={branch}>
+												{branch}
+											</SelectItem>
+										))}
+									</Select>
+									<Select
+										placeholder="Puesto"
+										value={calendarData.selectedStall}
+										onValueChange={(value) =>
+											calendarData.setSelectedStall(value)
+										}
+									>
+										{branchStalls.map((stall) => (
+											<SelectItem key={`stall-${stall.id}`} value={stall.id}>
+												{stall.name}
+											</SelectItem>
+										))}
+									</Select>
 								</>
 							)}
-					</div>
-				</header>
-				{calendarData.view === "stalls" && !calendarData.actualStall && (
-					<div className="mt-4">
-						<EmptyState>
-							<CalendarIcon className="w-10 h-10 text-sky-500" />
-							<Title>
-								Cree un puesto o seleccione uno para ver su calendario.
-							</Title>
-							<Text className="text-gray-600">
-								Seleccione un puesto para ver su calendario, si no hay puestos
-								creados, puede crear uno desde el botón de opciones.
-							</Text>
-						</EmptyState>
-					</div>
-				)}
-				{calendarData.view === "stalls" && calendarData.actualStall && (
-					<StallCalendar
-						monthDays={monthDays}
-						stall={calendarData.actualStall}
-						selectedDay={calendarData.selectedDay}
-						setSelectedDay={calendarData.setSelectedDay}
-						selectedWorker={calendarData.selectedWorker}
-					/>
-				)}
-				{calendarData.view === "events" && (
-					<EventsTimeLine
-						monthDays={monthDays}
-						filters={{
-							selectedEWorker,
-							setSelectedEWorker,
-							selectedWorkers,
-							selectedTypes,
-							selectedAbbreviations,
-							selectedPositions,
-						}}
-					/>
-				)}
-			</Card>
-			<Card className="bg-gray-50 p-2 overflow-y-auto">
-				<header className="grid grid-cols-3 border-b h-12 gap-2">
-					{calendarData.view === "stalls" && (
-						<>
-							<div className="col-span-2 flex items-start gap-2">
-								<Title
-									className="truncate underline"
-									title={calendarData.actualCustomer?.name}
-								>
-									{calendarData.actualCustomer?.name}
-								</Title>
-							</div>
-							<div className="flex items-start gap-2 justify-end">
-								<>
-									<Icon
-										icon={UserGroupIcon}
-										color="gray"
-										size="md"
-										className="cursor-pointer"
-										variant="solid"
-										onClick={() => setOpenCustomers(!openCustomers)}
-									/>
-									<Icon
-										icon={IdentificationIcon}
-										color="gray"
-										size="md"
-										className="cursor-pointer"
-										variant="solid"
-										onClick={() => setOpenWorkers(!openWorkers)}
-									/>
-									<Icon
-										icon={FlagIcon}
-										color="gray"
-										size="md"
-										className="cursor-pointer"
-										variant="solid"
-										onClick={() => setOpenEvents(!openEvents)}
-									/>
-								</>
-							</div>
-						</>
-					)}
-					{calendarData.view === "events" && (
-						<div className="flex items-start gap-2">
-							<Badge
-								size="xl"
-								color="sky"
-								icon={FlagIcon}
-								className="font-bold"
+						</div>
+						<div className="flex items-center gap-2">
+							<Select
+								value={calendarData.selectedMonth}
+								onValueChange={(value) => calendarData.setSelectedMonth(value)}
 							>
-								Filtros e información
-							</Badge>
+								{months.map((month) => (
+									<SelectItem key={`month-${month.value}`} value={month.value}>
+										{month.name}
+									</SelectItem>
+								))}
+							</Select>
+							<Select
+								value={calendarData.selectedYear}
+								onValueChange={(value) => calendarData.setSelectedYear(value)}
+							>
+								{years.map((year) => (
+									<SelectItem key={`year-${year}`} value={year.value}>
+										{year.name}
+									</SelectItem>
+								))}
+							</Select>
+							{calendarData.view === "stalls" &&
+								validateRoles(
+									profile.roles,
+									[],
+									["handle_stalls", "create_shifts", "handle_shifts"],
+								) && (
+									<>
+										<Dropdown btnText="Opciones" position="right">
+											{options
+												.filter((option) => option.show)
+												.map((option) => (
+													<DropdownItem
+														key={option.name}
+														icon={option.icon}
+														onClick={option.action}
+														shortcut={option.shortcut}
+													>
+														{option.name}
+													</DropdownItem>
+												))}
+										</Dropdown>
+									</>
+								)}
+						</div>
+					</header>
+					{calendarData.view === "stalls" && !calendarData.actualStall && (
+						<div className="mt-4">
+							<EmptyState>
+								<CalendarIcon className="w-10 h-10 text-sky-500" />
+								<Title>
+									Cree un puesto o seleccione uno para ver su calendario.
+								</Title>
+								<Text className="text-gray-600">
+									Seleccione un puesto para ver su calendario, si no hay puestos
+									creados, puede crear uno desde el botón de opciones.
+								</Text>
+							</EmptyState>
 						</div>
 					)}
-				</header>
-				{calendarData.view === "stalls" && !calendarData.actualStall && (
-					<div className="mt-4">
-						<EmptyState>
-							<AdjustmentsHorizontalIcon className="w-10 h-10 text-sky-500" />
-							<Title>
-								Cree un puesto o seleccione uno para ver su información.
-							</Title>
-							<Text className="text-gray-600">
-								Seleccione un puesto para ver su información, si no hay puestos
-								creados, puede crear uno desde el botón de opciones.
-							</Text>
-						</EmptyState>
-					</div>
-				)}
-				{calendarData.view === "stalls" && calendarData.actualStall && (
-					<StallInfo
-						stall={calendarData.actualStall}
-						monthDays={monthDays}
-						selectedDay={calendarData.selectedDay}
-						selectedWorkerId={calendarData.selectedWorker}
-						setSelectedWorkerId={calendarData.setSelectedWorker}
-						selectedMonth={calendarData.selectedMonth}
-						selectedYear={calendarData.selectedYear}
-						actualCustomer={calendarData.actualCustomer}
-					/>
-				)}
-				{calendarData.view === "events" && (
-					<TimeLineInfo
-						filters={{
-							selectedEWorker,
-							selectedWorkers,
-							setSelectedWorkers,
-							selectedTypes,
-							setSelectedTypes,
-							selectedAbbreviations,
-							setSelectedAbbreviations,
-							selectedPositions,
-							setSelectedPositions,
-						}}
-					/>
-				)}
-			</Card>
+					{calendarData.view === "stalls" && calendarData.actualStall && (
+						<StallCalendar
+							monthDays={monthDays}
+							stall={calendarData.actualStall}
+							selectedDay={calendarData.selectedDay}
+							setSelectedDay={calendarData.setSelectedDay}
+							selectedWorker={calendarData.selectedWorker}
+						/>
+					)}
+					{calendarData.view === "events" && (
+						<EventsTimeLine
+							monthDays={monthDays}
+							filters={{
+								selectedEWorker,
+								setSelectedEWorker,
+								selectedWorkers,
+								selectedTypes,
+								selectedAbbreviations,
+								selectedPositions,
+							}}
+						/>
+					)}
+				</Card>
+				<Card className="bg-gray-50 p-2 overflow-y-auto">
+					<header className="grid grid-cols-3 border-b h-12 gap-2">
+						{calendarData.view === "stalls" && (
+							<>
+								<div className="col-span-2 flex items-start gap-2">
+									<Title
+										className="truncate underline"
+										title={calendarData.actualCustomer?.name}
+									>
+										{calendarData.actualCustomer?.name}
+									</Title>
+								</div>
+								<div className="flex items-start gap-2 justify-end">
+									<>
+										<Icon
+											icon={UserGroupIcon}
+											color="gray"
+											size="md"
+											className="cursor-pointer"
+											variant="solid"
+											onClick={() => setOpenCustomers(!openCustomers)}
+										/>
+										<Icon
+											icon={IdentificationIcon}
+											color="gray"
+											size="md"
+											className="cursor-pointer"
+											variant="solid"
+											onClick={() => setOpenWorkers(!openWorkers)}
+										/>
+										<Icon
+											icon={FlagIcon}
+											color="gray"
+											size="md"
+											className="cursor-pointer"
+											variant="solid"
+											onClick={() => setOpenEvents(!openEvents)}
+										/>
+									</>
+								</div>
+							</>
+						)}
+						{calendarData.view === "events" && (
+							<div className="flex items-start gap-2">
+								<Badge
+									size="xl"
+									color="sky"
+									icon={FlagIcon}
+									className="font-bold"
+								>
+									Filtros e información
+								</Badge>
+							</div>
+						)}
+					</header>
+					{calendarData.view === "stalls" && !calendarData.actualStall && (
+						<div className="mt-4">
+							<EmptyState>
+								<AdjustmentsHorizontalIcon className="w-10 h-10 text-sky-500" />
+								<Title>
+									Cree un puesto o seleccione uno para ver su información.
+								</Title>
+								<Text className="text-gray-600">
+									Seleccione un puesto para ver su información, si no hay
+									puestos creados, puede crear uno desde el botón de opciones.
+								</Text>
+							</EmptyState>
+						</div>
+					)}
+					{calendarData.view === "stalls" && calendarData.actualStall && (
+						<StallInfo
+							stall={calendarData.actualStall}
+							monthDays={monthDays}
+							selectedDay={calendarData.selectedDay}
+							selectedWorkerId={calendarData.selectedWorker}
+							setSelectedWorkerId={calendarData.setSelectedWorker}
+							selectedMonth={calendarData.selectedMonth}
+							selectedYear={calendarData.selectedYear}
+							actualCustomer={calendarData.actualCustomer}
+						/>
+					)}
+					{calendarData.view === "events" && (
+						<TimeLineInfo
+							filters={{
+								selectedEWorker,
+								selectedWorkers,
+								setSelectedWorkers,
+								selectedTypes,
+								setSelectedTypes,
+								selectedAbbreviations,
+								setSelectedAbbreviations,
+								selectedPositions,
+								setSelectedPositions,
+							}}
+						/>
+					)}
+				</Card>
 
-			<Customers
-				open={openCustomers}
-				setOpen={setOpenCustomers}
-				selected={calendarData.selectedCustomer}
-				setSelected={calendarData.setSelectedCustomer}
-			/>
-			<Workers open={openWorkers} setOpen={setOpenWorkers} />
-			<Events
-				open={openEvents}
-				setOpen={setOpenEvents}
-				customer={calendarData.actualCustomer?.name}
-			/>
-			<CenteredModal
-				open={openCreateStall}
-				setOpen={setOpenCreateStall}
-				title="Crear puesto"
-				btnText="Crear"
-				icon={MapPinIcon}
-				action={() => handleCreateStall(createStall)}
-			>
-				<HandleStall
-					data={stallData}
-					setData={setStallData}
-					branches={calendarData.actualCustomer?.branches || []}
-					creation
+				<Customers
+					open={openCustomers}
+					setOpen={setOpenCustomers}
+					selected={calendarData.selectedCustomer}
+					setSelected={calendarData.setSelectedCustomer}
 				/>
-			</CenteredModal>
-			<CenteredModal
-				open={openCreateEvent}
-				setOpen={setOpenCreateEvent}
-				title="Crear evento"
-				btnText="Crear"
-				icon={FlagIcon}
-				action={createEvent.handleCreateEvent}
-			>
-				<CreateEvents
-					createEvent={createEvent}
-					selectedTab={selectedEventTab}
-					setSelectedTab={setSelectedEventTab}
+				<Workers open={openWorkers} setOpen={setOpenWorkers} />
+				<Events
+					open={openEvents}
+					setOpen={setOpenEvents}
+					customer={calendarData.actualCustomer?.name}
 				/>
-			</CenteredModal>
-			<CenteredModal
-				open={openPropose}
-				setOpen={setOpenPropose}
-				title="Programar nuevo mes"
-				btnText="Programar"
-				icon={RocketLaunchIcon}
-				action={() => propose.handlePropose()}
-			>
-				<Propose
-					targetMonth={propose.targetMonth}
-					setTargetMonth={propose.setTargetMonth}
-					targetYear={propose.targetYear}
-					setTargetYear={propose.setTargetYear}
-				/>
-			</CenteredModal>
-		</Grid>
+				<CenteredModal
+					open={openCreateStall}
+					setOpen={setOpenCreateStall}
+					title="Crear puesto"
+					btnText="Crear"
+					icon={MapPinIcon}
+					action={() => handleCreateStall(createStall)}
+				>
+					<HandleStall
+						data={stallData}
+						setData={setStallData}
+						branches={calendarData.actualCustomer?.branches || []}
+						creation
+					/>
+				</CenteredModal>
+				<CenteredModal
+					open={openCreateEvent}
+					setOpen={setOpenCreateEvent}
+					title="Crear evento"
+					btnText="Crear"
+					icon={FlagIcon}
+					action={createEvent.handleCreateEvent}
+				>
+					<CreateEvents
+						createEvent={createEvent}
+						selectedTab={selectedEventTab}
+						setSelectedTab={setSelectedEventTab}
+					/>
+				</CenteredModal>
+				<CenteredModal
+					open={openPropose}
+					setOpen={setOpenPropose}
+					title="Programar nuevo mes"
+					btnText="Programar"
+					icon={RocketLaunchIcon}
+					action={() => propose.handlePropose()}
+				>
+					<Propose
+						targetMonth={propose.targetMonth}
+						setTargetMonth={propose.setTargetMonth}
+						targetYear={propose.targetYear}
+						setTargetYear={propose.setTargetYear}
+					/>
+				</CenteredModal>
+			</Grid>
+		</>
 	);
 }

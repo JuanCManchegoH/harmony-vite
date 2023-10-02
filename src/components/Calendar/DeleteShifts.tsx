@@ -70,7 +70,7 @@ export default function DeleteShifts({
 				<CustomToggle
 					enabled={isRange}
 					setEnabled={setIsRange}
-					values={{ enabled: "R", disabled: "T" }}
+					values={{ enabled: "R", disabled: "S" }}
 				/>
 			</div>
 			{!isRange && (

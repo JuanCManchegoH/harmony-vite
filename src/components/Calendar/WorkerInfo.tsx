@@ -16,12 +16,14 @@ import {
 import EmptyState from "../../common/EmptyState";
 import { ShiftWithId } from "../../services/shifts/types";
 import { StallWorker } from "../../services/stalls/types";
+import classNames from "../../utils/classNames";
 import { getDiference, minutesToString } from "../../utils/hours";
 
 export default function WorkerInfo({
+	stallId,
 	worker,
 	shifts,
-}: { worker: StallWorker; shifts: ShiftWithId[] }) {
+}: { stallId: string; worker: StallWorker; shifts: ShiftWithId[] }) {
 	const { wokedHours, absence } = shifts.reduce(
 		(acc, shift) => {
 			const { minutes } = getDiference(shift.startTime, shift.endTime);
@@ -119,15 +121,19 @@ export default function WorkerInfo({
 									shift.startTime,
 									shift.endTime,
 								);
+								const sameStall = shift.stall === stallId;
 								return (
 									<Card
 										key={shift.id}
 										className="flex flex-col items-center gap-1 p-2"
 									>
 										<Badge
-											tooltip={shift.workerName}
+											tooltip={`${shift.stallName} | ${shift.customerName}`}
 											color={shift.color}
-											className="font-bold"
+											className={classNames(
+												"font-bold",
+												sameStall ? `border-2 border-${shift.color}-500` : "",
+											)}
 										>
 											{shift.day.substring(0, 5)} | {minutesToString(minutes)}
 											H

@@ -26,7 +26,7 @@ import {
 	Square2StackIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { Card } from "@tremor/react";
+import { Badge, Card } from "@tremor/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +40,7 @@ export default function StallWorker({
 	year,
 	deleteVisible,
 	removeWorker,
+	resetWorker,
 }: {
 	stall: StallWithId;
 	monthDays: MonthDay[];
@@ -54,6 +55,7 @@ export default function StallWorker({
 		workerId: string,
 		workerShifts: string[],
 	) => void;
+	resetWorker: (stallId: string, workerId: string) => void;
 }) {
 	const { profile } = useAppSelector((state) => state.auth);
 	const { stalls } = useAppSelector((state) => state.stalls);
@@ -92,30 +94,71 @@ export default function StallWorker({
 		selectedWorkerId === id ? setSelectedWorkerId("") : setSelectedWorkerId(id);
 	};
 
+	const sequence =
+		worker.sequence.length > 0
+			? profile.company.sequences
+					.filter((seq) => seq.steps.length === worker.sequence.length)
+					.find((seq) => {
+						const steps = seq.steps.map((step) => {
+							const { startTime, endTime } = step;
+							return { startTime, endTime };
+						});
+						const workerSteps = worker.sequence.map((step) => {
+							const { startTime, endTime } = step;
+							return { startTime, endTime };
+						});
+						return JSON.stringify(steps) === JSON.stringify(workerSteps);
+					})
+			: undefined;
+	const seqTooltip = sequence?.steps.map((step) => {
+		const { startTime, endTime } = step;
+		return `${startTime} - ${endTime}`;
+	});
+
 	return (
 		<Card
 			decoration="left"
 			decorationColor="sky"
 			className="grid grid-cols-2 gap-1 p-2"
 		>
-			<span className="col-span-2 flex items-center gap-2">
-				<input
-					id="selectedWorker"
-					aria-describedby="selectedWorker"
-					name="selectedWorker"
-					type="checkbox"
-					checked={selectedWorkerId === worker.id}
-					onChange={() => handleSelectWorker(worker.id)}
-					className="h-4 w-4 rounded-full border-gray-300 text-sky-600 cursor-pointer"
-				/>
-				<span
-					role="presentation"
-					className="truncate text-sm underline cursor-pointer font-bold"
-					onClick={() => setOpenWorkerInfo(true)}
-					onKeyDown={() => setOpenWorkerInfo(true)}
-				>
-					{worker.name}
-				</span>
+			<span className="col-span-2 flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<input
+						id="selectedWorker"
+						aria-describedby="selectedWorker"
+						name="selectedWorker"
+						type="checkbox"
+						checked={selectedWorkerId === worker.id}
+						onChange={() => handleSelectWorker(worker.id)}
+						className="h-4 w-4 rounded-full border-gray-300 text-sky-600 cursor-pointer"
+					/>
+					<span
+						role="presentation"
+						className="truncate text-sm underline cursor-pointer font-bold"
+						onClick={() => setOpenWorkerInfo(true)}
+						onKeyDown={() => setOpenWorkerInfo(true)}
+					>
+						{worker.name}
+					</span>
+				</div>
+				{sequence && (
+					<Badge
+						tooltip={seqTooltip ? seqTooltip.join(" | ") : undefined}
+						icon={BoltIcon}
+						color="rose"
+						className="text-xs cursor-pointer"
+						onClick={() =>
+							toast("Desasignar secuencia", {
+								action: {
+									label: "Desasignar",
+									onClick: () => resetWorker(stall.id, worker.id),
+								},
+							})
+						}
+					>
+						{sequence.name}
+					</Badge>
+				)}
 			</span>
 			<span className="text-sm font-medium truncate">
 				{worker.position} {">"}
@@ -175,7 +218,7 @@ export default function StallWorker({
 				icon={IdentificationIcon}
 				title="Información de la persona"
 			>
-				<WorkerInfo worker={worker} shifts={workerShifts} />
+				<WorkerInfo stallId={stall.id} worker={worker} shifts={workerShifts} />
 			</CenteredModal>
 			<CenteredModal
 				open={openCalendar}
