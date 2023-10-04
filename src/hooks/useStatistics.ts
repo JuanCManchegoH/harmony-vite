@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { Profile } from "../services/auth/types";
-import { Position } from "../services/company/types";
+import { Convention, Position, Sequence } from "../services/company/types";
 import { CustomerWithId } from "../services/customers/types";
 import { ShiftWithId } from "../services/shifts/types";
 import { StallWithId } from "../services/stalls/types";
@@ -56,6 +56,9 @@ export default function useStatistics(
 	);
 	const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
 	const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+
+	// CalendarFilters
+	const [selectedCCustomers, setSelectedCCustomers] = useState<string[]>([]);
 
 	const groupedShifts = (shifts: ShiftWithId[]) =>
 		shifts
@@ -174,6 +177,7 @@ export default function useStatistics(
 
 	useEffect(() => {
 		setSelectedCustomers(customers.map((customer) => customer.name));
+		setSelectedCCustomers(customers.map((customer) => customer.id));
 	}, [customers]);
 
 	const stallWorkers = stalls.reduce(
@@ -221,6 +225,11 @@ export default function useStatistics(
 			setSelectedPositions,
 			selectedCustomers,
 			setSelectedCustomers,
+		},
+		// CalendarFilters
+		calendarFilters: {
+			selectedCCustomers,
+			setSelectedCCustomers,
 		},
 		// Excel
 		excelGroups: groups.filter((group) => {
@@ -351,12 +360,7 @@ export function useCalendarExcel(
 	monthDays: MonthDay[],
 ) {
 	async function generateCalendarExcel() {
-		const workerSheets = [
-			...customers.map((customer) => ({
-				name: customer.name,
-				id: customer.id,
-			})),
-		];
+		const customerSheets = [...customers.map(({ id, name }) => ({ id, name }))];
 		const headers = [
 			"Sede",
 			"Puesto",
@@ -380,7 +384,7 @@ export function useCalendarExcel(
 			ids: workersIds,
 		});
 
-		workerSheets.forEach((sheet) => {
+		customerSheets.forEach((sheet) => {
 			const worksheet = workbook.addWorksheet(sheet.name);
 			const header = headers;
 			const customerStalls = stalls.filter(
@@ -407,7 +411,6 @@ export function useCalendarExcel(
 				);
 				const insideWorkers = s.workers;
 
-				// get workers outside the stall but
 				const outsideWorkers = stallShifts
 					.filter((s) => s.color === "green" || s.color === "gray")
 					.reduce(
@@ -444,7 +447,6 @@ export function useCalendarExcel(
 						}[],
 					);
 
-				// for each worker add a row, and add the shifts of the worker, then add an empty row
 				insideWorkers.forEach((worker) => {
 					const workerShifts = stallShifts.filter(
 						(shift) => shift.worker === worker.id,
@@ -506,4 +508,411 @@ export function useCalendarExcel(
 	}
 
 	return { generateCalendarExcel };
+}
+
+export function useResumeExcel(
+	conventions: Convention[],
+	sequences: Sequence[],
+	customers: CustomerWithId[],
+	stalls: StallWithId[],
+	shifts: ShiftWithId[],
+	monthDays: MonthDay[],
+) {
+	async function generateResumeExcel() {
+		const workbook = new ExcelJS.Workbook();
+		const access_token = Cookie.get("access_token");
+		axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+		const workersIds = shifts
+			.reduce((acc, shift) => {
+				if (!acc.includes(shift.worker)) {
+					acc.push(shift.worker);
+				}
+				return acc;
+			}, [] as string[])
+			.filter((id) => id !== "");
+		const { data } = await axios.post<WorkerWithId[]>(api.workers.getByIds, {
+			ids: workersIds,
+		});
+		const customerSheets = [
+			...customers.map(({ id, name, branches }) => ({ id, name, branches })),
+		];
+		const groupDescriptions = (shifts: ShiftWithId[]) => {
+			return shifts.reduce(
+				(acc: DescriptionWithDates[], { description, day }) => {
+					const existingDescription = acc.find(
+						(item) => item.description === description,
+					);
+
+					if (existingDescription) {
+						existingDescription.dates.push(day.slice(0, 5));
+					} else {
+						acc.push({
+							description,
+							dates: [day.slice(0, 5)],
+						});
+					}
+
+					return acc;
+				},
+				[],
+			);
+		};
+
+		const groupSequences = (names: { name: string; stallName: string }[]) =>
+			names.reduce((acc: SequenceWithStallNames[], { name, stallName }) => {
+				const existingSequence = acc.find((item) => item.name === name);
+
+				if (existingSequence) {
+					if (!existingSequence.stallNames.includes(stallName))
+						existingSequence.stallNames.push(stallName);
+				} else {
+					acc.push({
+						name,
+						stallNames: [stallName],
+					});
+				}
+
+				return acc;
+			}, []);
+
+		customerSheets.forEach(({ id, name, branches }) => {
+			const customersheet = workbook.addWorksheet(name);
+			customersheet.addRow([]);
+			const sheetHeaderText = `REPORTE ${name.toUpperCase()}`;
+			const sheetHeader = customersheet.addRow([sheetHeaderText]);
+			sheetHeader.getCell(1).alignment = { horizontal: "center" };
+			sheetHeader.font = { bold: true, color: { argb: "FFFFFFFF" } };
+			const startCell = sheetHeader.getCell(1);
+			const endCell = sheetHeader.getCell(10 + conventions.length);
+			customersheet.mergeCells(startCell.address, endCell.address);
+			// bg only in merged cells
+			for (let i = 1; i <= 10 + conventions.length; i++) {
+				customersheet.getCell(sheetHeader.number, i).fill = {
+					type: "pattern",
+					pattern: "solid",
+					fgColor: { argb: "FF374151" },
+				};
+			}
+			customersheet.addRow([]);
+			const customerStalls = stalls.filter((stall) => stall.customer === id);
+			const insideWorkers = customerStalls.reduce(
+				(acc, stall) => [...acc, ...stall.workers],
+				[] as StallWithId["workers"],
+			);
+			const customerShifts = shifts.filter((shift) => shift.customer === id);
+			const outsideWorkers = customerShifts
+				.filter((s) => s.color === "green" || s.color === "gray")
+				.reduce(
+					(acc, shift) => {
+						const isInside = insideWorkers.some(
+							(worker) => worker.id === shift.worker,
+						);
+						const existingWorker = acc.find(
+							(worker) => worker.id === shift.worker,
+						);
+						if (!isInside && !existingWorker) {
+							const worker = data.find((worker) => worker.id === shift.worker);
+							acc.push({
+								id: shift.worker,
+								name: shift.workerName,
+								identification: worker?.identification || "-",
+								position: shift.position || "-",
+								shifts: [shift],
+							});
+						}
+						if (!isInside && existingWorker) {
+							existingWorker.shifts.push(shift);
+						}
+						return acc;
+					},
+					[] as {
+						id: string;
+						name: string;
+						identification: string;
+						position: string;
+						shifts: ShiftWithId[];
+					}[],
+				);
+			["", ...branches].forEach((branch) => {
+				const branchStalls = stalls.filter(
+					(stall) => stall.customer === id && branch === stall.branch,
+				);
+				if (!branchStalls.length) return;
+
+				const headerText = branch ? branch : "SIN SEDE";
+				const hRow = customersheet.addRow([headerText.toUpperCase()]);
+
+				hRow.getCell(1).alignment = { horizontal: "center" };
+				// bg gray #374151, text white #fff
+				hRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+				const startCell = hRow.getCell(1);
+				const endCell = hRow.getCell(10 + conventions.length);
+				customersheet.mergeCells(startCell.address, endCell.address);
+				// bg only in merged cells
+				for (let i = 1; i <= 10 + conventions.length; i++) {
+					customersheet.getCell(hRow.number, i).fill = {
+						type: "pattern",
+						pattern: "solid",
+						fgColor: { argb: "FF374151" },
+					};
+				}
+
+				const header = [
+					"No.",
+					"PUESTO",
+					"NOMBRE",
+					"IDENTIFICACION",
+					"DIAS TRABAJADOS",
+					"TURNOS",
+					"DESCANSOS",
+					"ADICIONALES",
+					...conventions.map((convention) => convention.name),
+					"SECUECIA",
+					"OVSERVACIONES",
+				];
+				header.forEach((_, i) => {
+					if (i === 0) customersheet.getColumn(i + 1).width = 5;
+					if (i === 2) customersheet.getColumn(i + 1).width = 40;
+					if (i === 1 || i === 3 || i === 4)
+						customersheet.getColumn(i + 1).width = 20;
+					if (i > 5 && i !== header.length - 1)
+						customersheet.getColumn(i + 1).width = 15;
+					if (i === header.length - 1)
+						customersheet.getColumn(i + 1).width = 50;
+				});
+				const headerRow = customersheet.addRow(header);
+				headerRow.font = { bold: true };
+				branchStalls.forEach((s) => {
+					const workers = s.workers;
+
+					workers.forEach((worker, i) => {
+						const workerShifts = shifts.filter(
+							(shift) => shift.worker === worker.id && s.id === shift.stall,
+						);
+						const descriptionShifts = workerShifts.filter(
+							(shift) =>
+								shift.description !== "" &&
+								shift.description !== "Turno" &&
+								shift.description !== "Descanso",
+						);
+						const greenShifts = workerShifts.filter(
+							(shift) => shift.color === "green",
+						);
+						const grayShifts = workerShifts.filter(
+							(shift) => shift.color === "gray",
+						);
+						const yellowShifts = workerShifts.filter(
+							(shift) => shift.color === "yellow",
+						);
+						const redShifts = workerShifts.filter(
+							(shift) => shift.color === "red",
+						);
+						const workedDays =
+							monthDays.length -
+							(greenShifts.length + grayShifts.length - redShifts.length);
+						const days = workedDays > 30 ? 0 : 30 - workedDays;
+						const descriptionsWithDates = groupDescriptions(descriptionShifts);
+						const sequence =
+							worker.sequence.length > 0
+								? sequences
+										.filter(
+											(seq) => seq.steps.length === worker.sequence.length,
+										)
+										.find((seq) => {
+											const steps = seq.steps.map((step) => {
+												const { startTime, endTime } = step;
+												return { startTime, endTime };
+											});
+											const workerSteps = worker.sequence.map((step) => {
+												const { startTime, endTime } = step;
+												return { startTime, endTime };
+											});
+											return (
+												JSON.stringify(steps) === JSON.stringify(workerSteps)
+											);
+										})
+								: undefined;
+
+						const row = [
+							i + 1,
+							s.name,
+							worker.name,
+							worker.identification,
+							days,
+							greenShifts.length,
+							grayShifts.length,
+							yellowShifts.length,
+							...conventions.map((convention) => {
+								const conventionShifts = workerShifts.filter(
+									(shift) => shift.abbreviation === convention.abbreviation,
+								);
+								return conventionShifts.length;
+							}),
+							sequence?.name || "-",
+							descriptionsWithDates
+								.map(
+									(description, i) =>
+										`${i + 1}. ${
+											description.description
+										}\n(${description.dates.join(", ")})`,
+								)
+								.join("\n"),
+						];
+						customersheet.addRow(row);
+					});
+				});
+				customersheet.addRow([]);
+			});
+			// OUTSIDE WORKERS
+			if (outsideWorkers.length) {
+				const headerText = "RELEVANTES";
+				const hRow = customersheet.addRow([headerText]);
+
+				hRow.getCell(1).alignment = { horizontal: "center" };
+				// bg yellow #ca8a04, text white #fff
+				hRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+				const startCell = hRow.getCell(1);
+				const endCell = hRow.getCell(10 + conventions.length);
+				customersheet.mergeCells(startCell.address, endCell.address);
+				// bg only in merged cells
+				for (let i = 1; i <= 10 + conventions.length; i++) {
+					customersheet.getCell(hRow.number, i).fill = {
+						type: "pattern",
+						pattern: "solid",
+						fgColor: { argb: "FFCA8A04" },
+					};
+				}
+
+				const header = [
+					"No.",
+					"PUESTO",
+					"NOMBRE",
+					"IDENTIFICACION",
+					"DIAS TRABAJADOS",
+					"TURNOS",
+					"DESCANSOS",
+					"ADICIONALES",
+					...conventions.map((convention) => convention.name),
+					"SECUECIA",
+					"OVSERVACIONES",
+				];
+				header.forEach((_, i) => {
+					if (i === 0) customersheet.getColumn(i + 1).width = 5;
+					if (i === 2) customersheet.getColumn(i + 1).width = 40;
+					if (i === 1 || i === 3 || i === 4)
+						customersheet.getColumn(i + 1).width = 20;
+					if (i > 5 && i !== header.length - 1)
+						customersheet.getColumn(i + 1).width = 15;
+					if (i === header.length - 1)
+						customersheet.getColumn(i + 1).width = 70;
+				});
+				const headerRow = customersheet.addRow(header);
+				headerRow.font = { bold: true };
+				outsideWorkers.forEach((worker, i) => {
+					const workerShifts = worker.shifts;
+					const descriptionShifts = workerShifts.filter(
+						(shift) =>
+							shift.description !== "" &&
+							shift.description !== "Turno" &&
+							shift.description !== "Descanso",
+					);
+					const greenShifts = workerShifts.filter(
+						(shift) => shift.color === "green",
+					);
+					const grayShifts = workerShifts.filter(
+						(shift) => shift.color === "gray",
+					);
+					const yellowShifts = workerShifts.filter(
+						(shift) => shift.color === "yellow",
+					);
+					const redShifts = workerShifts.filter(
+						(shift) => shift.color === "red",
+					);
+					const workedDays =
+						monthDays.length -
+						(greenShifts.length + grayShifts.length - redShifts.length);
+					const days = workedDays > 30 ? 0 : 30 - workedDays;
+
+					const descriptionsWithDates = groupDescriptions(descriptionShifts);
+
+					const row = [
+						i + 1,
+						worker.position,
+						worker.name,
+						worker.identification,
+						days,
+						greenShifts.length,
+						grayShifts.length,
+						yellowShifts.length,
+						...conventions.map((convention) => {
+							const conventionShifts = workerShifts.filter(
+								(shift) => shift.abbreviation === convention.abbreviation,
+							);
+							return conventionShifts.length;
+						}),
+						groupSequences(
+							workerShifts.map((shift) => ({
+								name: shift.sequence,
+								stallName: shift.stallName,
+							})),
+						)
+							.map(
+								(sequence) =>
+									`${sequence.name} (${sequence.stallNames.join(", ")})`,
+							)
+							.join("\n"),
+						descriptionsWithDates
+							.map(
+								(description, i) =>
+									`${i + 1}. ${
+										description.description
+									}\n(${description.dates.join(", ")})`,
+							)
+							.join("\n"),
+					];
+					customersheet.addRow(row);
+				});
+			}
+		});
+		// add border to all cells
+		workbook.eachSheet((worksheet) => {
+			worksheet.eachRow((row) => {
+				row.eachCell((cell) => {
+					cell.border = {
+						top: { style: "thin" },
+						left: { style: "thin" },
+						bottom: { style: "thin" },
+						right: { style: "thin" },
+					};
+				});
+			});
+		});
+
+		await workbook.xlsx.writeBuffer();
+		// Download the file
+		workbook.xlsx.writeBuffer().then((data) => {
+			const blob = new Blob([data], {
+				type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			});
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.setAttribute("hidden", "");
+			a.setAttribute("href", url);
+			a.setAttribute("download", "Reporte programaciones.xlsx");
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		});
+	}
+	return { generateResumeExcel };
+}
+
+export interface DescriptionWithDates {
+	description: string;
+	dates: string[];
+}
+
+export interface SequenceWithStallNames {
+	name: string;
+	stallNames: string[];
 }

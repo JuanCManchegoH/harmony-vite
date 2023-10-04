@@ -1,10 +1,11 @@
 import { ArrowDownCircleIcon } from "@heroicons/react/24/solid";
-import { Card, Grid, Icon, Select, SelectItem } from "@tremor/react";
+import { Button, Card, Grid, Select, SelectItem } from "@tremor/react";
 import { useAppSelector } from "../../hooks/store";
 import useStatistics, {
 	statisticsSecs,
 	useCalendarExcel,
 	useExcel,
+	useResumeExcel,
 } from "../../hooks/useStatistics";
 import classNames from "../../utils/classNames";
 import { getDays, months, years } from "../../utils/dates";
@@ -13,13 +14,16 @@ import WorkersList from "./WorkersList";
 
 export default function Statistics() {
 	const { profile } = useAppSelector((state) => state.auth);
+	const { positions, conventions, sequences } = useAppSelector(
+		(state) => state.auth.profile.company,
+	);
 	const { customers } = useAppSelector((state) => state.customers);
 	const { groupedShifts, stalls, shifts } = useAppSelector(
 		(state) => state.statistics,
 	);
 	const statistics = useStatistics(groupedShifts, profile, customers, stalls);
 	const { generateExcel } = useExcel(
-		profile.company.positions,
+		positions,
 		statistics.excelGroups,
 		customers,
 		stalls,
@@ -27,7 +31,20 @@ export default function Statistics() {
 	);
 	const monthDays = getDays(statistics.selectedMonth, statistics.selectedYear);
 	const { generateCalendarExcel } = useCalendarExcel(
-		customers,
+		customers.filter((customer) =>
+			statistics.calendarFilters.selectedCCustomers.includes(customer.id),
+		),
+		stalls,
+		shifts,
+		monthDays,
+	);
+
+	const { generateResumeExcel } = useResumeExcel(
+		conventions.slice().sort((a, b) => a.color.localeCompare(b.color)),
+		sequences,
+		customers.filter((customer) =>
+			statistics.calendarFilters.selectedCCustomers.includes(customer.id),
+		),
 		stalls,
 		shifts,
 		monthDays,
@@ -38,14 +55,58 @@ export default function Statistics() {
 			<Card className="p-1 overflow-y-auto bg-gray-50">
 				<header className="flex justify-end items-center gap-2 border-b pb-1 sticky top-0 bg-gray-50 z-10">
 					{statisticsSecs[0].title === statistics.section && (
-						<Icon
-							size="sm"
-							variant="solid"
-							icon={ArrowDownCircleIcon}
-							onClick={generateCalendarExcel}
-							className="cursor-pointer"
-							tooltip="Descargar Programaciones"
-						/>
+						<>
+							<Button
+								variant="secondary"
+								color="sky"
+								size="sm"
+								onClick={() => {
+									if (
+										statistics.calendarFilters.selectedCCustomers.length === 0
+									) {
+										statistics.calendarFilters.setSelectedCCustomers(
+											customers.map((customer) => customer.id),
+										);
+									} else {
+										statistics.calendarFilters.setSelectedCCustomers([]);
+									}
+								}}
+								tooltip={
+									statistics.calendarFilters.selectedCCustomers.length === 0
+										? "Todos"
+										: "Ninguno"
+								}
+							>
+								{statistics.calendarFilters.selectedCCustomers.length === 0
+									? "Todos"
+									: "Ninguno"}
+							</Button>
+
+							<Button
+								icon={ArrowDownCircleIcon}
+								color="sky"
+								size="sm"
+								onClick={generateResumeExcel}
+								tooltip="Descargar Reporte"
+								disabled={
+									statistics.calendarFilters.selectedCCustomers.length === 0
+								}
+							>
+								Reporte
+							</Button>
+							<Button
+								icon={ArrowDownCircleIcon}
+								color="sky"
+								size="sm"
+								onClick={generateCalendarExcel}
+								tooltip="Descargar Programaciones"
+								disabled={
+									statistics.calendarFilters.selectedCCustomers.length === 0
+								}
+							>
+								Programaciones
+							</Button>
+						</>
 					)}
 					<div className="flex absolute left-0 text-lg">
 						<Select
@@ -106,6 +167,12 @@ export default function Statistics() {
 								customer={customer}
 								selectedMonth={statistics.selectedMonth}
 								selectedYear={statistics.selectedYear}
+								selectedCCustomers={
+									statistics.calendarFilters.selectedCCustomers
+								}
+								setSelectedCCustomers={
+									statistics.calendarFilters.setSelectedCCustomers
+								}
 							/>
 						))}
 					{statisticsSecs[1].title === statistics.section && (

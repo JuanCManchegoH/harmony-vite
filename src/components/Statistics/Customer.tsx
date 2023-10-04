@@ -1,5 +1,6 @@
 import { SignalIcon } from "@heroicons/react/24/solid";
 import { Card, Flex, Icon, ProgressBar, Subtitle, Title } from "@tremor/react";
+import { Dispatch, SetStateAction } from "react";
 import { useAppSelector } from "../../hooks/store";
 import { CustomerWithId } from "../../services/customers/types";
 import { ShiftWithId, eventTypes } from "../../services/shifts/types";
@@ -10,7 +11,15 @@ export default function Customer({
 	customer,
 	selectedMonth,
 	selectedYear,
-}: { customer: CustomerWithId; selectedMonth: string; selectedYear: string }) {
+	selectedCCustomers,
+	setSelectedCCustomers,
+}: {
+	customer: CustomerWithId;
+	selectedMonth: string;
+	selectedYear: string;
+	selectedCCustomers: string[];
+	setSelectedCCustomers: Dispatch<SetStateAction<string[]>>;
+}) {
 	const { shifts, stalls } = useAppSelector((state) => state.statistics);
 	const customerStalls = stalls.filter(
 		(stall) => stall.customer === customer.id,
@@ -72,15 +81,30 @@ export default function Customer({
 		return acc;
 	}, [] as string[]);
 
+	const handleSelectCustomers = () => {
+		if (selectedCCustomers.includes(customer.id)) {
+			setSelectedCCustomers(
+				selectedCCustomers.filter((id) => id !== customer.id),
+			);
+		} else {
+			setSelectedCCustomers([...selectedCCustomers, customer.id]);
+		}
+	};
+
 	return (
 		<Card className="flex flex-col gap-1 p-2 bg-gray-50">
 			<header className="grid grid-cols-5">
-				<Title
-					title={customer.name}
-					className="truncate text-sm col-span-4 uppercase"
-				>
-					{customer.name}
-				</Title>
+				<div className="col-span-4 flex gap-2 items-center">
+					<input
+						type="checkbox"
+						checked={selectedCCustomers.includes(customer.id)}
+						onChange={() => handleSelectCustomers()}
+						className="h-4 w-4 rounded-full border-gray-300 text-sky-600 cursor-pointer"
+					/>
+					<Title title={customer.name} className="truncate text-sm uppercase">
+						{customer.name}
+					</Title>
+				</div>
 				<div className="flex justify-end">
 					<Icon
 						icon={SignalIcon}
