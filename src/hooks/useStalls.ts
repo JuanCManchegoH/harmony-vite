@@ -1,6 +1,6 @@
 import axios from "axios";
 import Cookie from "js-cookie";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
 import { CustomerWithId } from "../services/customers/types";
@@ -286,6 +286,18 @@ export const useHandleStall = (
 			tag: "",
 		});
 	};
+
+	// every time stall changes
+	useEffect(() => {
+		setStallData({
+			name: stall?.name || "",
+			description: stall?.description || "",
+			ays: stall?.ays || "",
+			branch: stall?.branch || "",
+			stage: stall?.stage || 0,
+			tag: stall?.tag || "",
+		});
+	}, [stall]);
 
 	const handleCreateStall = (
 		createStall: (data: StallData, onSuccess?: Function) => Promise<void>,
