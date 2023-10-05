@@ -60,7 +60,7 @@ export default function StallCalendar({
 							}
 							size="xs"
 						>
-							H{content}
+							{content}
 						</Badge>
 					);
 				})}
