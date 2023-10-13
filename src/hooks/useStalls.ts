@@ -77,33 +77,6 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 		}
 	}
 
-	// async function getStallsByCustomers(
-	// 	months: string[],
-	// 	years: string[],
-	// 	onSuccess?: Function,
-	// ) {
-	// 	try {
-	// 		const access_token = Cookie.get("access_token");
-	// 		axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-	// 		const getStallsByCustomersPromise = axios.post<StallsAndShifts>(
-	// 			api.stalls.getByCustomers,
-	// 			{ months, years },
-	// 		);
-	// 		await toast.promise(getStallsByCustomersPromise, {
-	// 			loading: "Obteniendo puestos",
-	// 			success: ({ data }) => {
-	// 				dispatch(setStalls(data.stalls));
-	// 				dispatch(setShifts(data.shifts));
-	// 				onSuccess?.();
-	// 				return "Puestos obtenidos";
-	// 			},
-	// 			error: "Error obteniendo puestos",
-	// 		});
-	// 	} catch (error) {
-	// 		console.log(error);
-	// 	}
-	// }
-
 	async function updateStall(
 		stall: StallData,
 		stallId: string,
@@ -133,9 +106,14 @@ export const useStalls = (stalls: StallWithId[], shifts: ShiftWithId[]) => {
 	async function deleteStall(
 		stallId: string,
 		stallShifts: string[],
+		stallEvents: string[],
 		stalls: StallWithId[],
 		onSuccess?: Function,
 	) {
+		if (stallEvents.length > 0)
+			return toast.error(
+				"Primero debe eliminar los eventos asociados con el puesto",
+			);
 		try {
 			const access_token = Cookie.get("access_token");
 			axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;

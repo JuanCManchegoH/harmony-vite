@@ -8,7 +8,6 @@ import Cookie from "js-cookie";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "../services/api";
-import { Profile } from "../services/auth/types";
 import { Convention, Position, Sequence } from "../services/company/types";
 import { CustomerWithId } from "../services/customers/types";
 import { ShiftWithId } from "../services/shifts/types";
@@ -25,8 +24,13 @@ import { DateToSring, MonthDay, groupDates } from "../utils/dates";
 import { workerSheets } from "../utils/excel";
 import formatCurrency from "../utils/formatCurrency";
 import { getDiference } from "../utils/hours";
+import {
+	groupDescriptions,
+	groupSequences,
+	groupShiftsByColor,
+	headerData,
+} from "../utils/statistics";
 import { useAppDispatch } from "./store";
-import { useCustomers } from "./useCustomers";
 
 export const statisticsSecs = [
 	{ title: "Programaciones", icon: CalendarDaysIcon },
@@ -35,12 +39,11 @@ export const statisticsSecs = [
 
 export default function useStatistics(
 	groups: ShiftWithId[][],
-	profile: Profile,
 	customers: CustomerWithId[],
 	stalls: StallWithId[],
+	tabIndex: number,
 ) {
 	const dispatch = useAppDispatch();
-	const { getCustomers } = useCustomers(customers);
 	const month = new Date().getMonth().toString();
 	const year = new Date().getFullYear().toString();
 	const [section, setSection] = useState(statisticsSecs[0].title);
@@ -168,12 +171,8 @@ export default function useStatistics(
 	}
 
 	useEffect(() => {
-		profile.company.id && getCustomers();
-	}, [profile.company.id]);
-
-	useEffect(() => {
-		getStadistics();
-	}, [selectedMonth, selectedYear]);
+		tabIndex === 2 && getStadistics();
+	}, [selectedMonth, selectedYear, tabIndex]);
 
 	useEffect(() => {
 		setSelectedCustomers(customers.map((customer) => customer.name));
@@ -536,44 +535,6 @@ export function useResumeExcel(
 		const customerSheets = [
 			...customers.map(({ id, name, branches }) => ({ id, name, branches })),
 		];
-		const groupDescriptions = (shifts: ShiftWithId[]) => {
-			return shifts.reduce(
-				(acc: DescriptionWithDates[], { description, day }) => {
-					const existingDescription = acc.find(
-						(item) => item.description === description,
-					);
-
-					if (existingDescription) {
-						existingDescription.dates.push(day.slice(0, 5));
-					} else {
-						acc.push({
-							description,
-							dates: [day.slice(0, 5)],
-						});
-					}
-
-					return acc;
-				},
-				[],
-			);
-		};
-
-		const groupSequences = (names: { name: string; stallName: string }[]) =>
-			names.reduce((acc: SequenceWithStallNames[], { name, stallName }) => {
-				const existingSequence = acc.find((item) => item.name === name);
-
-				if (existingSequence) {
-					if (!existingSequence.stallNames.includes(stallName))
-						existingSequence.stallNames.push(stallName);
-				} else {
-					acc.push({
-						name,
-						stallNames: [stallName],
-					});
-				}
-
-				return acc;
-			}, []);
 
 		customerSheets.forEach(({ id, name, branches }) => {
 			const customersheet = workbook.addWorksheet(name);
@@ -583,16 +544,18 @@ export function useResumeExcel(
 			sheetHeader.getCell(1).alignment = { horizontal: "center" };
 			sheetHeader.font = { bold: true, color: { argb: "FFFFFFFF" } };
 			const startCell = sheetHeader.getCell(1);
-			const endCell = sheetHeader.getCell(10 + conventions.length);
+			const endCell = sheetHeader.getCell(11 + conventions.length);
 			customersheet.mergeCells(startCell.address, endCell.address);
 			// bg only in merged cells
-			for (let i = 1; i <= 10 + conventions.length; i++) {
+			for (let i = 1; i <= 11 + conventions.length; i++) {
 				customersheet.getCell(sheetHeader.number, i).fill = {
 					type: "pattern",
 					pattern: "solid",
 					fgColor: { argb: "FF374151" },
 				};
 			}
+			const header = headerData(customersheet, conventions);
+
 			customersheet.addRow([]);
 			const customerStalls = stalls.filter((stall) => stall.customer === id);
 			const insideWorkers = customerStalls.reduce(
@@ -643,43 +606,19 @@ export function useResumeExcel(
 				const hRow = customersheet.addRow([headerText.toUpperCase()]);
 
 				hRow.getCell(1).alignment = { horizontal: "center" };
-				// bg gray #374151, text white #fff
+
 				hRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
 				const startCell = hRow.getCell(1);
-				const endCell = hRow.getCell(10 + conventions.length);
+				const endCell = hRow.getCell(11 + conventions.length);
 				customersheet.mergeCells(startCell.address, endCell.address);
-				// bg only in merged cells
-				for (let i = 1; i <= 10 + conventions.length; i++) {
+
+				for (let i = 1; i <= 11 + conventions.length; i++) {
 					customersheet.getCell(hRow.number, i).fill = {
 						type: "pattern",
 						pattern: "solid",
 						fgColor: { argb: "FF374151" },
 					};
 				}
-
-				const header = [
-					"No.",
-					"PUESTO",
-					"NOMBRE",
-					"IDENTIFICACION",
-					"DIAS TRABAJADOS",
-					"TURNOS",
-					"DESCANSOS",
-					"ADICIONALES",
-					...conventions.map((convention) => convention.name),
-					"SECUECIA",
-					"OVSERVACIONES",
-				];
-				header.forEach((_, i) => {
-					if (i === 0) customersheet.getColumn(i + 1).width = 5;
-					if (i === 2) customersheet.getColumn(i + 1).width = 40;
-					if (i === 1 || i === 3 || i === 4)
-						customersheet.getColumn(i + 1).width = 20;
-					if (i > 5 && i !== header.length - 1)
-						customersheet.getColumn(i + 1).width = 15;
-					if (i === header.length - 1)
-						customersheet.getColumn(i + 1).width = 50;
-				});
 				const headerRow = customersheet.addRow(header);
 				headerRow.font = { bold: true };
 				branchStalls.forEach((s) => {
@@ -695,22 +634,16 @@ export function useResumeExcel(
 								shift.description !== "Turno" &&
 								shift.description !== "Descanso",
 						);
-						const greenShifts = workerShifts.filter(
-							(shift) => shift.color === "green",
-						);
-						const grayShifts = workerShifts.filter(
-							(shift) => shift.color === "gray",
-						);
-						const yellowShifts = workerShifts.filter(
-							(shift) => shift.color === "yellow",
-						);
-						const redShifts = workerShifts.filter(
-							(shift) => shift.color === "red",
-						);
-						const workedDays =
-							monthDays.length -
-							(greenShifts.length + grayShifts.length - redShifts.length);
-						const days = workedDays > 30 ? 0 : 30 - workedDays;
+						const { green, gray, yellow, red } =
+							groupShiftsByColor(workerShifts);
+
+						const plus = green.length + gray.length;
+						const monthBased =
+							plus > monthDays.length
+								? monthDays.length - red.length
+								: plus - red.length;
+						const basedOn30 = plus > 30 ? 30 - red.length : plus - red.length;
+
 						const descriptionsWithDates = groupDescriptions(descriptionShifts);
 						const sequence =
 							worker.sequence.length > 0
@@ -738,10 +671,11 @@ export function useResumeExcel(
 							s.name,
 							worker.name,
 							worker.identification,
-							days,
-							greenShifts.length,
-							grayShifts.length,
-							yellowShifts.length,
+							basedOn30,
+							monthBased,
+							green.length,
+							gray.length,
+							yellow.length,
 							...conventions.map((convention) => {
 								const conventionShifts = workerShifts.filter(
 									(shift) => shift.abbreviation === convention.abbreviation,
@@ -769,43 +703,18 @@ export function useResumeExcel(
 				const hRow = customersheet.addRow([headerText]);
 
 				hRow.getCell(1).alignment = { horizontal: "center" };
-				// bg yellow #ca8a04, text white #fff
 				hRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
 				const startCell = hRow.getCell(1);
-				const endCell = hRow.getCell(10 + conventions.length);
+				const endCell = hRow.getCell(11 + conventions.length);
 				customersheet.mergeCells(startCell.address, endCell.address);
-				// bg only in merged cells
-				for (let i = 1; i <= 10 + conventions.length; i++) {
+
+				for (let i = 1; i <= 11 + conventions.length; i++) {
 					customersheet.getCell(hRow.number, i).fill = {
 						type: "pattern",
 						pattern: "solid",
 						fgColor: { argb: "FFCA8A04" },
 					};
 				}
-
-				const header = [
-					"No.",
-					"PUESTO",
-					"NOMBRE",
-					"IDENTIFICACION",
-					"DIAS TRABAJADOS",
-					"TURNOS",
-					"DESCANSOS",
-					"ADICIONALES",
-					...conventions.map((convention) => convention.name),
-					"SECUECIA",
-					"OVSERVACIONES",
-				];
-				header.forEach((_, i) => {
-					if (i === 0) customersheet.getColumn(i + 1).width = 5;
-					if (i === 2) customersheet.getColumn(i + 1).width = 40;
-					if (i === 1 || i === 3 || i === 4)
-						customersheet.getColumn(i + 1).width = 20;
-					if (i > 5 && i !== header.length - 1)
-						customersheet.getColumn(i + 1).width = 15;
-					if (i === header.length - 1)
-						customersheet.getColumn(i + 1).width = 70;
-				});
 				const headerRow = customersheet.addRow(header);
 				headerRow.font = { bold: true };
 				outsideWorkers.forEach((worker, i) => {
@@ -816,22 +725,14 @@ export function useResumeExcel(
 							shift.description !== "Turno" &&
 							shift.description !== "Descanso",
 					);
-					const greenShifts = workerShifts.filter(
-						(shift) => shift.color === "green",
-					);
-					const grayShifts = workerShifts.filter(
-						(shift) => shift.color === "gray",
-					);
-					const yellowShifts = workerShifts.filter(
-						(shift) => shift.color === "yellow",
-					);
-					const redShifts = workerShifts.filter(
-						(shift) => shift.color === "red",
-					);
-					const workedDays =
-						monthDays.length -
-						(greenShifts.length + grayShifts.length - redShifts.length);
-					const days = workedDays > 30 ? 0 : 30 - workedDays;
+					const { green, gray, yellow, red } = groupShiftsByColor(workerShifts);
+
+					const plus = green.length + gray.length;
+					const monthBased =
+						plus > monthDays.length
+							? monthDays.length - red.length
+							: plus - red.length;
+					const basedOn30 = plus > 30 ? 30 - red.length : plus - red.length;
 
 					const descriptionsWithDates = groupDescriptions(descriptionShifts);
 
@@ -840,10 +741,11 @@ export function useResumeExcel(
 						worker.position,
 						worker.name,
 						worker.identification,
-						days,
-						greenShifts.length,
-						grayShifts.length,
-						yellowShifts.length,
+						basedOn30,
+						monthBased,
+						green.length,
+						gray.length,
+						yellow.length,
 						...conventions.map((convention) => {
 							const conventionShifts = workerShifts.filter(
 								(shift) => shift.abbreviation === convention.abbreviation,
@@ -905,14 +807,4 @@ export function useResumeExcel(
 		});
 	}
 	return { generateResumeExcel };
-}
-
-export interface DescriptionWithDates {
-	description: string;
-	dates: string[];
-}
-
-export interface SequenceWithStallNames {
-	name: string;
-	stallNames: string[];
 }

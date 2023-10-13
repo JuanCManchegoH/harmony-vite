@@ -44,6 +44,10 @@ export function useCalendar(
 		profile.company.id && getCustomers();
 	}, [profile.company.id]);
 	useEffect(() => {
+		setSelectedWorker("");
+	}, [selectedStall]);
+
+	useEffect(() => {
 		customers.length > 0 && setSelectedCustomer(customers[0].id);
 	}, [customers]);
 	useEffect(() => {

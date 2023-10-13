@@ -6,33 +6,26 @@ import {
 	PresentationChartLineIcon,
 } from "@heroicons/react/24/solid";
 import { Player } from "@lottiefiles/react-lottie-player";
-import { Button, Icon } from "@tremor/react";
+import { Icon, Tab, TabList } from "@tremor/react";
 import { Fragment, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
 import Avatar from "../common/Avatar";
 import { useAppSelector } from "../hooks/store";
 import { useAuth } from "../hooks/useAuth";
 import Logs from "./Logs";
 
 export const navigation = [
-	{ name: "Dashboard", icon: HomeIcon, href: "/dashboard" },
-	{ name: "Calendario", icon: CalendarIcon, href: "/calendario" },
-	{
-		name: "Estadísticas",
-		icon: PresentationChartLineIcon,
-		href: "/estadisticas",
-	},
+	{ name: "Dashboard", icon: HomeIcon },
+	{ name: "Calendario", icon: CalendarIcon },
+	{ name: "Estadísticas", icon: PresentationChartLineIcon },
 ];
 
 export default function Navbar() {
 	const profile = useAppSelector((state) => state.auth.profile);
 	const { logout } = useAuth();
-	const location = useLocation().pathname;
-	const current = navigation.findIndex((item) => item.href === location);
 	const [openLogs, setOpenLogs] = useState(false);
 
 	return (
-		<header className="fixed bg-gray-50 inset-x-0 px-2 top-0 z-20 flex justify-end items-center h-14 font-rhd border-b">
+		<header className="bg-gray-50 inset-x-0 px-2 z-20 flex justify-end items-center h-14 font-rhd border-b absolute top-0">
 			<div className="flex absolute left-2 items-center gap-1">
 				<Menu as="div" className="relative inline-block text-left">
 					<Menu.Button title={profile.userName}>
@@ -93,22 +86,16 @@ export default function Navbar() {
 					position: "absolute",
 				}}
 			/>
-			<nav className="flex gap-2 absolute left-1/2 transform -translate-x-1/2">
+			<TabList
+				color="rose"
+				className="flex gap-2 absolute left-1/2 transform -translate-x-1/2 font-bold"
+			>
 				{navigation.map((item) => (
-					<Link to={item.href} key={item.name}>
-						<Button
-							variant={
-								current === navigation.indexOf(item) ? undefined : "secondary"
-							}
-							size="sm"
-							color={current === navigation.indexOf(item) ? "rose" : "gray"}
-							icon={item.icon}
-						>
-							{item.name}
-						</Button>
-					</Link>
+					<Tab key={item.name} icon={item.icon}>
+						{item.name}
+					</Tab>
 				))}
-			</nav>
+			</TabList>
 			<Logs open={openLogs} setOpen={setOpenLogs} />
 		</header>
 	);

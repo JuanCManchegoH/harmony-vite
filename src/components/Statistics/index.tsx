@@ -12,8 +12,7 @@ import { getDays, months, years } from "../../utils/dates";
 import Customer from "./Customer";
 import WorkersList from "./WorkersList";
 
-export default function Statistics() {
-	const { profile } = useAppSelector((state) => state.auth);
+export default function Statistics({ tabIndex }: { tabIndex: number }) {
 	const { positions, conventions, sequences } = useAppSelector(
 		(state) => state.auth.profile.company,
 	);
@@ -21,7 +20,7 @@ export default function Statistics() {
 	const { groupedShifts, stalls, shifts } = useAppSelector(
 		(state) => state.statistics,
 	);
-	const statistics = useStatistics(groupedShifts, profile, customers, stalls);
+	const statistics = useStatistics(groupedShifts, customers, stalls, tabIndex);
 	const { generateExcel } = useExcel(
 		positions,
 		statistics.excelGroups,

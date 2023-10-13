@@ -19,7 +19,7 @@ import {
 	useStalls,
 } from "../../hooks/useStalls";
 import { CustomerWithId } from "../../services/customers/types";
-import { shiftTypes } from "../../services/shifts/types";
+import { eventTypes, shiftTypes } from "../../services/shifts/types";
 import { StallWithId } from "../../services/stalls/types";
 import classNames from "../../utils/classNames";
 import { MonthDay } from "../../utils/dates";
@@ -101,9 +101,12 @@ export default function StallInfo({
 								stall.id,
 								shifts
 									.filter(
-										(shift) =>
-											shift.stall === stall.id &&
-											shiftTypes.includes(shift.type),
+										(s) => s.stall === stall.id && shiftTypes.includes(s.type),
+									)
+									.map((shift) => shift.id),
+								shifts
+									.filter(
+										(s) => s.stall === stall.id && eventTypes.includes(s.type),
 									)
 									.map((shift) => shift.id),
 								stalls,
