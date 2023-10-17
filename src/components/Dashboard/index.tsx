@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/24/solid";
 import {
 	Card,
-	Grid,
 	Tab,
 	TabGroup,
 	TabList,
@@ -18,6 +17,7 @@ import {
 import { Fragment, useEffect, useState } from "react";
 import { useAppSelector } from "../../hooks/store";
 import { useUsers } from "../../hooks/useUsers";
+import classNames from "../../utils/classNames";
 import Conventions from "./Conventions";
 import Fields from "./Fields";
 import Positions from "./Positions";
@@ -53,7 +53,7 @@ const navItems = [
 	},
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ display }: { display: boolean }) {
 	const { users } = useAppSelector((state) => state.users);
 	const { profile } = useAppSelector((state) => state.auth);
 	const { getUsers } = useUsers(profile, users);
@@ -64,23 +64,24 @@ export default function Dashboard() {
 	}, [profile]);
 
 	return (
-		<Grid
-			numItems={1}
-			numItemsSm={2}
-			numItemsLg={3}
-			className="gap-4 h-full p-2 pt-4"
-		>
+		<>
 			<Card
 				decoration="bottom"
 				decorationColor="rose"
-				className="col-span-2 overflow-auto p-0 bg-gray-50"
+				className={classNames(
+					"col-span-2 p-0 bg-gray-50 overflow-auto h-full",
+					display ? "" : "hidden",
+				)}
 			>
 				<Users />
 			</Card>
 			<Card
 				decoration="bottom"
 				decorationColor="rose"
-				className="col-span-1 overflow-auto p-0 bg-gray-50"
+				className={classNames(
+					"col-span-1 overflow-auto p-0 bg-gray-50",
+					display ? "" : "hidden",
+				)}
 			>
 				<TabGroup
 					className="flex flex-col items-center"
@@ -119,6 +120,6 @@ export default function Dashboard() {
 					</TabPanels>
 				</TabGroup>
 			</Card>
-		</Grid>
+		</>
 	);
 }

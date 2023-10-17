@@ -16,15 +16,13 @@ function App() {
 				className="z-50"
 				duration={2000}
 			/>
-			<div className="h-full">
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/harmony" element={<Harmony />} />
-					{/* <Route path="/calendario" element={<Calendar />} /> */}
-					{/* <Route path="/estadisticas" element={<Statistics />} /> */}
-				</Routes>
-			</div>
+			<Routes>
+				<Route path="/" element={<Home />} />
+				<Route path="/login" element={<Login />} />
+				<Route path="/harmony" element={<Harmony />} />
+				{/* <Route path="/calendario" element={<Calendar />} /> */}
+				{/* <Route path="/estadisticas" element={<Statistics />} /> */}
+			</Routes>
 		</>
 	);
 }

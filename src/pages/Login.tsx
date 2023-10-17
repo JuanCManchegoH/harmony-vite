@@ -42,7 +42,7 @@ export default function Login() {
 					</Button>
 				</Link>
 			</div>
-			<section className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 z-10">
+			<section className="flex h-screen flex-1 flex-col justify-center px-6 py-12 lg:px-8 z-10">
 				<div className="sm:mx-auto sm:w-full sm:max-w-sm z-10">
 					<div className="flex flex-col items-center justify-center">
 						<img

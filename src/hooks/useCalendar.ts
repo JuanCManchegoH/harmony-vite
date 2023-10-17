@@ -183,7 +183,6 @@ export function useCreateEvent(
 			setSelectedWorker(undefined);
 			setSelectedSequence("");
 			setPosition("");
-			setSelectedConvention(undefined);
 			setSelectedDays([]);
 			setSelectedStall(undefined);
 			setShiftsData({
@@ -191,7 +190,7 @@ export function useCreateEvent(
 				selectedStartMinute: "0",
 				selectedEndHour: "18",
 				selectedEndMinute: "0",
-				selectedColor: calendarColors[0],
+				selectedColor: shiftsData.selectedColor,
 				description: "",
 			});
 		};

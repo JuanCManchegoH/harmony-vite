@@ -1,4 +1,4 @@
-import { TabGroup, TabPanel, TabPanels } from "@tremor/react";
+import { TabGroup } from "@tremor/react";
 import { useEffect, useState } from "react";
 import Background from "../common/Background";
 import Calendar from "../components/Calendar";
@@ -18,20 +18,14 @@ export default function Harmony() {
 	return (
 		<TabGroup
 			onIndexChange={(i) => setTabIndex(i)}
-			className="h-full font-rhd grid"
+			className="font-rhd h-screen"
 		>
-			<Navbar />
-			<TabPanels className="grid">
-				<TabPanel className="mt-0 pt-12">
-					<Dashboard />
-				</TabPanel>
-				<TabPanel className="mt-0 pt-12">
-					<Calendar />
-				</TabPanel>
-				<TabPanel className="mt-0 pt-12">
-					<Statistics tabIndex={tabIndex} />
-				</TabPanel>
-			</TabPanels>
+			<section className="h-full grid grid-cols-3 gap-2 pt-16 p-2">
+				<Navbar />
+				<Dashboard display={tabIndex === 0} />
+				<Calendar display={tabIndex === 1} />
+				<Statistics tabIndex={tabIndex} display={tabIndex === 2} />
+			</section>
 			<Background />
 		</TabGroup>
 	);

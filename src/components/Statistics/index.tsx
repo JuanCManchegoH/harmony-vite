@@ -1,5 +1,5 @@
 import { ArrowDownCircleIcon } from "@heroicons/react/24/solid";
-import { Button, Card, Grid, Select, SelectItem } from "@tremor/react";
+import { Button, Card, Select, SelectItem } from "@tremor/react";
 import { useAppSelector } from "../../hooks/store";
 import useStatistics, {
 	statisticsSecs,
@@ -12,7 +12,10 @@ import { getDays, months, years } from "../../utils/dates";
 import Customer from "./Customer";
 import WorkersList from "./WorkersList";
 
-export default function Statistics({ tabIndex }: { tabIndex: number }) {
+export default function Statistics({
+	tabIndex,
+	display,
+}: { tabIndex: number; display: boolean }) {
 	const { positions, conventions, sequences } = useAppSelector(
 		(state) => state.auth.profile.company,
 	);
@@ -50,8 +53,13 @@ export default function Statistics({ tabIndex }: { tabIndex: number }) {
 	);
 
 	return (
-		<Grid numItems={1} className="gap-2 h-full p-2 pt-4">
-			<Card className="p-1 overflow-y-auto bg-gray-50">
+		<section
+			className={classNames(
+				"col-span-3 overflow-y-auto h-full rounded-md",
+				display ? "" : "hidden",
+			)}
+		>
+			<Card className="p-1 bg-gray-50">
 				<header className="flex justify-end items-center gap-2 border-b pb-1 sticky top-0 bg-gray-50 z-10">
 					{statisticsSecs[0].title === statistics.section && (
 						<>
@@ -185,6 +193,6 @@ export default function Statistics({ tabIndex }: { tabIndex: number }) {
 					)}
 				</main>
 			</Card>
-		</Grid>
+		</section>
 	);
 }

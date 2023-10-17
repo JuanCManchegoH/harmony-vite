@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import EmptyState from "../../common/EmptyState";
 import Ping from "../../common/Ping";
 import { useAppSelector } from "../../hooks/store";
+import { abbreviationColors } from "../../services/shifts/types";
 import { StallWithId } from "../../services/stalls/types";
 import classNames from "../../utils/classNames";
 import { colorOps } from "../../utils/colors";
@@ -46,7 +47,7 @@ export default function StallCalendar({
 				{schedules.map((schedule, i) => {
 					const content =
 						schedule.startTime === schedule.endTime
-							? "X > Sin horario"
+							? "Sin horario"
 							: `H${i} > ${schedule.startTime}-${schedule.endTime}`;
 					return (
 						<Badge
@@ -131,7 +132,15 @@ export default function StallCalendar({
 										return 0;
 									})
 									.map(
-										({ id, color, startTime, endTime, workerName, worker }) => {
+										({
+											id,
+											color,
+											startTime,
+											endTime,
+											workerName,
+											worker,
+											abbreviation,
+										}) => {
 											const schedule = schedules.findIndex(
 												(schedule) =>
 													schedule.startTime === startTime &&
@@ -146,7 +155,10 @@ export default function StallCalendar({
 												(stallWorker) => stallWorker.id === worker,
 											);
 
-											const content = !schedule ? "X" : `H${schedule}`;
+											const shiftContent = !schedule ? "X" : `H${schedule}`;
+											const content = abbreviationColors.includes(color)
+												? abbreviation
+												: shiftContent;
 											return (
 												<Badge
 													tooltip={tooltip}

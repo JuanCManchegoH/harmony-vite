@@ -76,3 +76,5 @@ export interface GetShifts {
 
 export const eventTypes = ["event", "customer"];
 export const shiftTypes = ["shift", "rest"];
+
+export const abbreviationColors = ["sky", "red"];
