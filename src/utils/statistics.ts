@@ -75,9 +75,9 @@ export const headerData = (
 		"No.",
 		"PUESTO",
 		"NOMBRE",
+		"CARGO",
 		"IDENTIFICACION",
-		"DIAS TRABAJADOS BASE 30",
-		"DIAS TRABAJADOS",
+		"DIAS LABORADOS / 30",
 		"TURNOS",
 		"DESCANSOS",
 		"ADICIONALES",
@@ -88,10 +88,8 @@ export const headerData = (
 	header.forEach((_, i) => {
 		if (i === 0) customersheet.getColumn(i + 1).width = 5;
 		if (i === 2) customersheet.getColumn(i + 1).width = 40;
-		if (i === 1 || i === 3 || i === 5)
-			customersheet.getColumn(i + 1).width = 20;
-		if (i === 4) customersheet.getColumn(i + 1).width = 30;
-		if (i > 6 && i !== header.length - 1)
+		if (i <= 5 && i !== 0 && i !== 2) customersheet.getColumn(i + 1).width = 30;
+		if (i >= 6 && i !== header.length - 1)
 			customersheet.getColumn(i + 1).width = 15;
 		if (i === header.length - 1) customersheet.getColumn(i + 1).width = 50;
 	});

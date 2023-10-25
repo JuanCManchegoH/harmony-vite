@@ -563,39 +563,43 @@ export function useResumeExcel(
 				[] as StallWithId["workers"],
 			);
 			const customerShifts = shifts.filter((shift) => shift.customer === id);
-			const outsideWorkers = customerShifts
-				.filter((s) => s.color === "green" || s.color === "gray")
-				.reduce(
-					(acc, shift) => {
-						const isInside = insideWorkers.some(
-							(worker) => worker.id === shift.worker,
+			const outsideWorkers = customerShifts.reduce(
+				(acc, shift) => {
+					const isInside = insideWorkers.some((worker) => {
+						const workerStalls = customerStalls.filter((cs) =>
+							cs.workers.some((sw) => sw.id === worker.id),
 						);
-						const existingWorker = acc.find(
-							(worker) => worker.id === shift.worker,
+						return (
+							worker.id === shift.worker &&
+							workerStalls.some((ws) => ws.id === shift.stall)
 						);
-						if (!isInside && !existingWorker) {
-							const worker = data.find((worker) => worker.id === shift.worker);
-							acc.push({
-								id: shift.worker,
-								name: shift.workerName,
-								identification: worker?.identification || "-",
-								position: shift.position || "-",
-								shifts: [shift],
-							});
-						}
-						if (!isInside && existingWorker) {
-							existingWorker.shifts.push(shift);
-						}
-						return acc;
-					},
-					[] as {
-						id: string;
-						name: string;
-						identification: string;
-						position: string;
-						shifts: ShiftWithId[];
-					}[],
-				);
+					});
+					const existingWorker = acc.find(
+						(worker) => worker.id === shift.worker,
+					);
+					if (!isInside && !existingWorker) {
+						const worker = data.find((worker) => worker.id === shift.worker);
+						acc.push({
+							id: shift.worker,
+							name: shift.workerName,
+							identification: worker?.identification || "-",
+							position: shift.position || "-",
+							shifts: [shift],
+						});
+					}
+					if (!isInside && existingWorker) {
+						existingWorker.shifts.push(shift);
+					}
+					return acc;
+				},
+				[] as {
+					id: string;
+					name: string;
+					identification: string;
+					position: string;
+					shifts: ShiftWithId[];
+				}[],
+			);
 			["", ...branches].forEach((branch) => {
 				const branchStalls = stalls.filter(
 					(stall) => stall.customer === id && branch === stall.branch,
@@ -634,15 +638,16 @@ export function useResumeExcel(
 								shift.description !== "Turno" &&
 								shift.description !== "Descanso",
 						);
-						const { green, gray, yellow, red } =
-							groupShiftsByColor(workerShifts);
+						const { green, gray, yellow } = groupShiftsByColor(workerShifts);
 
-						const plus = green.length + gray.length;
-						const monthBased =
-							plus > monthDays.length
-								? monthDays.length - red.length
-								: plus - red.length;
-						const basedOn30 = plus > 30 ? 30 - red.length : plus - red.length;
+						const notWorkedDays = monthDays.filter(
+							(day) =>
+								![...green, ...gray].some(
+									(ws) => ws.day === DateToSring(day.date),
+								),
+						).length;
+
+						const basedOn30 = 30 - notWorkedDays;
 
 						const descriptionsWithDates = groupDescriptions(descriptionShifts);
 						const sequence =
@@ -670,9 +675,9 @@ export function useResumeExcel(
 							i + 1,
 							s.name,
 							worker.name,
+							worker.position,
 							worker.identification,
 							basedOn30,
-							monthBased,
 							green.length,
 							gray.length,
 							yellow.length,
@@ -699,7 +704,7 @@ export function useResumeExcel(
 			});
 			// OUTSIDE WORKERS
 			if (outsideWorkers.length) {
-				const headerText = "RELEVANTES";
+				const headerText = "RELEVANTES Y NOVEDADES";
 				const hRow = customersheet.addRow([headerText]);
 
 				hRow.getCell(1).alignment = { horizontal: "center" };
@@ -725,24 +730,30 @@ export function useResumeExcel(
 							shift.description !== "Turno" &&
 							shift.description !== "Descanso",
 					);
-					const { green, gray, yellow, red } = groupShiftsByColor(workerShifts);
+					const { green, gray, yellow } = groupShiftsByColor(workerShifts);
 
-					const plus = green.length + gray.length;
-					const monthBased =
-						plus > monthDays.length
-							? monthDays.length - red.length
-							: plus - red.length;
-					const basedOn30 = plus > 30 ? 30 - red.length : plus - red.length;
+					const notWorkedDays = monthDays.filter(
+						(day) =>
+							![...green, ...gray].some(
+								(ws) => ws.day === DateToSring(day.date),
+							),
+					).length;
+
+					const stallNames = workerShifts
+						.map((ws) => ws.stallName)
+						.filter((sn) => sn !== name);
+					const uniqueStallNames = [...new Set(stallNames)];
+					const basedOn30 = 30 - notWorkedDays;
 
 					const descriptionsWithDates = groupDescriptions(descriptionShifts);
 
 					const row = [
 						i + 1,
-						worker.position,
+						uniqueStallNames.join(", "),
 						worker.name,
+						worker.position,
 						worker.identification,
-						basedOn30,
-						monthBased,
+						gray.length ? basedOn30 : green.length,
 						green.length,
 						gray.length,
 						yellow.length,
