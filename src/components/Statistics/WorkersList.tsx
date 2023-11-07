@@ -1,32 +1,37 @@
 import {
 	ArrowDownCircleIcon,
-	CalendarIcon,
-	InformationCircleIcon,
+	IdentificationIcon,
+	MagnifyingGlassCircleIcon,
 	RectangleGroupIcon,
+	ShieldCheckIcon,
 	ShieldExclamationIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import {
+	Accordion,
+	AccordionBody,
+	AccordionHeader,
+	AccordionList,
 	Badge,
 	Button,
-	Card,
 	Icon,
 	MultiSelect,
 	MultiSelectItem,
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeaderCell,
-	TableRow,
+	NumberInput,
 	Text,
 } from "@tremor/react";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useAppSelector } from "../../hooks/store";
-import { groupDates } from "../../utils/dates";
-import formatCurrency from "../../utils/formatCurrency";
+import { ShiftWithId } from "../../services/shifts/types";
 import { getDiference } from "../../utils/hours";
+import { groupedShiftsExtended } from "../../utils/statistics";
+import Group from "./Group";
 
+export const hours = (shifts: ShiftWithId[]) =>
+	shifts.reduce(
+		(acc, shift) => acc + getDiference(shift.startTime, shift.endTime).hours,
+		0,
+	);
 export interface WorkerListFilters {
 	abbsList: string[];
 	selectedAbbreviations: string[];
@@ -36,6 +41,8 @@ export interface WorkerListFilters {
 	setSelectedPositions: Dispatch<SetStateAction<string[]>>;
 	selectedCustomers: string[];
 	setSelectedCustomers: Dispatch<SetStateAction<string[]>>;
+	minHours: number;
+	setMinHours: Dispatch<SetStateAction<number>>;
 }
 
 export default function WorkersList({
@@ -51,11 +58,11 @@ export default function WorkersList({
 	generateExcel: () => void;
 	year: string;
 }) {
-	const { groupsToShow, stalls, groupedShiftsLength } = useAppSelector(
+	const [selectedMinHour, setSelectedMinHour] = useState(0);
+	const { groupsToShow, groupedShiftsLength } = useAppSelector(
 		(state) => state.statistics,
 	);
 	const { customers } = useAppSelector((state) => state.customers);
-	const { positions } = useAppSelector((state) => state.auth.profile.company);
 
 	const totalPages = Math.ceil(groupedShiftsLength / 100);
 	const filtersArray = [
@@ -86,9 +93,9 @@ export default function WorkersList({
 	];
 
 	return (
-		<Card className="p-0 bg-gray-50">
-			<header className="flex justify-between items-center">
-				<div className="flex gap-2 items-center p-2">
+		<div className="p-0 bg-gray-50">
+			<header className="grid grid-cols-3 p-2">
+				<div className="flex items-center gap-2">
 					<Icon
 						size="sm"
 						variant="solid"
@@ -97,6 +104,17 @@ export default function WorkersList({
 						className="cursor-pointer"
 						tooltip="Descargar Listado"
 					/>
+
+					<Badge
+						size="lg"
+						color="sky"
+						className="font-bold"
+						icon={IdentificationIcon}
+					>
+						{groupedShiftsLength} PERSONAS
+					</Badge>
+				</div>
+				<div className="grid grid-cols-3 gap-2 items-center">
 					{filtersArray.map(({ name, icon, value, setValue, items }, i) => (
 						<MultiSelect
 							key={name}
@@ -112,9 +130,22 @@ export default function WorkersList({
 							))}
 						</MultiSelect>
 					))}
+					<div className="flex items-center gap-2">
+						<NumberInput
+							min={0}
+							enableStepper={false}
+							defaultValue={selectedMinHour}
+							onValueChange={(v) => setSelectedMinHour(v)}
+							placeholder="Minimo de horas"
+						/>
+						<MagnifyingGlassCircleIcon
+							className="w-8 h-8 text-gray-500 hover:text-sky-500 cursor-pointer"
+							onClick={() => filters.setMinHours(selectedMinHour)}
+						/>
+					</div>
 				</div>
 				{totalPages > 1 && (
-					<div className="flex gap-2 items-center p-2">
+					<div className="flex gap-2 items-center justify-end p-2">
 						<Button
 							size="sm"
 							color="sky"
@@ -139,107 +170,63 @@ export default function WorkersList({
 					</div>
 				)}
 			</header>
-			<Table className="bg-gray-50">
-				<TableHead className="border-b">
-					<TableRow>
-						<TableHeaderCell>#</TableHeaderCell>
-						<TableHeaderCell className="flex gap-2">Nombre</TableHeaderCell>
-						<TableHeaderCell>Tipo</TableHeaderCell>
-						<TableHeaderCell>Cantidad</TableHeaderCell>
-						<TableHeaderCell>Horas</TableHeaderCell>
-						<TableHeaderCell>Cliente</TableHeaderCell>
-						<TableHeaderCell>Puesto</TableHeaderCell>
-						<TableHeaderCell>Valor</TableHeaderCell>
-						<TableHeaderCell />
-					</TableRow>
-				</TableHead>
-				<TableBody>
-					{groupsToShow.map((shifts, index) => {
-						const stall = stalls.find((stall) => stall.id === shifts[0].stall);
-						const customer = customers.find(
-							(customer) => customer.id === shifts[0].stall,
-						);
-						const hours = shifts.reduce(
-							(acc, shift) =>
-								acc + getDiference(shift.startTime, shift.endTime).hours,
-							0,
-						);
-						const position =
-							shifts[0].position ||
-							stall?.workers.find((worker) => worker.id === shifts[0].worker)
-								?.position;
+			<AccordionList className="bg-gray-50 flex flex-col">
+				{groupsToShow.map((shifts, index) => {
+					const green = shifts.filter((s) => s.color === "green");
+					const gray = shifts.filter((s) => s.color === "gray");
+					const yellow = shifts.filter((s) => s.color === "yellow");
+					const red = shifts.filter((s) => s.color === "red");
+					const sky = shifts.filter((s) => s.color === "sky");
 
-						const positionValue =
-							position &&
-							positions.find(
-								(p) => p.name === position && String(p.year) === year,
-							)?.value;
-
-						return (
-							<>
-								<TableRow
-									key={`shifts-${index}-${shifts[0].id}`}
-									className="font-medium uppercase"
-								>
-									<TableCell>{index + 1 + (page - 1) * 100}</TableCell>
-									<TableCell title="Nombre">
-										<Text>{shifts[0].workerName}</Text>
-										{position}
-									</TableCell>
-									<TableCell title="Tipo">
-										<Text color={shifts[0].color}>
-											{shifts[0].abbreviation}
-										</Text>
-									</TableCell>
-									<TableCell title="Horas">{shifts.length}</TableCell>
-									<TableCell title="Horas">{hours || "-"}</TableCell>
-									<TableCell title="Cliente" className="max-w-[200px] truncate">
-										<Text className="truncate">
-											{stall?.customerName || customer?.name}
-										</Text>
-										<Text className="truncate">{shifts[0].sequence}</Text>
-									</TableCell>
-									<TableCell className="max-w-[200px]" title="Puesto">
-										<Text className="truncate">
-											{shifts[0].stallName !== stall?.name
-												? "-"
-												: shifts[0].stallName}
-										</Text>
-										<Text className="truncate">{stall?.branch}</Text>
-									</TableCell>
-									<TableCell>
-										<Text>
-											{positionValue && shifts[0].color === "yellow"
-												? `${formatCurrency(positionValue * hours)}`
-												: "-"}
-										</Text>
-									</TableCell>
-									<TableCell className="flex flex-col items-end gap-1">
-										<Badge
-											icon={CalendarIcon}
-											color="gray"
-											tooltip={groupDates(
-												shifts.map((shift) => shift.day),
-											).join(" | ")}
-										>
-											Fechas
-										</Badge>
-										{shifts[0].description && (
-											<Badge
-												icon={InformationCircleIcon}
-												color="gray"
-												title={shifts[0].description}
-											>
-												Info
+					return (
+						<>
+							<Accordion
+								key={`shifts-${index}-${shifts[0].id}`}
+								className="font-medium uppercase"
+							>
+								<AccordionHeader>
+									<div className="flex gap-4 items-center">
+										<div className="flex w-8 h-8 rounded-lg bg-sky-400 text-white items-center justify-center">
+											{index + 1 + (page - 1) * 100}
+										</div>
+										<p>{shifts[0].workerName}</p>
+										{green.length ? (
+											<Badge color="green" icon={ShieldCheckIcon}>
+												{green.length} Turnos | {hours(green)}H
 											</Badge>
-										)}
-									</TableCell>
-								</TableRow>
-							</>
-						);
-					})}
-				</TableBody>
-			</Table>
-		</Card>
+										) : null}
+										{gray.length ? (
+											<Badge color="gray" icon={ShieldCheckIcon}>
+												{gray.length} Descansos
+											</Badge>
+										) : null}
+										{yellow.length ? (
+											<Badge color="yellow" icon={ShieldExclamationIcon}>
+												{yellow.length} Adicionales
+											</Badge>
+										) : null}
+										{red.length ? (
+											<Badge color="red" icon={ShieldExclamationIcon}>
+												{red.length} Ausencias
+											</Badge>
+										) : null}
+										{sky.length ? (
+											<Badge color="sky" icon={ShieldExclamationIcon}>
+												{sky.length} Seguimiento
+											</Badge>
+										) : null}
+									</div>
+								</AccordionHeader>
+								<AccordionBody>
+									{groupedShiftsExtended(shifts).map((g) => {
+										return <Group shifts={g} year={year} />;
+									})}
+								</AccordionBody>
+							</Accordion>
+						</>
+					);
+				})}
+			</AccordionList>
+		</div>
 	);
 }

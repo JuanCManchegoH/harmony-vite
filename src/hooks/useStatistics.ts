@@ -25,9 +25,11 @@ import { workerSheets } from "../utils/excel";
 import formatCurrency from "../utils/formatCurrency";
 import { getDiference } from "../utils/hours";
 import {
+	filteredGroups,
 	groupDescriptions,
 	groupSequences,
 	groupShiftsByColor,
+	groupedShiftsExtended,
 	headerData,
 } from "../utils/statistics";
 import { useAppDispatch } from "./store";
@@ -53,6 +55,7 @@ export default function useStatistics(
 
 	// Filters
 	const [abbsList, setAbbsList] = useState<string[]>([]);
+	const [minHours, setMinHours] = useState<number>(0);
 	const [positionsList, setPositionsList] = useState<string[]>([]);
 	const [selectedAbbreviations, setSelectedAbbreviations] = useState<string[]>(
 		[],
@@ -67,14 +70,7 @@ export default function useStatistics(
 		shifts
 			.reduce((groups, shift) => {
 				const workerIndex = groups.findIndex(
-					(group) =>
-						group[0].worker === shift.worker &&
-						group[0].abbreviation === shift.abbreviation &&
-						group[0].stall === shift.stall &&
-						group[0].description.trim() === shift.description.trim() &&
-						group[0].position === shift.position &&
-						group[0].sequence === shift.sequence &&
-						group[0].type === shift.type,
+					(group) => group[0].worker === shift.worker,
 				);
 				if (workerIndex === -1) {
 					groups.push([shift]);
@@ -124,19 +120,15 @@ export default function useStatistics(
 							getGroupedShifts.slice((pages - 1) * 100, pages * 100),
 						),
 					);
-					const getAbbsList = getGroupedShifts.reduce((acc, group) => {
-						if (acc.includes(group[0].abbreviation)) return acc;
-						else return [...acc, group[0].abbreviation];
+					const getAbbsList = shifts.data.reduce((acc, shift) => {
+						if (acc.includes(shift.abbreviation)) return acc;
+						else return [...acc, shift.abbreviation];
 					}, [] as string[]);
-					// group[0].position
-					const getFirstPositionsList = getGroupedShifts.reduce(
-						(acc, group) => {
-							if (!group[0].position || acc.includes(group[0].position))
-								return acc;
-							else return [...acc, group[0].position];
-						},
-						[] as string[],
-					);
+
+					const getFirstPositionsList = shifts.data.reduce((acc, shift) => {
+						if (!shift.position || acc.includes(shift.position)) return acc;
+						else return [...acc, shift.position];
+					}, [] as string[]);
 					// stalls.workers.position
 					const getSecondPositionsList = stalls.data.reduce(
 						(acc, stall) => [
@@ -184,25 +176,25 @@ export default function useStatistics(
 		[] as StallWithId["workers"],
 	);
 	useEffect(() => {
-		const filteredGroups = groups.filter((group) => {
-			const abbreviationMatch = selectedAbbreviations.includes(
-				group[0].abbreviation,
-			);
-			const positionMatch =
-				selectedPositions.includes(group[0].position) ||
-				stallWorkers.some(
-					(worker) =>
-						worker.id === group[0].worker &&
-						selectedPositions.includes(worker.position),
-				);
-			const customerMatch = selectedCustomers.includes(group[0].customerName);
-			return abbreviationMatch && positionMatch && customerMatch;
-		});
+		const filtered = filteredGroups(
+			groups,
+			selectedAbbreviations,
+			selectedPositions,
+			selectedCustomers,
+			minHours,
+			stallWorkers,
+		);
 
-		const groupsToShow = filteredGroups.slice((pages - 1) * 100, pages * 100);
+		const groupsToShow = filtered.slice((pages - 1) * 100, pages * 100);
 		dispatch(setGroupsToShow(groupsToShow));
-		dispatch(setGroupedShiftsLength(filteredGroups.length));
-	}, [pages, selectedAbbreviations, selectedPositions, selectedCustomers]);
+		dispatch(setGroupedShiftsLength(filtered.length));
+	}, [
+		pages,
+		selectedAbbreviations,
+		selectedPositions,
+		selectedCustomers,
+		minHours,
+	]);
 
 	return {
 		section,
@@ -224,6 +216,8 @@ export default function useStatistics(
 			setSelectedPositions,
 			selectedCustomers,
 			setSelectedCustomers,
+			minHours,
+			setMinHours,
 		},
 		// CalendarFilters
 		calendarFilters: {
@@ -231,7 +225,7 @@ export default function useStatistics(
 			setSelectedCCustomers,
 		},
 		// Excel
-		excelGroups: groups.filter((group) => {
+		excelGroups: groupedShiftsExtended(groups.flat()).filter((group) => {
 			const abbreviationMatch = selectedAbbreviations.includes(
 				group[0].abbreviation,
 			);

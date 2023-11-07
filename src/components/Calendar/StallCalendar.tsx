@@ -10,6 +10,7 @@ import classNames from "../../utils/classNames";
 import { colorOps } from "../../utils/colors";
 import { DateToSring, MonthDay, getDay, weekDays } from "../../utils/dates";
 import { getDiference, getSchedules, minutesToString } from "../../utils/hours";
+import { hours } from "../Statistics/WorkersList";
 
 export default function StallCalendar({
 	monthDays,
@@ -41,6 +42,15 @@ export default function StallCalendar({
 		}
 		return a.startTime > b.startTime ? 1 : -1;
 	});
+	const plus = hours(
+		stallShifts.filter((s) => s.color === "green" || s.color === "yellow"),
+	);
+	const sub = hours(
+		stallShifts.filter((s) => s.color === "red" || s.color === "sky"),
+	);
+
+	const totalHours = plus - sub;
+
 	return (
 		<div className="my-2">
 			<section className="flex flex-wrap my-2 gap-2">
@@ -66,6 +76,13 @@ export default function StallCalendar({
 					);
 				})}
 			</section>
+			{stall ? (
+				<div className="p-2 flex justify-center">
+					<Badge color="sky" className="font-bold">
+						{stall.name}: {totalHours} Horas
+					</Badge>
+				</div>
+			) : null}
 			<div className="grid grid-cols-7 text-sm leading-6 bg-gray-100 text-gray-700 rounded-md font-bold">
 				{days.map((day) => (
 					<div key={day} className="text-center px-1 py-2">
