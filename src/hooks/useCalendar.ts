@@ -312,8 +312,7 @@ export const usePropose = (stalls: StallWithId[], events: ShiftWithId[]) => {
 				.map((worker) => {
 					const { sequence, index, jump } = worker;
 					const newJump = 0;
-					const newIndex =
-						index === 0 ? 0 : (index + daysBetween - jump) % sequence.length;
+					const newIndex = (index + daysBetween - jump) % sequence.length;
 					const newWorkerData = {
 						...worker,
 						index: newIndex,
